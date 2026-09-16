@@ -1,0 +1,28 @@
+<?php
+declare(strict_types=1);
+namespace Reformat;
+Include 'All.php';
+
+//$argv=[$argv[0], 'D:\MyProj\WLib.php\Src\WLib\EventLoop\Save'];
+$argv=[$argv[0], __DIR__];
+
+$checkInPhp=False;
+$dontWrite=True;
+
+/**
+ * Рекурсивно находит PHP-файлы и приводит ключевые слова
+ * PHP к нижнему регистру.
+ *
+ * Использование:
+ *   php lowercase_keywords.php /path/to/project
+ *
+ * Или текущая директория:
+ *   php lowercase_keywords.php .
+ */
+
+if (Count($argv)<2) { fwrite(STDERR, "Usage: php {$argv[0]} <directory>\n"); exit(1); }
+
+$root = $argv[1];
+
+If(ProcessFolder($root)<0)
+  Exit(1);
