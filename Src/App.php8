@@ -1,13 +1,23 @@
 <?php
 declare(strict_types=1);
 namespace Reformat;
+
+Set_Time_Limit(0);
+
+//Fix include path for include security
+If($Include_Path=Get_Include_Path())
+  Set_Include_Path(Str_Replace(['.;', ';.','.:', ':.', '.'], '', $Include_Path));  
+
+$logFile='.Formatter.log';
+$argv=[$argv[0], GetCwd()];
+
 Include 'All.php';
 
 //$argv=[$argv[0], 'D:\MyProj\WLib.php\Src\WLib\EventLoop\Save'];
-$argv=[$argv[0], __DIR__];
+//$argv=[$argv[0], __DIR__];
 
-$checkInPhp=False;
-$dontWrite=True;
+$checkInPhp??=False;
+$dontWrite??=True;
 
 /**
  * Рекурсивно находит PHP-файлы и приводит ключевые слова
