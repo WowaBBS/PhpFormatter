@@ -1,7 +1,7 @@
 <?
 namespace Reformat\Filter;
 
-class TKeyWord Extends TBase
+class TNaming Extends TBase
 {
   Static Function GetName() { Return 'KeyWord'; }
 
@@ -9,6 +9,8 @@ class TKeyWord Extends TBase
   {
     global $keywordTokens;
     global $stringKeywords;
+    
+    // TODO: Add checking functions and classes names
 
     $id   = $token->id   ;
     $text = strtolower($token->text );

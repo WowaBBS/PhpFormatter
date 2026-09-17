@@ -5,7 +5,7 @@ include 'Base.php'       ;
 include 'DebugToken.php' ;
 include 'CrLf.php'       ;
 include 'Tab.php'        ;
-include 'KeyWord.php'    ;
+include 'Naming.php'    ;
 include 'Translate.php'  ;
 
 Function GetList()
@@ -14,7 +14,7 @@ Function GetList()
     TDebugToken ::class,
     TCrLf       ::class,
     TTab        ::class,
-    TKeyWord    ::class,
+    TNaming     ::class,
     TTranslate  ::class,
   ];
 }
