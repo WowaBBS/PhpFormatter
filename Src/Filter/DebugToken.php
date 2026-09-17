@@ -8,7 +8,7 @@ class TDebugToken Extends TBase
 {
   Static Function GetName() { Return 'DebugToken'; }
   
-  Static Function IsApplicable($FileName, $Config)
+  Static Function IsApplicable($Info, $Config)
   {
     Global $debugTokens;
     Return $debugTokens;

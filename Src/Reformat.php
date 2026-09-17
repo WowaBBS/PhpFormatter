@@ -1,17 +1,17 @@
 <?
 namespace Reformat;
 
-Function Reformat($source, $FileName='')
+Function Reformat($source, $Info)
 {
 //$tokens = token_get_all($source);
   $tokens = PhpToken::Tokenize($source);
 
   $changed = false;
   
-  $Filters=Filter\CreateList($FileName); //TODO: $Config
+  $Filters=Filter\CreateList($Info); //TODO: $Config
   
   ForEach($Filters As $Filter)
-    $Filter->Start();
+    $Filter->CodeStart();
   
   $result = [];
   foreach($tokens as $token)
@@ -55,7 +55,7 @@ Function Reformat($source, $FileName='')
   
   // TODO: Allow to add rest of tokens at the end
   ForEach($Filters As $Filter)
-    $Filter->Finish();
+    $Filter->CodeFinish();
   
   $result=Implode($result);
   

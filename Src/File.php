@@ -5,19 +5,25 @@ $dontWrite  ??=True;
 
 Function ProcessFile($filename, $root)
 {
-  $showname=$filename;
+  $ShortName=$filename;
   If(Str_Starts_With($filename, $root))
-    $showname=SubStr($filename, StrLen($root));
-  Log('Progress', 'Processing: ', $showname);
+    $ShortName=SubStr($filename, StrLen($root));
+  $Info=[
+    'RootDir'   =>$root,
+    'FileName'  =>$filename,
+    'ShortName' =>$ShortName,
+  ];
+
+  Log('Progress', 'Processing: ', $ShortName);
   
   $source = @file_get_contents($filename);
   
   if ($source === false) Return Log('Error', 'Cannot read file ', $filename)->Ret(-2);
   
-  $result = Reformat($source, $filename);
+  $result = Reformat($source, $Info);
   
   if($result===-1) Return -1;
-  if($result===0) Return Log('Progress', 'Processing: ', $showname, '  unchanged')->Ret(0);
+  if($result===0) Return Log('Progress', 'Processing: ', $ShortName, '  unchanged')->Ret(0);
   if(!Is_String($result)) Return Log('Error', 'Unknown resul code ', $result)->Ret(-1);
   if(!CheckPhp($result)) Return -1;
   
@@ -28,6 +34,6 @@ Function ProcessFile($filename, $root)
   If(@file_put_contents($filename, $result) === false)
     Return Log('Error', 'Cannot write file')->Ret(-1);
 
-  Log('Log', 'Processing: ', $showname, ' changed');
+  Log('Log', 'Processing: ', $ShortName, ' changed');
   Return 1;
 }

@@ -2,83 +2,148 @@
 namespace Reformat\Filter;
 use function Reformat\Log;
 
+$traslateUsingIn??=Null;
+
 class TTranslate Extends TBase
 {
   Static Function GetName() { Return 'Translate'; }
   
-  Var $NeedToTranslate=[];
-  Var $FileName='.Translator.php';
+  Var $IsActive=True;
+  Static $NeedToTranslate=[];
+  
+  //TODO: Move
+  Static $TranslateFileName='.Translator.php';
+  Static $CurrentFile='';
+  Static $UsedIn=[];
+  Static $MyComment='//PHPFormatter: Translate file';
 
-  Static Function IsApplicable($FileName, $Config)
+  Static Function IsApplicable($Info, $Config)
   {
-    If(RealPath($FileName)===RealPath('.Translator.php')) //TODO: FileName from config
+    Self::$CurrentFile=$Info['ShortName'];
+    If(RealPath($Info['FileName'])===RealPath(Self::$TranslateFileName)) //TODO: FileName from config
       Return False;
     Return True;
   }
   
-  Function Start()
+  Function CodeStart()
   {
-    Parent::Start();
-    $this->NeedToTranslate=$this->LoadFile();
+    Parent::CodeStart();
+    Self::$NeedToTranslate=Self::LoadFile();
   }
   
-  Function Finish()
+  Function CodeFinish()
   {
-    Parent::Finish();
-    $this->SaveFile();
-    $Res=$this->LoadFile();
-    If($Res!==$this->NeedToTranslate)
+    Parent::CodeFinish();
+    Self::SaveFile();
+    $Res=Self::LoadFile();
+    If($Res!==Self::$NeedToTranslate)
       Log('Error', 'Cant save translate file')->Debug([
-        'Desired' =>$this->NeedToTranslate,
+        'Desired' =>Self::$NeedToTranslate,
         'Actual'  =>$Res,
       ]);
   }
   
-  Function LoadFile()
+  Static Function LoadFile()
   { //TODO: Optimize: Loading not for each file
-    If(!Is_File($this->FileName)) Return [];
+    If(!Is_File(Self::$TranslateFileName)) Return [];
     
-  //$Res=Include $this->FileName;
-    $FileData=File_Get_Contents($this->FileName);
+    $FileData=File_Get_Contents(Self::$TranslateFileName);
     $Res=Eval(SubStr($FileData, 2));
-    If(Is_Array($Res)) //TODO: Verify result
-      Return $Res;
-    
-    Log('Error', 'Wrong translater file')->Debug($Res);
-    Return [];
+    If(!Is_Array($Res)) Return Log('Error', 'Wrong translater file')->Debug($Res)->Res([]);
+    $Convert=[];
+    ForEach($Res As $k=>$v)
+    {
+      If(Is_String($k) && Is_String($v))
+      { //Old format
+        $Convert[$k]=$v;
+        Continue;
+      }
+      ElseIf(Is_Int($k) && Is_Array($v) && Count($v)===2 && Is_String($v[0]) && Is_String($v[1]))
+      { //New format
+        $Convert[$v[0]]=$v[1];
+        Continue;
+      }
+      Log('Error', 'Wrong format')->Debug([$k=>$v]);
+    }
+    Return $Convert;
   }
   
-  Function SaveFile()
+  Static Function SaveFile()
   {
-    If(!$this->NeedToTranslate)
+    If(!Self::$NeedToTranslate)
     {
-      @UnLink($this->FileName);
+      @UnLink(Self::$TranslateFileName);
       Return;
     }
-    $Res=['<? Return ['];
-    ForEach($this->NeedToTranslate As $k=>$v)
+    $Res=['<? Return ['.Self::$MyComment];
+    ForEach(Self::$NeedToTranslate As $k=>$v)
     {
+      $UsedIn=[];      
+      ForEach(Self::$UsedIn[$k]?? [] As $Item)
+        If(Is_String($Item))
+          $UsedIn[]=$Item;
+      If($UsedIn)
+        $UsedIn='// ---------------- '.Implode(', ', $UsedIn);
+      Else
+        $UsedIn='// UNUSED ********************';
+      
+      $Res[]='['.$UsedIn;
       $Res[]='<<<\'TranslateFrom\'';
       $Res[]=$k;
-      $Res[]='TranslateFrom';
-      $Res[]='=>';
+      $Res[]='TranslateFrom,';
       $Res[]='<<<\'TranslateTo\'';
       $Res[]=$v;
-      $Res[]='TranslateTo';
-      $Res[]=',';
+      $Res[]='TranslateTo],';
     }
     $Res[]='];';
     $Res=Implode("\n", $Res);
-    File_Put_Contents($this->FileName, $Res);
-  //ClearStatCache(true, RealPath($this->FileName));
+    File_Put_Contents(Self::$TranslateFileName, $Res);
   }
   
   Function Process($Token)
   {
-    if(!preg_match('/[\x80-\xFF]/', $Token->text)) Return;
-    $Text=$this->NeedToTranslate[$Token->text]?? $Token->text;
+    If(!$this->IsActive) Return;
+    If($Token->id===T_COMMENT && $Token->text===Self::$MyComment)
+    { //Skip my file
+      $this->IsActive=False;
+      Return;
+    }
+    If(!preg_match('/[\x80-\xFF]/', $Token->text)) Return;
+    $Text=Self::$NeedToTranslate[$Token->text]?? $Token->text;
+    Self::$NeedToTranslate[$Token->text]??=$Token->text;
+    
+    $this->AddUsing($Token);
     If($Text!==$Token->text) Return;
-    $this->NeedToTranslate[$Token->text]??=$Token->text;
-  //Log('Debug', 'Found: ', $Token->text); //->Debug($this->NeedToTranslate);
+    Return $Text;
+  }
+  
+  Function AddUsing($Token)
+  {
+    $UsedIn=&Self::$UsedIn[$Token->text];
+    $UsedIn??=[];
+    
+    $FileName=Self::$CurrentFile;
+    $Line=$Token->line; //TODO: Real line
+    Switch($Token->id)
+    {
+    Case T_COMMENT     : $Type='Rem'; Break;
+    Case T_DOC_COMMENT : $Type='Doc'; Break;
+    Default: $Type=UCWords(SubStr($Token->GetTokenName(), 2), ' _');
+    }
+
+    Global $traslateUsingIn;
+    If($traslateUsingIn)
+      If($traslateUsingIn($UsedIn, $FileName, $Line, $Type)===False)
+        Return;
+
+    $Key=$FileName.':'.$Line.$Type;
+    If(IsSet($UsedIn[$Key])) Return;
+    $UsedIn[$Key]=True;
+    $UsedLine=&$UsedIn[$FileName];
+    $UsedLine??=$FileName;
+    //TODO: $Type
+    If($Line>0)
+      $UsedLine.=':'.$Line;
+  //Log('Debug', 'Found: ', $Token->text); //->Debug(Self::$NeedToTranslate);
   }
 }

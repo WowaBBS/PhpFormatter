@@ -5,13 +5,13 @@ class TBase
 {
   Static Function GetName() { Return 'Id'; }
   
-  Static Function IsApplicable($FileName, $Config) { return True; }
+  Static Function IsApplicable($Info, $Config) { return True; }
   
-  Function Start()
+  Function CodeStart()
   {
   }
   
-  Function Finish()
+  Function CodeFinish()
   {
   }
   
