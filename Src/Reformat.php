@@ -1,14 +1,17 @@
 <?
 namespace Reformat;
 
-Function Reformat($source)
+Function Reformat($source, $FileName='')
 {
 //$tokens = token_get_all($source);
   $tokens = PhpToken::Tokenize($source);
 
   $changed = false;
   
-  $Filters=Filter\CreateList(); //TODO: $Config
+  $Filters=Filter\CreateList($FileName); //TODO: $Config
+  
+  ForEach($Filters As $Filter)
+    $Filter->Start();
   
   $result = [];
   foreach($tokens as $token)
@@ -33,6 +36,7 @@ Function Reformat($source)
         }
         If($r!==Null) $changed=True;
         If($r===False) { Continue; }
+        // TODO: Recalc row and column
         If($r===Null) { $back[]=$token; Continue; }
         If($r===True) { $back[]=$token; Continue; }
         If(Is_Object($r)) { $back[]=$r; Continue; }
@@ -49,7 +53,13 @@ Function Reformat($source)
   //*********************************
   } 
   
+  // TODO: Allow to add rest of tokens at the end
+  ForEach($Filters As $Filter)
+    $Filter->Finish();
+  
   $result=Implode($result);
+  
+  //TODO: Check result and detect changing and compare with $changed and worn differences
 
   if (!$changed) return 0;
   

@@ -19,11 +19,11 @@ Function GetList()
   ];
 }
 
-Function CreateList($Config=[])
+Function CreateList($FileName, $Config=[])
 {
   $Res=[];
   ForEach(GetList() As $Class)
-    If($Class::IsApplicable($Config))
+    If($Class::IsApplicable($FileName, $Config))
       $Res[]=New $Class();
   Return $Res;
 }

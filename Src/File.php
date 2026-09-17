@@ -14,7 +14,7 @@ Function ProcessFile($filename, $root)
   
   if ($source === false) Return Log('Error', 'Cannot read file ', $filename)->Ret(-2);
   
-  $result = Reformat($source);
+  $result = Reformat($source, $filename);
   
   if($result===-1) Return -1;
   if($result===0) Return Log('Progress', 'Processing: ', $showname, '  unchanged')->Ret(0);
