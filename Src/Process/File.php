@@ -4,41 +4,51 @@ use function Reformat\Log;
 
 $dontWrite  ??=True;
 
-Class TFile Extends TSource
+Abstract Class TFile Extends TSource
 {
-  Function File($FileName, $root)
+  Function File($FilePath, $root)
   {
-    $ShortName=$FileName;
-    If(Str_Starts_With($FileName, $root))
-      $ShortName=SubStr($FileName, StrLen($root));
-    $Info=[
-      'RootDir'   =>$root,
-      'FileName'  =>$FileName,
-      'ShortName' =>$ShortName,
-    ];
+    $ShortPath=$FilePath;
+    If(Str_Starts_With($FilePath, $root))
+      $ShortPath=SubStr($FilePath, StrLen($root));
+    
+    $OldShortPath =$this->ShortPath ;
+    $OldFilePath  =$this->FilePath  ;
+    
+    $this->ShortPath =$ShortPath;
+    $this->FilePath  =$FilePath;
+    
+    $this->_File($FilePath);
+   
+    $this->ShortPath =$OldShortPath ;
+    $this->FilePath  =$OldFilePath  ;
+  }
   
-    Log('Progress', 'Processing: ', $ShortName);
+  Function _File($FilePath)
+  {
+  
+    Log('Progress', 'Processing: ', $this->ShortPath);
     
-    $source = @file_get_contents($FileName);
+    $source = @file_get_contents($FilePath);
     
-    if ($source === false) Return Log('Error', 'Cannot read file ', $FileName)->Ret(-2);
+    if ($source === false) Return Log('Error', 'Cannot read file ', $FilePath)->Ret(-2);
     
-    $this->Filters->FileStart($Info);
+    $this->Filters->FileStart();
     
-    $Result = $this->Source($source, $Info);
+    $Result = $this->Source($source);
     
     if($Result===-1) Return -1;
-    if($Result===0) Return Log('Progress', 'Processing: ', $ShortName, '  unchanged')->Ret(0);
+    if($Result===0) Return Log('Progress', 'Processing: ', $this->ShortPath, '  unchanged')->Ret(0);
     if(!Is_String($Result)) Return Log('Error', 'Unknown resul code ', $Result)->Ret(-1);
     
     //«аписываем только после успешной проверки.
   
     Global $dontWrite;
     If(!$dontWrite)
-    If(@file_put_contents($FileName, $Result) === false)
+    If(@file_put_contents($FilePath, $Result) === false)
       Return Log('Error', 'Cannot write file')->Ret(-1);
   
-    Log('Log', 'Processing: ', $ShortName, ' changed');
+    Log('Log', 'Processing: ', $this->ShortPath, ' changed');
     Return 1;
   }
 }

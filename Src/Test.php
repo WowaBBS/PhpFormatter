@@ -6,7 +6,7 @@ $checkInPhp  =False ;
 $dontWrite   =true  ;
 $debugTokens =True  ;
 
-$Process=New Process\TFile();
+$Process=New TProcess();
 $Process->Init();
 
 if($Process->File(__DIR__.'\Sample.php', __DIR__)<0)

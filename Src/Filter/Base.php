@@ -4,11 +4,20 @@ use function Reformat\Log;
 
 class TBase
 {
+  Var $Source;
+  
+  Function GetSource() { Return $this->Source->Get(); }
+  
   Static Function GetName() { Return 'Base'; }
+  
+  Function Init($Source)
+  {
+    $this->Source=\WeakReference::Create($Source);
+  }
   
   Static Function IsApplicable($Process) { return True; }
 
-  Function FileStart($Info) {}
+  Function FileStart() {}
   
   Function ProcessAll($Tokens):Array|Null|False
   {

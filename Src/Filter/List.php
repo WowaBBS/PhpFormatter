@@ -2,25 +2,26 @@
 namespace Reformat\Filter;
 use function Reformat\Log;
 
-Class TList
+Class TList Extends TBase
 {
   Var $List=[];
   
   Function Add($Filter)
   {
+    $Filter->Init($this->GetSource());
     $Key=$Filter->GetName();
     If(IsSet($this->List[$Key]))
       Log('Error', 'Filter ', $Key, ' has already exists');
     $this->List[$Key]=$Filter;
   }
   
-  Function FileStart($Info)
+  Function FileStart()
   {
     ForEach($this->List As $Filter)
-      $Filter->FileStart($Info);
+      $Filter->FileStart();
   }
 
-  Function ProcessAll($Tokens)
+  Function ProcessAll($Tokens):Array|Null|False
   {
     $Changed=False;
     ForEach($this->List As $Filter)

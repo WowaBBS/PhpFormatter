@@ -1,20 +1,12 @@
 <?
 namespace Reformat\Process;
 use function Reformat\Log;
-use function Reformat\Filter\CreateList;
 use function Reformat\CheckPhp;
 use          Reformat\PhpToken;
 
-Class TSource
+Abstract Class TSource Extends TBase
 {
-  Var $Filters;
-  
-  Function Init()
-  {
-    $this->Filters=CreateList($this); //TODO: $Config
-  }
-
-  Function Source($Source, $Info)
+  Function Source($Source)
   {
     $Tokens = PhpToken::Tokenize($Source);
   

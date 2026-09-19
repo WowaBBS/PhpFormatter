@@ -17,10 +17,10 @@ class TTranslate Extends TBase
   Static $UsedIn=[];
   Static $MyComment='//PHPFormatter: Translate file';
 
-  Function FileStart($Info)
+  Function FileStart()
   {
-    Self::$CurrentFile=$Info['ShortName']?? '';
-    If(RealPath($Info['FileName'])===RealPath(Self::$TranslateFileName)) //TODO: FileName from config
+    Self::$CurrentFile=$this->GetSource()->ShortPath;
+    If(RealPath($this->GetSource()->FilePath)===RealPath(Self::$TranslateFileName)) //TODO: FileName from config
       Return False;
     Return True;
   }

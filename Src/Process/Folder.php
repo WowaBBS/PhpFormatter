@@ -2,7 +2,7 @@
 namespace Reformat\Process;
 use function Reformat\Log;
 
-Class TFolder Extends TFile
+Abstract Class TFolder Extends TFile
 {
   Function Folder($root)
   {

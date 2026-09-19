@@ -23,6 +23,7 @@ Function GetList()
 Function CreateList($Process)
 {
   $Res=New TList();
+  $Res->Init($Process);
   ForEach(GetList() As $Class)
     If($Class::IsApplicable($Process))
       $Res->Add(New $Class());
