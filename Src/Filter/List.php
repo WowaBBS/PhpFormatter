@@ -1,5 +1,6 @@
 <?
 namespace Reformat\Filter;
+use function Reformat\Log;
 
 Class TList
 {

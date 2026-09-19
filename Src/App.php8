@@ -34,5 +34,7 @@ if (Count($argv)<2) { fwrite(STDERR, "Usage: php {$argv[0]} <directory>\n"); exi
 
 $root = $argv[1];
 
-If(ProcessFolder($root)<0)
+$Process=New Process\TFolder();
+$Process->Init();
+If($Process->Folder($root)<0)
   Exit(1);

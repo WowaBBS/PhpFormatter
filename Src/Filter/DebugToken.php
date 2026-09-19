@@ -4,11 +4,11 @@ use function Reformat\Log;
 
 $debugTokens??=False;
 
-class TDebugToken Extends TBase
+Class TDebugToken Extends TBase
 {
   Static Function GetName() { Return 'DebugToken'; }
   
-  Static Function IsApplicable($Info, $Config)
+  Static Function IsApplicable($Process)
   {
     Global $debugTokens;
     Return $debugTokens;
@@ -18,5 +18,4 @@ class TDebugToken Extends TBase
   {
     Log('Debug', 'Token: ', ...$Token->GetDebug());
   }
-  
 }

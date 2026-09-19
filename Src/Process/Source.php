@@ -1,0 +1,50 @@
+<?
+namespace Reformat\Process;
+use function Reformat\Log;
+use function Reformat\Filter\CreateList;
+use function Reformat\CheckPhp;
+use          Reformat\PhpToken;
+
+Class TSource
+{
+  Var $Filters;
+  
+  Function Init()
+  {
+    $this->Filters=CreateList($this); //TODO: $Config
+  }
+
+  Function Source($Source, $Info)
+  {
+    $Tokens = PhpToken::Tokenize($Source);
+  
+    $Changed = False;
+    
+    $Result=$this->Filters->ProcessAll($Tokens);
+    If($Result===False) Return aaa(-1); //Error happend
+    If(Is_Array($Result))
+    {
+      $Changed=True;
+      $Tokens=$Result;
+    }
+    
+    $Result = [];
+    ForEach($Tokens As $Token)
+      $Result[] = $Token->text;
+    
+    $Result=Implode($Result);
+    
+    $IsRealChanged=$Source!==$Result;
+    
+    If($Changed!==$IsRealChanged)
+      If($IsRealChanged) //TODO: Save Actual and desired versions
+        Return Log('Error', 'Actually document is changed')->Ret(-1);
+      Else
+        Log('Warning', 'Actually document is not changed');
+    
+    If(!$Changed) Return 0;
+    if(!CheckPhp($Result)) Return -1;
+    
+    Return $Result;
+  }
+}

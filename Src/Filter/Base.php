@@ -1,11 +1,12 @@
 <?
 namespace Reformat\Filter;
+use function Reformat\Log;
 
 class TBase
 {
   Static Function GetName() { Return 'Base'; }
   
-  Static Function IsApplicable($Info, $Config) { return True; }
+  Static Function IsApplicable($Process) { return True; }
 
   Function FileStart($Info) {}
   

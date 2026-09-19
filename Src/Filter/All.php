@@ -20,11 +20,11 @@ Function GetList()
   ];
 }
 
-Function CreateList($Info, $Config=[])
+Function CreateList($Process)
 {
   $Res=New TList();
   ForEach(GetList() As $Class)
-    If($Class::IsApplicable($Info, $Config))
+    If($Class::IsApplicable($Process))
       $Res->Add(New $Class());
   Return $Res;
 }
