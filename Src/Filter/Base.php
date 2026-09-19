@@ -3,13 +3,13 @@ namespace Reformat\Filter;
 
 class TBase
 {
-  Static Function GetName() { Return 'Id'; }
+  Static Function GetName() { Return 'Base'; }
   
   Static Function IsApplicable($Info, $Config) { return True; }
 
   Function FileStart($Info) {}
   
-  Function ProcessAll($Tokens)
+  Function ProcessAll($Tokens):Array|Null|False
   {
     $this->CodeStart();
     $Res=[]; //TODO: Prealloc?
@@ -49,7 +49,7 @@ class TBase
     
     If(!$Changed) Return Null;
       
-    $this->ReIndexLinePos($Tokens, $First);
+    $this->ReIndexLinePos($Res, $First);
     
     Return $Res;
   }
@@ -84,7 +84,7 @@ class TBase
   {
   }
   
-  Function Process($Token)
+  Function Process($Token)//:Null|Object|Array|String
   {
   }
 }

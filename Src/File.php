@@ -22,8 +22,7 @@ Function ProcessFile($filename, $root, $Filters=Null)
   
   $Filters??=Filter\CreateList($Info); //TODO: $Config
   
-  ForEach($Filters As $Filter)
-    $Filter->FileStart($Info);
+  $Filters->FileStart($Info);
   
   $result = Reformat($source, $Info, $Filters);
   

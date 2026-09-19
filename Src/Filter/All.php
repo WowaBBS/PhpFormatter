@@ -2,10 +2,11 @@
 namespace Reformat\Filter;
 
 include 'Base.php'       ;
+include 'List.php'       ;
 include 'DebugToken.php' ;
 include 'CrLf.php'       ;
 include 'Tab.php'        ;
-include 'Naming.php'    ;
+include 'Naming.php'     ;
 include 'Translate.php'  ;
 
 Function GetList()
@@ -21,9 +22,9 @@ Function GetList()
 
 Function CreateList($Info, $Config=[])
 {
-  $Res=[];
+  $Res=New TList();
   ForEach(GetList() As $Class)
     If($Class::IsApplicable($Info, $Config))
-      $Res[]=New $Class();
+      $Res->Add(New $Class());
   Return $Res;
 }

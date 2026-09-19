@@ -3,7 +3,7 @@ namespace Reformat\Filter;
 
 class TNaming Extends TBase
 {
-  Static Function GetName() { Return 'KeyWord'; }
+  Static Function GetName() { Return 'Naming'; }
 
   Function Process($token)
   {
