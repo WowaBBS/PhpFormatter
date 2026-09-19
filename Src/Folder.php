@@ -1,9 +1,11 @@
 <?
 namespace Reformat;
 
-Function ProcessFolder($root)
+Function ProcessFolder($root, $Filters=Null)
 {
   if(!is_dir($root)) return Log('Error', 'Directory does not exist: ', $root)->Ret(-1);
+  
+  $Filters??=Filter\CreateList([]); //TODO: $Config
   
   $filesProcessed = 0;
   $filesChanged = 0;
@@ -26,7 +28,7 @@ Function ProcessFolder($root)
   
     $filename = $file->getPathname();
   
-    $result=ProcessFile($filename, $root);
+    $result=ProcessFile($filename, $root, $Filters);
     switch($result)
     {
     case -2: ++$errors; break;

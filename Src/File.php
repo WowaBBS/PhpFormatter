@@ -3,7 +3,7 @@ namespace Reformat;
 
 $dontWrite  ??=True;
 
-Function ProcessFile($filename, $root)
+Function ProcessFile($filename, $root, $Filters=Null)
 {
   $ShortName=$filename;
   If(Str_Starts_With($filename, $root))
@@ -20,7 +20,12 @@ Function ProcessFile($filename, $root)
   
   if ($source === false) Return Log('Error', 'Cannot read file ', $filename)->Ret(-2);
   
-  $result = Reformat($source, $Info);
+  $Filters??=Filter\CreateList($Info); //TODO: $Config
+  
+  ForEach($Filters As $Filter)
+    $Filter->FileStart($Info);
+  
+  $result = Reformat($source, $Info, $Filters);
   
   if($result===-1) Return -1;
   if($result===0) Return Log('Progress', 'Processing: ', $ShortName, '  unchanged')->Ret(0);

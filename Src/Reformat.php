@@ -1,67 +1,34 @@
 <?
 namespace Reformat;
 
-Function Reformat($source, $Info)
+Function Reformat($Source, $Info, $Filters=Null)
 {
-//$tokens = token_get_all($source);
-  $tokens = PhpToken::Tokenize($source);
+  $Tokens = PhpToken::Tokenize($Source);
 
-  $changed = false;
+  $Changed = False;
   
-  $Filters=Filter\CreateList($Info); //TODO: $Config
+  $Filters??=Filter\CreateList($Info); //TODO: $Config
   
   ForEach($Filters As $Filter)
-    $Filter->CodeStart();
-  
-  $result = [];
-  foreach($tokens as $token)
   {
-    $tokens2=[$token];
-    ForEach($Filters As $Filter)
+    $Result=$Filter->ProcessAll($Tokens);
+    If($Result===False) Return -1; //Error happend
+    If(Is_Array($Result))
     {
-      $back=[];
-      While($tokens2)
-      {
-        $token=Array_Shift($tokens2);
-        $r=$Filter->Process($token);
-        If(Is_String($r))
-        {
-          If($token->text!==$r)
-          {
-            $token->text=$r;
-            $r=$token;
-          }
-          Else
-            $r=Null;
-        }
-        If($r!==Null) $changed=True;
-        If($r===False) { Continue; }
-        // TODO: Recalc row and column
-        If($r===Null) { $back[]=$token; Continue; }
-        If($r===True) { $back[]=$token; Continue; }
-        If(Is_Object($r)) { $back[]=$r; Continue; }
-        If(Is_Array($r)) { Array_Push($back, ...$r); Continue; }
-        Log('Error', 'Unknown token process:')->Debug($r);
-        Return -1;
-      }
-      $tokens2=$back;
+      $Changed=True;
+      $Tokens=$Result;
     }
-    
-    ForEach($tokens2 As $tiken)
-      $result[]=$tiken->text;
-
-  //*********************************
-  } 
+  }
   
-  // TODO: Allow to add rest of tokens at the end
-  ForEach($Filters As $Filter)
-    $Filter->CodeFinish();
+  $Result = [];
+  foreach($Tokens As $Token)
+    $Result[] = $Token->text;
   
-  $result=Implode($result);
+  $Result=Implode($Result);
   
-  //TODO: Check result and detect changing and compare with $changed and worn differences
-
-  if (!$changed) return 0;
+  $IsRealChanged=$Source!==$Result;
   
-  return $result;
+  If(!$Changed) Return 0;
+  
+  Return $Result;
 }
