@@ -14,7 +14,7 @@ Class TDebugToken Extends TBase
     Return $debugTokens;
   }
   
-  Function Process($Token)
+  Function ProcessText($Token)//:Void|String
   {
     Log('Debug', 'Token: ', ...$Token->GetDebug());
   }

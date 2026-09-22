@@ -21,19 +21,15 @@ Class TList Extends TBase
       $Filter->FileStart();
   }
 
-  Function ProcessAll($Tokens):Array|Null|False
+  Function ProcessAll($Document):?Bool
   {
     $Changed=False;
     ForEach($this->List As $Filter)
     {
-      $Result=$Filter->ProcessAll($Tokens);
+      $Result=$Filter->ProcessAll($Document);
       If($Result===False) Return False; //Error happend
-      If(Is_Array($Result))
-      {
-        $Changed=True;
-        $Tokens=$Result;
-      }
+      If($Result===True) $Changed=True;
     }
-    Return $Changed? $Tokens:Null;
+    Return $Changed? True:Null;
   }
 }

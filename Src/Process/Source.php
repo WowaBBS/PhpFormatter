@@ -8,23 +8,17 @@ Abstract Class TSource Extends TBase
 {
   Function Source($Source)
   {
-    $Tokens = PhpToken::Tokenize($Source);
+    $Document=New \Reformat\Token\TList();
+    $Tokens = \PhpToken::Tokenize($Source); //Token_Get_All($Source);
+    ForEach($Tokens As $Item)
+      $Document->AddText($Item->id, $Item->text);
+    UnSet($Tokens);
   
-    $Changed = False;
+    $Result=$this->Filters->ProcessAll($Document);
+    If($Result===False ) Return -1; //Error happend
+    $Changed=$Result===True  ;
     
-    $Result=$this->Filters->ProcessAll($Tokens);
-    If($Result===False) Return aaa(-1); //Error happend
-    If(Is_Array($Result))
-    {
-      $Changed=True;
-      $Tokens=$Result;
-    }
-    
-    $Result = [];
-    ForEach($Tokens As $Token)
-      $Result[] = $Token->text;
-    
-    $Result=Implode($Result);
+    $Result = $Document->ToString();
     
     $IsRealChanged=$Source!==$Result;
     

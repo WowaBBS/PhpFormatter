@@ -19,62 +19,49 @@ class TBase
 
   Function FileStart() {}
   
-  Function ProcessAll($Tokens):Array|Null|False
+  Function ProcessAll($Document):?Bool
   {
     $this->CodeStart();
-    $Res=[]; //TODO: Prealloc?
-    $Changed=False;
-    $First=Null;
-    ForEach($Tokens As $Token)
+    $First=$Document->First;
+    For($Token=$Document->First; $Token; $Token=$Token->Next)
     {
-      $First??=$Token;
-    //$Text=$Token->Text; //TODO: Check the text is changed?
-      $r=$this->Process($Token);
+      $r=$this->ProcessText($Token);
       If(Is_String($r))
       {
-        If($Token->text!==$r)
-        {
-          $Token->text=$r;
-          $r=$Token;
-        }
-        Else
-          $r=Null;
+        $Token->SetText($r);
+        Continue;
       }
-      If($r!==Null) $Changed=True;
-      If($r===False) Continue;
-      // TODO: Recalc row and column
-      If($r===Null) { $Res[]=$Token; Continue; }
-      If($r===True) { $Res[]=$Token; Continue; }
-      If(Is_Object($r)) { $Res[]=$r; Continue; }
-      If(Is_Array($r)) { Array_Push($Res, ...$r); Continue; }
+      If($r===False) Continue; //TODO: Remove?
+      If($r===Null ) Continue; //Not changed
+      If(Is_Object($r)) { $Token=$r; Continue; }
       Log('Error', 'Unknown token process:')->Debug($r);
       Return False;
     }
     
-    $r=$this->CodeFinish();
-    If($r) $Changed=True;
-  //If($r===true) // If changed some tokens offline
-    If(Is_Object($r)) $Res[]=$r;
-    If(Is_Array($r)) Array_Push($Res, ...$r);
+    $this->CodeFinish();
+    
+    $Changed=$Document->IsChanged();
     
     If(!$Changed) Return Null;
+  //Log('Debug', 'Chenged!');
+    $Document->ResetChanged();
       
-    $this->ReIndexLinePos($Res, $First);
+  //TODO: $this->ReIndexLinePos($Res, $First);
     
-    Return $Res;
+    Return True;
   }
   
   Function ReIndexLinePos($Tokens, $First)
   { //TODO: Add Unicode support?
-    IF(!$Tokens) Return;
-    $Line     = $First->line ;
-    $FirstPos = $First->pos  ;
+    If(!$Tokens) Return;
+    $Line     = $First->Line ;
+    $FirstPos = $First->Pos  ;
     $Pos      = $FirstPos    ;
     ForEach($Tokens As $Token)
     {
-      $Token->line =$Line ;
-      $Token->pos  =$Pos  ;
-      $Text=$Token->text;
+      $Token->Line =$Line ;
+      $Token->Pos  =$Pos  ;
+      $Text=$Token->Text;
       
       $i=StrRPos($Text, "\n");
       If($i!==False)
@@ -94,7 +81,7 @@ class TBase
   {
   }
   
-  Function Process($Token)//:Null|Object|Array|String
+  Function ProcessText($Token)//:Void|String //:Null|Object|Array|String
   {
   }
 }

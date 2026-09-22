@@ -100,31 +100,31 @@ class TTranslate Extends TBase
     File_Put_Contents(Self::$TranslateFileName, $Res);
   }
   
-  Function Process($Token)
+  Function ProcessText($Token)//:Void|String
   {
     If(!$this->IsActive) Return;
-    If($Token->id===T_COMMENT && $Token->text===Self::$MyComment)
+    If($Token->Id===T_COMMENT && $Token->Text===Self::$MyComment)
     { //Skip my file
       $this->IsActive=False;
       Return;
     }
-    If(!preg_match('/[\x80-\xFF]/', $Token->text)) Return;
-    $Text=Self::$NeedToTranslate[$Token->text]?? $Token->text;
-    Self::$NeedToTranslate[$Token->text]??=$Token->text;
+    If(!Preg_Match('/[\x80-\xFF]/', $Token->Text)) Return;
+    $Text=Self::$NeedToTranslate[$Token->Text]?? $Token->Text;
+    Self::$NeedToTranslate[$Token->Text]??=$Token->Text;
     
     $this->AddUsing($Token);
-    If($Text!==$Token->text) Return;
+    If($Text!==$Token->Text) Return;
     Return $Text;
   }
   
   Function AddUsing($Token)
   {
-    $UsedIn=&Self::$UsedIn[$Token->text];
+    $UsedIn=&Self::$UsedIn[$Token->Text];
     $UsedIn??=[];
     
     $FileName=Self::$CurrentFile;
     $Line=$Token->line; //TODO: Real line
-    Switch($Token->id)
+    Switch($Token->Id)
     {
     Case T_COMMENT     : $Type='Rem'; Break;
     Case T_DOC_COMMENT : $Type='Doc'; Break;
@@ -144,6 +144,6 @@ class TTranslate Extends TBase
     //TODO: $Type
     If($Line>0)
       $UsedLine.=':'.$Line;
-  //Log('Debug', 'Found: ', $Token->text); //->Debug(Self::$NeedToTranslate);
+  //Log('Debug', 'Found: ', $Token->Text); //->Debug(Self::$NeedToTranslate);
   }
 }
