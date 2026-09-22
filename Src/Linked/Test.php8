@@ -1,0 +1,35 @@
+<?
+namespace Reformat\Linked;
+for($F=__FILE__; $F;$F=DirName($F)) if(@include$F.'/Using.php') break;
+$Loader->GetLogger()->ScriptLog(); 
+//$Loader->GetLogger()->Add($argv[0].'.log'); 
+
+Include 'List.php';
+
+Class TTree
+{
+  Use TNode, TList;
+  Var $Name='Node';
+  
+  Function __Construct($Name) { $this->Name=$Name; }
+  
+  Function Show($Tab='')
+  {
+    $Parent=$this->Parent;
+    Echo $Tab, $this->Name, "\n"; //, ($Parent? '<-'.$Parent->Name:'')
+    $Tab.='+ ';
+    For($Item=$this->First; $Item; $Item=$Item->Next)
+      $Item->Show($Tab);
+  }
+}
+
+$Tree=New TTree("Root");
+$Tree->Add(New TTree("Node1"));
+$Tree->Add(New TTree("Node2"));
+Assert($Tree->Last->Parent===$Tree);
+//$Tree->Last->Parent=$Tree;
+$Tree->Show();
+//$Loader->Log('Debug')->Debug($Tree);
+
+$Loader->Done();
+ 
