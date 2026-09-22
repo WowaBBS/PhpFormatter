@@ -18,15 +18,16 @@ Abstract Class TFile Extends TSource
     $this->ShortPath =$ShortPath;
     $this->FilePath  =$FilePath;
     
-    $this->_File($FilePath);
+    $Result=$this->_File($FilePath);
    
     $this->ShortPath =$OldShortPath ;
     $this->FilePath  =$OldFilePath  ;
+    
+    Return $Result;
   }
   
   Function _File($FilePath)
   {
-  
     Log('Progress', 'Processing: ', $this->ShortPath);
     
     $source = @file_get_contents($FilePath);
@@ -37,9 +38,9 @@ Abstract Class TFile Extends TSource
     
     $Result = $this->Source($source);
     
-    if($Result===-1) Return -1;
-    if($Result===0) Return Log('Progress', 'Processing: ', $this->ShortPath, '  unchanged')->Ret(0);
-    if(!Is_String($Result)) Return Log('Error', 'Unknown resul code ', $Result)->Ret(-1);
+    if($Result===-1) Return Log('Progress', 'Processing: ', $this->ShortPath, ' error')->Ret(-1);
+    if($Result===0) Return Log('Progress', 'Processing: ', $this->ShortPath, ' unchanged')->Ret(0);
+    if(!Is_String($Result)) Return Log('Error', 'File: Unknown result code ', $Result)->Ret(-1);
     
     //«аписываем только после успешной проверки.
   

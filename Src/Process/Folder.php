@@ -4,45 +4,45 @@ use function Reformat\Log;
 
 Abstract Class TFolder Extends TFile
 {
-  Function Folder($root)
+  Function Folder($Root)
   {
-    if(!is_dir($root)) return Log('Error', 'Directory does not exist: ', $root)->Ret(-1);
+    If(!Is_Dir($Root)) Return Log('Error', 'Directory does not exist: ', $Root)->Ret(-1);
     
-    $filesProcessed = 0;
-    $filesChanged = 0;
-    $errors = 0;
+    $FilesProcessed = 0;
+    $FilesChanged   = 0;
+    $Errors         = 0;
     
-    $iterator = new \RecursiveIteratorIterator(
-      new \RecursiveDirectoryIterator(
-        $root,
+    $Iterator = New \RecursiveIteratorIterator(
+      New \RecursiveDirectoryIterator(
+        $Root,
         \FilesystemIterator::SKIP_DOTS
       ),
       \RecursiveIteratorIterator::LEAVES_ONLY
     );
     
-    foreach ($iterator as $file)
+    ForEach ($Iterator As $File)
     {
-      if (!$file->isFile()) continue;
-      $ext=strtolower($file->getExtension());
-    //if ($ext !== 'php') continue;
-      if (!str_starts_with($ext, 'php')) continue;
+      if (!$File->isFile()) Continue;
+      $Ext=StrToLower($File->GetExtension());
+    //If ($Ext !== 'php') Continue;
+      If (!Str_Starts_With($Ext, 'php')) Continue;
     
-      $filename = $file->getPathname();
+      $FileName = $File->GetPathName();
     
-      $result=$this->File($filename, $root);
-      switch($result)
+      $Result=$this->File($FileName, $Root);
+      switch($Result)
       {
-      case -2: ++$errors; break;
-      case -1: ++$errors; ++$filesProcessed; break;
-      case  0: ++$filesProcessed; break;
-      case  1: ++$filesProcessed; ++$filesChanged; break;
-      default: Log('Error', 'Unknown resul code ', $result); break;
+      case -2: ++$Errors; break;
+      case -1: ++$Errors; ++$FilesProcessed; break;
+      case  0: ++$FilesProcessed; break;
+      case  1: ++$FilesProcessed; ++$FilesChanged; break;
+      default: Log('Error', 'Folder: Unknown result code ', $Result); break;
       }
     }
     
     echo "\n";
-    echo "Files processed: {$filesProcessed}\n";
-    echo "Files changed:   {$filesChanged}\n";
-    echo "Errors:          {$errors}\n";
+    echo "Files processed: {$FilesProcessed}\n";
+    echo "Files changed:   {$FilesChanged}\n";
+    echo "Errors:          {$Errors}\n";
   }
 }

@@ -1,5 +1,5 @@
 <?
-namespace Reformat;
+namespace Reformat\Token;
 
 /*
  * Ключевые слова PHP, которые token_get_all() представляет

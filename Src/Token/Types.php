@@ -1,4 +1,6 @@
 <?
+namespace Reformat\Token;
+use function Reformat\Log;
 
 $TokenTypes=[
 // KeyWords:
