@@ -5,10 +5,11 @@ namespace Reformat;
 Set_Time_Limit(0);
 
 //Fix include path for include security
-If($Include_Path=Get_Include_Path())
-  Set_Include_Path(Str_Replace(['.;', ';.','.:', ':.', '.'], '', $Include_Path));
+Set_Include_Path(__DIR__);
+//If($Include_Path=Get_Include_Path())
+//Set_Include_Path(Str_Replace(['.;', ';.','.:', ':.', '.'], '', $Include_Path));
 
-$logFile='.Formatter.log';
+$LogFile='.Formatter.log';
 $argv=[$argv[0], GetCwd()];
 
 Include 'All.php';
@@ -38,3 +39,6 @@ $Process=New TProcess();
 $Process->Init();
 If($Process->Folder($root)<0)
   Exit(1);
+
+//TODO: $Process->Done();
+$Loader->Done();
