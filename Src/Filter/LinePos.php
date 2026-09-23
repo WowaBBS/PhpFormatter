@@ -35,11 +35,11 @@ class TLinePos Extends TBase
     If($i!==False)
     {
       $this->Line+=SubStr_Count($Text, "\n");
-      $this->Tab=StrLen($Text)-$i-1;
-      $this->Pos=$this->FirstPos+$this->Tab;
+      $LastLineSize=StrLen($Text)-$i-1;
+      $this->Pos=$this->FirstPos+$LastLineSize;
       Switch($Token->Id)
       { //TODO: Heredoc, Yield From, Tag, Html
-      Case \T_WHITESPACE:  Break; //Ok
+      Case \T_WHITESPACE:  $this->Tab=$LastLineSize; Break; //Ok
       Case \T_START_HEREDOC :
       Case \T_ENCAPSED_AND_WHITESPACE:
       Case \T_OPEN_TAG:

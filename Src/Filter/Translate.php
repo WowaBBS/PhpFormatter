@@ -9,26 +9,24 @@ class TTranslate Extends TBase
   Static Function GetName() { Return 'Translate'; }
   
   Var $IsActive=True;
-  Static $NeedToTranslate=[];
-  
-  //TODO: Move
-  Static $TranslateFileName='.Translator.php';
-  Static $CurrentFile='';
-  Static $UsedIn=[];
-  Static $MyComment='//PHPFormatter: Translate file';
+  Var $NeedToTranslate=[];
+  Var $TranslateFileName='.Translator.php';
+  Var $CurrentFile='';
+  Var $UsedIn=[];
+  Var $MyComment='//PHPFormatter: Translate file';
 
   Function FileStart()
   {
-    Self::$CurrentFile=$this->GetSource()->ShortPath;
-    If(RealPath($this->GetSource()->FilePath)===RealPath(Self::$TranslateFileName)) //TODO: FileName from config
-      Return False;
-    Return True;
+    $this->CurrentFile=$this->GetSource()->ShortPath;
+    $this->IsActive=
+      RealPath($this->GetSource()->FilePath)!==
+      RealPath($this->TranslateFileName); //TODO: FileName from config
   }
   
   Function CodeStart()
   {
     Parent::CodeStart();
-    Self::$NeedToTranslate=Self::LoadFile();
+    $this->NeedToTranslate=Self::LoadFile();
   }
   
   Function CodeFinish()
@@ -36,18 +34,18 @@ class TTranslate Extends TBase
     Parent::CodeFinish();
     Self::SaveFile();
     $Res=Self::LoadFile();
-    If($Res!==Self::$NeedToTranslate)
+    If($Res!==$this->NeedToTranslate)
       Log('Error', 'Cant save translate file')->Debug([
-        'Desired' =>Self::$NeedToTranslate,
+        'Desired' =>$this->NeedToTranslate,
         'Actual'  =>$Res,
       ]);
   }
   
-  Static Function LoadFile()
+  Function LoadFile()
   { //TODO: Optimize: Loading not for each file
-    If(!Is_File(Self::$TranslateFileName)) Return [];
+    If(!Is_File($this->TranslateFileName)) Return [];
     
-    $FileData=File_Get_Contents(Self::$TranslateFileName);
+    $FileData=File_Get_Contents($this->TranslateFileName);
     $Res=Eval(SubStr($FileData, 2));
     If(!Is_Array($Res)) Return Log('Error', 'Wrong translater file')->Debug($Res)->Res([]);
     $Convert=[];
@@ -68,18 +66,18 @@ class TTranslate Extends TBase
     Return $Convert;
   }
   
-  Static Function SaveFile()
+  Function SaveFile()
   {
-    If(!Self::$NeedToTranslate)
+    If(!$this->NeedToTranslate)
     {
-      @UnLink(Self::$TranslateFileName);
+      @UnLink($this->TranslateFileName);
       Return;
     }
-    $Res=['<? Return ['.Self::$MyComment];
-    ForEach(Self::$NeedToTranslate As $k=>$v)
+    $Res=['<? Return ['.$this->MyComment];
+    ForEach($this->NeedToTranslate As $k=>$v)
     {
       $UsedIn=[];      
-      ForEach(Self::$UsedIn[$k]?? [] As $Item)
+      ForEach($this->UsedIn[$k]?? [] As $Item)
         If(Is_String($Item))
           $UsedIn[]=$Item;
       If($UsedIn)
@@ -97,20 +95,20 @@ class TTranslate Extends TBase
     }
     $Res[]='];';
     $Res=Implode("\n", $Res);
-    File_Put_Contents(Self::$TranslateFileName, $Res);
+    File_Put_Contents($this->TranslateFileName, $Res);
   }
   
   Function ProcessText($Token)//:Void|String
   {
     If(!$this->IsActive) Return;
-    If($Token->Id===T_COMMENT && $Token->Text===Self::$MyComment)
+    If($Token->Id===T_COMMENT && $Token->Text===$this->MyComment)
     { //Skip my file
       $this->IsActive=False;
       Return;
     }
     If(!Preg_Match('/[\x80-\xFF]/', $Token->Text)) Return;
-    $Text=Self::$NeedToTranslate[$Token->Text]?? $Token->Text;
-    Self::$NeedToTranslate[$Token->Text]??=$Token->Text;
+    $Text=$this->NeedToTranslate[$Token->Text]?? $Token->Text;
+    $this->NeedToTranslate[$Token->Text]??=$Token->Text;
     
     $this->AddUsing($Token);
     If($Text!==$Token->Text) Return;
@@ -119,11 +117,11 @@ class TTranslate Extends TBase
   
   Function AddUsing($Token)
   {
-    $UsedIn=&Self::$UsedIn[$Token->Text];
+    $UsedIn=&$this->UsedIn[$Token->Text];
     $UsedIn??=[];
     
-    $FileName=Self::$CurrentFile;
-    $Line=$Token->line; //TODO: Real line
+    $FileName=$this->CurrentFile;
+    $Line=$Token->Line; //TODO: Real line
     Switch($Token->Id)
     {
     Case T_COMMENT     : $Type='Rem'; Break;
@@ -144,6 +142,6 @@ class TTranslate Extends TBase
     //TODO: $Type
     If($Line>0)
       $UsedLine.=':'.$Line;
-  //Log('Debug', 'Found: ', $Token->Text); //->Debug(Self::$NeedToTranslate);
+  //Log('Debug', 'Found: ', $Token->Text); //->Debug($this->NeedToTranslate);
   }
 }
