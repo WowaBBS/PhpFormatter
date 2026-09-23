@@ -11,7 +11,12 @@ Abstract Class TSource Extends TBase
     $Document=New \Reformat\Token\TList();
     $Tokens = \PhpToken::Tokenize($Source); //Token_Get_All($Source);
     ForEach($Tokens As $Item)
-      $Document->AddText($Item->id, $Item->text);
+      $Document->AddText(
+        $Item->id   ,
+        $Item->text ,
+        $Item->line ,
+        $Item->pos  ,
+      );
     UnSet($Tokens);
   
     $Result=$this->Filters->ProcessAll($Document);

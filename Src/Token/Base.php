@@ -3,9 +3,14 @@ namespace Reformat\Token;
 use function Reformat\Log;
 Include_Once 'Linked/Node.php';
 
-Class TBase //Extends \PhpToken 
+Abstract Class TBase
 {
   Use \Reformat\Linked\TNode;
+  
+  Abstract Function IsText();
+  
+//****************************************************************
+// String
   
   Function ToString()
   {
