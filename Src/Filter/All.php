@@ -6,6 +6,7 @@ include 'List.php'       ;
 include 'DebugToken.php' ;
 include 'CrLf.php'       ;
 include 'Tab.php'        ;
+include 'LinePos.php'    ;
 include 'Comment.php'    ;
 include 'Brace.php'      ;
 //include 'Space.php'      ;
@@ -18,6 +19,7 @@ Function GetList()
     TDebugToken ::class,
     TCrLf       ::class,
     TTab        ::class,
+    TLinePos    ::class,
     TComment    ::class, // Detects commented code
     TBrace      ::class,
   //TSpace      ::class,
