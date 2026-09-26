@@ -1,6 +1,7 @@
 <?
 namespace Reformat\Filter;
 use function Reformat\Log;
+use function Reformat\Utils\Str\LinePos;
 
 /**
  * Recalcs Line, Pos, and Tab
@@ -30,28 +31,24 @@ class TLinePos Extends TBase
     $Token->Tab  =$this->Tab  ;
     $Text=$Token->Text;
     
-    //TODO: Add Unicode support?
-    $i=StrRPos($Text, "\n");
-    If($i!==False)
+    If(LinePos($Text, $this->Line, $this->Pos))
     {
-      $this->Line+=SubStr_Count($Text, "\n");
-      $LastLineSize=StrLen($Text)-$i-1;
-      $this->Pos=$this->FirstPos+$LastLineSize;
+      $LastLineSize=$this->Pos;
+      $this->Pos+=$this->FirstPos;
       Switch($Token->Id)
       { //TODO: Heredoc, Yield From, Tag, Html
-      Case \T_WHITESPACE:  $this->Tab=$LastLineSize; Break; //Ok
+      Case \T_WHITESPACE    :  $this->Tab=$LastLineSize; Break; //Ok
       Case \T_START_HEREDOC :
       Case \T_ENCAPSED_AND_WHITESPACE:
-      Case \T_OPEN_TAG:
-      Case \T_COMMENT:
-      Case \T_DOC_COMMENT:
-      Case \T_YIELD_FROM:
+      Case \T_OPEN_TAG      :
+      Case \T_COMMENT       :
+      Case \T_DOC_COMMENT   :
+      Case \T_YIELD_FROM    :
+      Case \T_INLINE_HTML   :
         //TODO:
         Break;
       Default: Log('Warning', '\n is in ', $Token->GetTokenName())->Debug($Token->Text);
       }
     }
-    Else
-      $this->Pos+=StrLen($Text);
   }
 }
