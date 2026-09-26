@@ -1,7 +1,7 @@
 <?
 namespace Reformat\Filter;
-use function Reformat\Log;
-use function Reformat\Utils\Str\LinePos;
+Use Function Reformat\Log;
+Use Function Reformat\Utils\Str\LinePos;
 
 /**
  * Recalcs Line, Pos, and Tab

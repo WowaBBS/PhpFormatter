@@ -22,18 +22,18 @@ Class TOption
   Var        $Tokens    ;
   Var        $LastToken ;
   Var Bool   $HasToken  ;
+  Var Array  $FilePos   ;
+  
   Var String $File      ;
   Var Int    $Line      ;
   Var Int    $Pos       ;
   Var Int    $FirstPos  ;
+  
   Var Bool   $HasError  =False;
   
-  Function __Construct($Line=0, $Pos=0, $FirstPos=0, $File='Test')
+  Function __Construct(Array $FilePos=[])
   {
-    $this->File     =$File     ;
-    $this->Line     =$Line     ;
-    $this->Pos      =$Pos      ;
-    $this->FirstPos =$FirstPos ;
+    $this->FilePos=$FilePos;
   }
   
   Function NextToken(Bool $Next=True)
@@ -58,8 +58,8 @@ Class TOption
     If($LogLevel==='Error')
       $this->HasError=True;
   
-    $Line =$this->Line ;
-    $Pos  =$this->Pos  ;
+    $Line =$this->FilePos[1]?? 1;
+    $Pos  =$this->FilePos[$Line<=1? 3:2]?? $this->FilePos[2]?? 1;
     If($Token=$this->LastToken)
     {
       $Line +=$Token->Line-1;
@@ -67,7 +67,11 @@ Class TOption
       If(!$this->HasToken)
         LinePos($Token->Text, $Line, $Pos);
     }
-    Return Log($LogLevel, ...$Args)->File($this->File, $Line, $Pos);
+    Return Log($LogLevel, ...$Args)->File(
+      $this->FilePos[0]?? 'Source', 
+      $Line, 
+      $Pos
+    );
   }
   
   Function CheckWord($Token): False|String
@@ -105,7 +109,7 @@ Class TOption
       'S8'=>[2]
     ]]]]];
   Static $Test_DebugPos=<<<'HereDoc'
-    P1=DebugPos, 
+    P1=DebugPos
     HereDoc;
 
   Function Parse($Text)
@@ -134,7 +138,8 @@ Class TOption
       $Vars=[];
     }
     $Token=$this->NextToken(False);
-    If($End[$Token?->Text?? '']?? False) Return Null;
+    If($Token===Null) Return False;
+    If($End[$Token->Text?? '']?? False) Return Null;
     If(!$Token) Return False;
     $Key=Null;
     If(!$this->ParseKey($Key)) Return False;

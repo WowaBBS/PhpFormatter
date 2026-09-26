@@ -181,6 +181,14 @@ $TokenTypes=[
   'T_NAME_RELATIVE'            => 'namespace\Namespace',
 ];
 
+$Ignorable=[
+  'T_COMMENT'     ,
+  'T_DOC_COMMENT' ,
+  'T_OPEN_TAG'    ,
+  'T_WHITESPACE'  ,
+];
+$Ignorable=Array_Fill_Keys($Ignorable, True);
+
 $CharTokens=[
   ';' =>'',
   '=' =>'',
@@ -191,6 +199,8 @@ $CheckOldTokens=Array_Flip(Array_Keys($TokenTypes));
 $CheckNewTokens=[];
 
 $TokenConsts=[];
+
+$CheckToken=New \PhpToken(0,'');
 
 ForEach(Get_Defined_Constants(true)['tokenizer'] As $k=>$v)
   If(Str_Starts_With($k, 'T_'))
@@ -205,7 +215,22 @@ ForEach(Get_Defined_Constants(true)['tokenizer'] As $k=>$v)
     
     $TokenNames[$v]='!'.$k;
     $TokenConsts[$k]=$v;
+    $CheckToken->id=$v;
+    If($CheckToken->IsIgnorable()!==($Ignorable[$k]?? False))
+      If($CheckToken->IsIgnorable())
+        Log('Error', 'Ignorable: ', $CheckToken->GetTokenName());
+      Else
+        Log('Error', 'NotIgnorable: ', $CheckToken->GetTokenName());
   }
+For($i=0; $i<128; $i++)
+{
+  $CheckToken->id=$i;
+  If($CheckToken->IsIgnorable()!==($Ignorable[Chr($i)]?? False))
+    If($CheckToken->IsIgnorable())
+      Log('Error', 'Ignorable: ', $i, ' ', $i<32? '?':Ord($i));
+    Else
+      Log('Error', 'NotIgnorable: ', $i, ' ', $i<32? '?':Ord($i));
+}
   
 ForEach($CheckOldTokens As $k=>$v)
   Log('Warning', 'Need to remove an aold token', $k);

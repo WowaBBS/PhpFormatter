@@ -38,14 +38,22 @@ class TBase
     Return True;
   }
   
+  Function ProcessOption($Token)
+  {
+  }
+  
   Function ProcessNode($Node)
   {
-    For($Token=$Node->First; $Token; $Token=$Token->Next)
+    ForEach($Node As $Token)
     {
-      If($Token->IsText())
-        $r=$this->ProcessText($Token);
-      Else
-        $r=$this->ProcessMode($Token);
+      Switch($TypeHandler=$Token->GetTypeHandler())
+      {
+      Case 'Text': $r=$this->ProcessText($Token); Break;
+      Case 'Node': $r=$this->ProcessMode($Token); Break;
+      Case 'Opt' : $r=$this->ProcessOption($Token); Break;
+      Default: Return Log('Fatal', 'Unknown TypeHandler=',$TypeHandler)->Ret(False);
+      }
+        
       If(Is_String($r))
       {
         $Token->SetText($r);
@@ -69,5 +77,10 @@ class TBase
   
   Function CodeFinish()
   {
+  }
+  
+  Function Option_Validate($Vars, $Option):True|String
+  {
+    Return 'Not supperted by the filter';
   }
 }

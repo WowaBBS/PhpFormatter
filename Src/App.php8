@@ -9,7 +9,7 @@ Set_Include_Path(''); //Fix include path for include security
 $LogFile='.Formatter.log';
 $argv=[$argv[0], GetCwd()];
 
-Include 'All.php';
+Include '_All.php';
 
 //$argv=[$argv[0], 'D:\MyProj\WLib.php\Src\WLib\EventLoop\Save'];
 //$argv=[$argv[0], __DIR__];

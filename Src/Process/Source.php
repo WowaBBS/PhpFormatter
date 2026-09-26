@@ -6,10 +6,10 @@ use          Reformat\PhpToken;
 
 Abstract Class TSource Extends TBase
 {
-  Function Source($Source)
+  Static Function Tokenize($Source)
   {
     $Document=New \Reformat\Token\TList();
-    $Tokens = \PhpToken::Tokenize($Source); //Token_Get_All($Source);
+    $Tokens = \PhpToken::Tokenize($Source); //, TOKEN_PARSE); //Token_Get_All($Source);
     ForEach($Tokens As $Item)
       $Document->AddText(
         $Item->id   ,
@@ -17,10 +17,16 @@ Abstract Class TSource Extends TBase
         $Item->line ,
         $Item->pos  ,
       );
-    UnSet($Tokens);
+    Return $Document;
+  }
+
+  Function Source($Source)
+  {
+    $Document=Self::Tokenize($Source);
   
     $Result=$this->Filters->ProcessAll($Document);
     If($Result===False ) Return -1; //Error happend
+    $this->Option_CheckUnused();
     $Changed=$Result===True  ;
     
     $Result = $Document->ToString();

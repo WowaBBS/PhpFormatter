@@ -3,9 +3,12 @@ NameSpace Reformat\Utils\Token;
 Use Function Reformat\Log;
 Use Function Reformat\Utils\Str\LinePos;
 
-Function Tokenize($Source)
+Function Tokenize(
+  String $Source       ,
+  Array  $SourceInfo=[],
+)
 {
-  $Document=New \Reformat\Token\TList();
+  $Document=New \Reformat\Token\TDocument($SourceInfo);
   $Tokens = \PhpToken::Tokenize($Source); //, TOKEN_PARSE); //Token_Get_All($Source);
   ForEach($Tokens As $Item)
     $Document->AddText(
@@ -17,17 +20,22 @@ Function Tokenize($Source)
   Return $Document;
 }
 
-Function TokenizeCode($Source)
+Function TokenizeCode(
+  String $Source       ,
+  Array  $SourceInfo=[],
+)
 {
-  $Document=Tokenize('<?php '.$Source);
+  $StartWith='<?php ';
+  $Document=Tokenize($StartWith.$Source, $SourceInfo);
   $First=&$Document->First;
-  $First->Remove();
+  If($First->Text===$StartWith)
+    $First->Remove();
+  Else
+  {
+    $First->Text =SubStr($First->Text, StrLen($StartWith));
+    $First->Id   =T_WHITESPACE;
+  }
   LinePosReIndex($Document);
-//$Text=&$First->Text; TODO: Whitespace in <?php
-//If($Text===' ')
-//  $First->Remove();
-//Else
-//  $Text=SubStr($Text, 1);
   Return $Document;
 }
 

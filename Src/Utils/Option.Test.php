@@ -1,7 +1,7 @@
 <?
 namespace Reformat\Token;
 
-Include_Once '../All.php';
+Include_Once '../_All.php';
 Include_Once 'Option.php';
 //$Loader->Load_Type('Debug/Depth'); Use Function WLib\Debug\Depth;
 
@@ -13,7 +13,7 @@ Set_Time_Limit(2);
 //Нужно написать программу на ПХП, которая парсит строку с опциями 'Path,Class.Field{Param1=True, Param2={SubParam1="Helo",SubParam2=4}}' и возвращает в виде масива ['Path'=>['Class'=>['Field'=>['Param1'=>true,'Param2'=>['SubParam1'=>"Helo",'SubParam2'=>4]]]]] в качестве токенайзера использовать PhpToken::Tokenize
 $Option  =TOption::$Test_Option; $Pos=FindProperty(TOption::class, 'Test_Option');
 $Desired =TOption::$Test_Result; //Log('Debug', 'Pos=',$Pos);
-$Parser  =New TOption(...$Pos);
+$Parser  =New TOption($Pos);
 $Actual=$Parser->Parse($Option);
 
 // Проверяем, совпадает ли результат
@@ -25,8 +25,11 @@ Else
   Log('Debug', 'Parse.Result=',Json_EnCode($Actual  ));//, Depth(100))
 
 $Option  =TOption::$Test_DebugPos; $Pos=FindProperty(TOption::class, 'Test_DebugPos');
-$Parser  =New TOption(...$Pos);
-$Actual=$Parser->Parse($Option);
+$Parser  =New TOption($Pos);
+$Actual=$Parser->Parse($Option); //DebugPos
+
+$Parser  =New TOption();
+$Actual=$Parser->Parse(' ');
 
 Function FindProperty($Class, $Name)
 {
@@ -45,5 +48,5 @@ Function FindProperty($Class, $Name)
 //Return [0, 0, 0, $File];
   $Line +=2;
   $Pos  +=3;
-  Return [$Line, $Pos, $Pos, $File];
+  Return [$File, $Line, $Pos, $Pos];
 }

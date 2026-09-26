@@ -15,12 +15,12 @@
   Set_Include_Path($Include_Path);
 })();
 
-Include 'Log.php'         ;
-Include 'CheckPhp.php'    ;
-Include 'Config.php'      ;
-Include 'Linked/_All.php' ;
-Include 'Utils/_All.php'  ;
-Include 'Token/All.php'   ;
-Include 'Filter/All.php'  ;
-Include 'Process/All.php' ;
-Include 'Process.php'     ;
+Include 'Log.php'          ;
+Include 'CheckPhp.php'     ;
+Include 'Config.php'       ;
+Include 'Linked/_All.php'  ;
+Include 'Utils/_All.php'   ;
+Include 'Token/_All.php'   ;
+Include 'Filter/_All.php'  ;
+Include 'Process/_All.php' ;
+Include 'Process.php'      ;

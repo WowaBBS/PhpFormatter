@@ -1,7 +1,7 @@
 <?
 namespace Reformat\Linked;
 
-Include '../All.php';
+Include '../_All.php';
 
 use function Reformat\Log;
 

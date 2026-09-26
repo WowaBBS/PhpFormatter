@@ -12,7 +12,7 @@ Abstract Class TBase Implements \WLib\Debug\ICustom
   Abstract Function GetInnerText():String;
   Function SetInnerText($v)
   {
-    Log('Fatal', 'Unsupported SetInnerText for ', ...$this->GetDebug())
+    Log('Fatal', 'Unsupported SetInnerText for ', $this)
       ->Debug(['NewInnerText'=>$v, 'OldInnerText'=>$this->GetInnerText()]);
   }
   
@@ -20,6 +20,18 @@ Abstract Class TBase Implements \WLib\Debug\ICustom
   
   Function Is(Int|String ...$Args) { Return In_Array($Id=$this->GetId(), $Args, True); } // Old style: || Is_Array($Args[0]?? Null) && In_Array($Id, $Args[0], True)
   Function GetTokenName() { $Id=$this->GetId(); Return Is_Int($Id)? ($Id<128? Ord($Id):Token_Name($Id)):$Id; }
+  
+  Function GetRoot():TBase
+  {
+    For($Item=$this; $Parent=$Item->Parent; $Item=$Parent);
+    Return $Item;
+  }
+  
+  Function GetDocument():?TDocument
+  {
+    $Root=$this->GetRoot();
+    Return $Root InstanceOf TDocument? $Root:Null;
+  }
   
 //****************************************************************
 // String

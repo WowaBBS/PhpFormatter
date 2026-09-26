@@ -3,12 +3,34 @@
 sgfsdf sdfw;
 $Select->ReadOnly();
 
-include 'All.php';
-require 'All.php';
-include_once 'All.php';
-require_once 'All.php';
+include '_All.php';
+require '_All.php';
+include_once '_All.php';
+require_once '_All.php';
+$Numeric=[
+  1234, // Десятичное число
+  0123, // Восьмеричное число (эквивалентно 83 в десятичной системе)
+  0o123, // Восьмеричное число (начиная с PHP 8.1.0)
+  0x1A, // Шестнадцатеричное число (эквивалентно 26 в десятичной системе)
+  0b11111111, // Двоичное число (эквивалентно 255 в десятичной системе)
+  1_234_567, // Десятичное число (с PHP 7.4.0)
+  1e2,
+  'Hello\n',
+  "Hello\n",
+];
 func();
 $a->method();
+//Test keywords fo functions
+$a->Yield  (1);
+$a->Echo   (1);
+$a->Return (1);
+$a->True   (True);
+//Test keywords fo fields
+$a->Yield  =1;
+$a->Echo   =1;
+$a->Return =1;
+$a->True   =True;
+//End test keywords
 
 #[a(b)]
 Function a() {}
