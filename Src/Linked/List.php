@@ -3,8 +3,9 @@ namespace Reformat\Linked;
 
 Include_Once 'Weak.php';
 Include_Once 'Node.php';
+Include_Once 'Iterator.php';
 
-Trait TList
+Trait TList //Implements IteratorAggregate
 {
   Use TWeak;
 //Function ToWeak() { Return WeakReference::Create($this); }
@@ -30,4 +31,7 @@ Trait TList
     If(!$this->First)
       $this->First=$From;
   }
+  
+//Function GetIterator(): Iterator { Return New Iterator($this->First, $this->Last); }
+  Function GetIterator(): Iterator { Return New Iterator($this->First); }
 }

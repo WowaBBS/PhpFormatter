@@ -1,9 +1,10 @@
 <?
 namespace Reformat\Linked;
 
+Include_Once 'Iterator.php';
 Include_Once 'Weak.php';
 
-Trait TNode
+Trait TNode //Implements \IteratorAggregate
 {
   Use TWeak;
   // Try Weak field and ToWeak to compare
@@ -21,6 +22,8 @@ Trait TNode
   
   Function _RemoveTo($To)
   {
+    Iterator::Iterators_OnRemove($this, $To);
+  
     $Next   =$To  ->Next   ; $To  ->Next   =Null;
     $Prev   =$this->Prev   ; $this->Prev   =Null;
     
@@ -43,7 +46,7 @@ Trait TNode
   
   Function Insert($Item) //Right
   {
-    $Item->CheckParent();
+    $Item->_CheckParent();
     
     $this->_Insert_Range($Item, $Item);
   }
@@ -68,4 +71,5 @@ Trait TNode
       $Item->Parent=$Parent;
   }
   
+  Function IterateUntil($To=Null): Iterator { Return New Iterator($this, $To); }
 }
