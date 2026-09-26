@@ -1,6 +1,6 @@
 <?
 NameSpace Reformat\Utils\Token;
-//Use Function Reformat\Log;
+Use Function Reformat\Log;
 
 Function Tokenize($Source)
 {
@@ -21,11 +21,11 @@ Function TokenizeCode($Source)
   $Document=Tokenize('<?php '.$Source);
   $First=&$Document->First;
   $First->Remove();
-  $Text=&$First->Text;
-  If($Text===' ')
-    $First->Remove();
-  Else
-    $Text=SubStr($Text, 1);
+//$Text=&$First->Text; TODO: Whitespace in <?php
+//If($Text===' ')
+//  $First->Remove();
+//Else
+//  $Text=SubStr($Text, 1);
   Return $Document;
 }
 

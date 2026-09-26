@@ -14,6 +14,7 @@ Use Function Reformat\Utils\Stream\{
   Filter ,
   Map    ,
 };
+Use Function Reformat\Utils\Str\LinePos;
 
 Class TOption
 {
@@ -50,7 +51,8 @@ Class TOption
   Function Error   (...$Args) { Return $this->Log('Error'   ,...$Args); }
   Function Log(String $LogLevel, ...$Args)
   {
-    $this->HasError=True;
+    If($LogLevel==='Error')
+      $this->HasError=True;
   
     $Line =$this->Line ;
     $Pos  =$this->Pos  ;
@@ -72,7 +74,20 @@ Class TOption
   
   Static $Test=[
     'Option'=><<<'HereDoc'
-      Path.Class.Field{P1=True, P2={S1="Helo\n",S2=4,S3=False,S4='Hello\n',S5=[1234,0123,0o123,0x1A,0b11111111,1_234_567,1e2],S6={k1=2}, S6.k2:3.14, S7{k:1}, S8[2]}
+      Path.Class.Field{
+        P1=True, 
+        P2={
+          S1="Helo\n",
+          S2=4,
+          S3=False,
+          S4='Hello\n',
+          S5=[1234,0123,0o123,0x1A,0b11111111,1_234_567,1e2],
+          S6={k1=2}, 
+          S6.k2:3.14, //Contains sub key k2
+          S7{k:1}, 
+          S8[2]
+        }
+      }
       HereDoc,
     'Result'=>
       ['Path'=>['Class'=>['Field'=>['P1'=>true,'P2'=>[
@@ -109,7 +124,7 @@ Class TOption
     If(!Is_Array($Vars))
     {
       If($Vars!==Null)
-        $this->Error('Map: Value has already: ', $Vars);
+        $this->Error('Map: Value has already exist: ', $Vars);
       $Vars=[];
     }
     $Token=$this->NextToken(False);
@@ -125,7 +140,7 @@ Class TOption
     Case '=>' :
     Case '='  :
     Case ':'  : Break;
-    Default   : Return $this->Error('Excepted ".", "=", ":", "{" or "=>", given ',$Text)->Ret(False);
+    Default   : Return $this->Error('Expected ".", "=", ":", "{" or "=>", given ',$Text)->Ret(False);
     }
     $Value=Null;
     If(!$this->ParseValue($Value)) Return False;
@@ -147,7 +162,7 @@ Class TOption
       Case ';':
       Case ',': Continue 2;
       Case '}': Return True;
-      Default: Return $this->Error('Unkbown token ', $Token)->Ret(False);
+      Default: Return $this->Error('Unknown token ', $Token)->Ret(False);
       }
     }
     Return True;
@@ -155,16 +170,18 @@ Class TOption
   
   Function ParseList(&$Vars)
   {
-    $Res=[];
+    If($Vars!==Null)
+      $this->Warning('List: Value has already exist: ', $Vars);
+    $Vars=[];
     While(1)
     {
-      $Token=$this->NextToken(False);
-      If($Token===']') Break;
+      $Token=$this->NextToken(False)?->Text;
+      If($Token===']') { $this->NextToken(); Break; }
       If($Token===',') $this->NextToken(); //TODO: Always ,
       $Value=Null;
       If(!$this->ParseValue($Value)) Return False;
+      $Vars[]=$Value;
     }
-    $Vars=$Res;
     Return True;
   }
   
@@ -177,11 +194,11 @@ Class TOption
     Case T_LNUMBER:
     Case T_DNUMBER:
     Case T_CONSTANT_ENCAPSED_STRING:
-      $Vars=Eval($Token->Text);
+      $Vars=Eval('Return '.$Token->Text.';');
       Break;
     Default:
       If($Token->IsWord()) { $Vars=$Token->Text; Break; }
-      Return $this->Error('Unknown token: ', $Token)->Ret(False);
+      Return $this->Error('Unknown Key token: ', $Token)->Ret(False);
     }
     Return True;
   }
@@ -196,7 +213,7 @@ Class TOption
     Case T_DNUMBER:
     Case T_CONSTANT_ENCAPSED_STRING:
     //Log('Debug', 'Eval ',$Token->Text);
-      $Value=Eval($Token->Text.';');
+      $Value=Eval('Return '.$Token->Text.';');
       Break;
     Default:
       Switch(StrToLOwer($Token->Text))
@@ -205,12 +222,14 @@ Class TOption
       Case 'true'  : $Value=True  ; Break;
       Case 'false' : $Value=False ; Break;
       Case '{': Return $this->ParseMap($Vars);
-      Case '[': $Value=Null; If(!$this->ParseList($Value)) Return False; Break;
+      Case '[': Return $this->ParseList($Vars);
       Default:
         If($WordAllow && $Token->IsWord()) { $Value=$Token->Text; Break; }
-        Return $this->Error('Unknown token: ', $Token)->Ret(False);
+        Return $this->Error('Unknown Value token: ', $Token)->Ret(False);
       }
     }
+    If($Vars!==Null)
+      $this->Warning('Value overrided, Old: ', $Vars, '; New:', $Value, ';');
     $Vars=$Value;
     Return True;
   }
