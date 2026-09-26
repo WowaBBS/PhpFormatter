@@ -1,6 +1,7 @@
 <?
 NameSpace Reformat\Utils\Token;
 Use Function Reformat\Log;
+Use Function Reformat\Utils\Str\LinePos;
 
 Function Tokenize($Source)
 {
@@ -21,6 +22,7 @@ Function TokenizeCode($Source)
   $Document=Tokenize('<?php '.$Source);
   $First=&$Document->First;
   $First->Remove();
+  LinePosReIndex($Document);
 //$Text=&$First->Text; TODO: Whitespace in <?php
 //If($Text===' ')
 //  $First->Remove();
@@ -48,4 +50,38 @@ Function TrimWhiteSpaces($Tokens, $With=' ')
   ForEach($Tokens As $Item)
     If($Item->Is(T_WHITESPACE))
       $Item->Text=$With;
+}
+
+Function LinePosReIndex($Tokens, $Line=0, $FirstPos=0, $Pos=Null, $Tab=0)
+{
+  $Pos??=$FirstPos;
+  $Tab=0;
+  
+  ForEach($Tokens As $Token)
+  {
+    If($Token->GetTypeHandler()!=='Text') Continue;
+    $Token->Line =$Line ;
+    $Token->Pos  =$Pos  ;
+    $Token->Tab  =$Tab  ;
+    $Text=$Token->Text;
+    
+    If(LinePos($Text, $Line, $Pos))
+    {
+      $LastLineSize=$Pos;
+      $Pos+=$FirstPos;
+      Switch($Token->Id)
+      { //TODO: Heredoc, Yield From, Tag, Html
+      Case \T_WHITESPACE    : $Tab=$LastLineSize; Break; //Ok
+      Case \T_START_HEREDOC :
+      Case \T_ENCAPSED_AND_WHITESPACE:
+      Case \T_OPEN_TAG      :
+      Case \T_COMMENT       :
+      Case \T_DOC_COMMENT   :
+      Case \T_YIELD_FROM    :
+      Case \T_INLINE_HTML   :
+        Break;
+      Default: Log('Warning', '\n is in ', $Token->GetTokenName())->Debug($Token->Text);
+      }
+    }
+  }
 }

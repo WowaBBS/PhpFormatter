@@ -2,7 +2,7 @@
 namespace Reformat\Token;
 Include_Once 'Linked/List.php';
 
-Class TList Extends TBase
+Class TList Extends TBase Implements \IteratorAggregate
 {
   Use \Reformat\Linked\TList;
 
@@ -11,8 +11,22 @@ Class TList Extends TBase
     $this->Add(New TText($Id, $Text, $Line, $Pos));
   }
 
-  Function IsText() { Return False; }
+  Function GetId() { Return $this->First?->GetId()?? Parent::GetId(); }
+  Function GetTypeHandler() { Return 'Node'; }
 
+  Function GetInnerText():String
+  {
+    $this->_GetInnerText($this->First, $this->Last);
+  }
+
+  Function _GetInnerText($From, $To):String
+  {
+    $Result=[];
+    For($To=$To->Next; $From!=$To; $From=$From->Next)
+      $From->_ToString($Result);
+    Return Implode($Result); //TODO: Trim left whitespaces
+  }
+  
 //****************************************************************
 // String
   
@@ -31,5 +45,16 @@ Class TList Extends TBase
       $Item->ResetChanged();
   }
 
+//****************************************************************
+// Debug
+
+  Function _Debug_Serialize(&$Res)
+  {
+    Parent::_Debug_Serialize($Res);
+    UnSet($Res['First'  ]);
+    UnSet($Res['Last'   ]);
+    UnSet($Res['Parent' ]); //TODO: Path?
+  }
+  
 //****************************************************************
 }

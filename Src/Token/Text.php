@@ -1,5 +1,6 @@
 <?
 namespace Reformat\Token;
+Use Function Reformat\Utils\Str\IsWord;
 
 Class TText Extends TBase
 {
@@ -17,10 +18,14 @@ Class TText Extends TBase
     $this->Pos  =$Pos  ;
   }
   
+  Function GetId() { Return $this->Id; }
   Function SetId   ($v) { Return Self::_Assign($this->Id   ,$v); }
   Function SetText ($v) { Return Self::_Assign($this->Text ,$v); }
+  Function GetInnerText():String { Return $this->Text; }
   
-  Function IsText() { Return True; }
+  Function GetTypeHandler() { Return 'Text'; }
+  
+  Function IsWord() { Return IsWord($this->Text); }
 //****************************************************************
 // String
   
@@ -30,15 +35,16 @@ Class TText Extends TBase
   }
   
 //****************************************************************
-
-  Function GetTokenName() { Return $this->Id<128? $this->Text:Token_Name($this->Id); }
+// Debug
 
   Function GetDebug()
   {
     If($this->Id<128) Return [$this->Text];
-    Return [Token_Name($this->Id), ': ', $this->Text];
+    Return [$this->GetTokenName(), ': ', $this->Text];
   }
   
+//****************************************************************
+
   Function GetLowerText()
   {
     Return StrToLower($this->Text);

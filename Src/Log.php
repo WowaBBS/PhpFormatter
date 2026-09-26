@@ -3,7 +3,7 @@ namespace Reformat;
 
 for($F=__FILE__; $F;) if(@include($F=DirName($F)).'/Using.php') break;
 
-$Loader->GetLogger()->ScriptLog($LogFile); 
+$Loader->GetLogger()->ScriptLog($LogFile?? Null);
 $log=$Loader->GetLogger()->Log(...);
 
 Function Log(...$Args)
