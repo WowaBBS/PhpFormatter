@@ -1,5 +1,8 @@
 <?
 namespace Reformat\Token;
+
+Use Function Reformat\Log;
+Use Reformat\FilePos\TInfo As TFilePos;
 Use Function Reformat\Utils\Str\IsWord;
 
 Class TText Extends TBase
@@ -27,11 +30,12 @@ Class TText Extends TBase
   
   Function IsWord() { Return IsWord($this->Text); }
   
-  Function GetFilePos()
+  Function GetFilePos():TFilePos
   {
-    $FilePos=$this->GetDocument()?->GetFilePos()?? ['Source'];
-    Return [$FilePos[0], $this->Line, $this->Pos];
-  }  
+  //$FilePos=$this->GetDocument()->GetFilePos();
+    $FilePos=$this->GetDocument()?->GetFilePos()?? TFilePos::GetEmpty();
+    Return New TFilePos($FilePos->FileName, $this->Line, $this->Pos);
+  }
   
 //****************************************************************
 // String

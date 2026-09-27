@@ -32,18 +32,24 @@ Function IsWord($Str)
   Return Preg_Match('/^[a-zA-Z_][a-zA-Z0-9_]*$/Ss', $Str);
 }
 
-Function LinePos($Text, &$Line, &$Pos)
+Function TextSize($Text)
 {
   //TODO: Add Unicode support?
   $i=StrRPos($Text, "\n");
-  If($i!==False)
+  If($i===False) Return [0, StrLen($Text)];
+  
+  Return [SubStr_Count($Text, "\n"), StrLen($Text)-$i-1];  
+}
+
+Function LinePos($Text, &$Line, &$Pos)
+{
+  [$Height, $Width]=TextSize($Text);
+  If($Height)
   {
-    $Line+=SubStr_Count($Text, "\n");
-    $LastLineSize=StrLen($Text)-$i-1;
-    $Pos=$LastLineSize;
+    $Line+=$Height ;
+    $Pos  =$Width  ;
     Return True;
   }
-
-  $Pos+=StrLen($Text);
+  $Pos+=$Width;
   Return False;
 }

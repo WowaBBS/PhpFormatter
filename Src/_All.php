@@ -19,6 +19,7 @@ Include 'Log.php'          ;
 Include 'CheckPhp.php'     ;
 Include 'Config.php'       ;
 Include 'Linked/_All.php'  ;
+Include 'FilePos/_All.php' ;
 Include 'Utils/_All.php'   ;
 Include 'Option/_All.php'  ;
 Include 'Token/_All.php'   ;

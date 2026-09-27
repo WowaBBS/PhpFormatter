@@ -1,0 +1,7 @@
+<?
+NameSpace Reformat\FilePos; //IFilePos  Provider
+
+Interface IProvider
+{
+  Function GetFilePos():TInfo;
+}

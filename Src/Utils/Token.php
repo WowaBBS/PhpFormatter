@@ -1,11 +1,13 @@
 <?
 NameSpace Reformat\Utils\Token;
+
+Use Reformat\FilePos\TInfo As TFilePos;
 Use Function Reformat\Log;
 Use Function Reformat\Utils\Str\LinePos;
 
 Function Tokenize(
-  String $Source    ,
-  Array  $FilePos=[],
+  String    $Source ,
+  ?TFilePos $FilePos=Null,
 )
 {
   $Document=New \Reformat\Token\TDocument($FilePos);
@@ -21,8 +23,8 @@ Function Tokenize(
 }
 
 Function TokenizeCode(
-  String $Source    ,
-  Array  $FilePos=[],
+  String    $Source    ,
+  ?TFilePos $FilePos=Null,
 )
 {
   $StartWith='<?php ';
@@ -60,12 +62,12 @@ Function TrimWhiteSpaces($Tokens, $With=' ')
       $Item->Text=$With;
 }
 
-Function LinePosReIndex($Tokens, $Tab=0, $FilePos=Null)
+Function LinePosReIndex($Tokens, $Tab=0, ?TFilePos $FilePos=Null)
 {
   $FilePos??=$Tokens->GetFilePos();
-  $Line     =$FilePos[1]?? 0;
-  $FirstPos =$FilePos[2]?? 0;
-  $Pos      =$FilePos[3]?? $FirstPos;
+  $Line     =$FilePos->Line    ;
+  $FirstPos =$FilePos->Pos     ;
+  $Pos      =$FilePos->NextPos?? $FirstPos;
 
   ForEach($Tokens As $Token)
   {

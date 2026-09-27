@@ -25,7 +25,7 @@ Abstract Class TSource Extends TBase
     $Document=Self::Tokenize($Source);
   
     $Result=$this->Filters->ProcessAll($Document);
-    If($Result===False ) Return -1; //Error happend
+    If($Result===False) Return -1; //Error happend
     $this->Option_CheckUnused();
     $Changed=$Result===True  ;
     

@@ -1,10 +1,12 @@
 <?
-namespace Reformat\Token;
-use function Reformat\Log;
-Include_Once 'Linked/Node.php';
+NameSpace Reformat\Token;
+
+Use Function Reformat\Log;
+Use Reformat\FilePos\IProvider As IFilePos;
+
 $Loader->Load_Interface('/Debug/Custom');
 
-Abstract Class TBase Implements \WLib\Debug\ICustom
+Abstract Class TBase Implements \WLib\Debug\ICustom, IFilePos
 {
   Use \Reformat\Linked\TNode;
   

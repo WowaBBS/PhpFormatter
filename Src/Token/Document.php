@@ -1,30 +1,16 @@
 <?
-namespace Reformat\Token;
+NameSpace Reformat\Token;
+
+Use Reformat\FilePos\TInfo As TFilePos;
 
 Class TDocument Extends TList
 {
-  Var String $FileName  ='Source';
-  Var Int    $StartLine =0;
-  Var Int    $StartPos  =0;
-  Var Int    $FirstPos  =0;
+  Var TFilePos $FilePos;
   
-  Function __Construct(
-    Array $FilePos=[],
-  )
+  Function __Construct(?TFilePos $FilePos=Null)
   {
-    $this->FileName  =$FilePos[0]?? $this->FileName  ;
-    $this->StartLine =$FilePos[1]?? $this->StartLine ;
-    $this->StartPos  =$FilePos[2]?? $this->StartPos  ;
-    $this->FirstPos  =$FilePos[3]?? $this->StartPos  ;
+    $this->FilePos =$FilePos?? TFilePos::GetEmpty();
   }
   
-  Function GetFilePos()
-  {
-    Return [
-      $this->FileName  ,
-      $this->StartLine ,
-      $this->StartPos  ,
-      $this->FirstPos  ,
-    ];
-  }  
+  Function GetFilePos(): TFilePos { Return $this->FilePos; }
 }

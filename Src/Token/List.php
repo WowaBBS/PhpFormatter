@@ -1,6 +1,7 @@
 <?
-namespace Reformat\Token;
-Include_Once 'Linked/List.php';
+NameSpace Reformat\Token;
+
+Use Reformat\FilePos\TInfo As TFilePos;
 
 Class TList Extends TBase Implements \IteratorAggregate
 {
@@ -27,6 +28,27 @@ Class TList Extends TBase Implements \IteratorAggregate
     Return Implode($Result); //TODO: Trim left whitespaces
   }
   
+  Function _GetParentNext()
+  {
+    $Res=$this->Parent;
+    While($Res && !$Res->Next)
+      $Res=$Res->Parent;
+    Return $Res?->Next;
+  }
+  
+  Function GetTreePrev() { Return $this->Prev?? $this->Parent; }
+  Function GetTreeNext() { Return $this->First?? $this->Next?? $this->_GetParentNext(); }
+  
+  Function GetFilePos():TFilePos
+  {
+    Return $this->First?->GetFilePos()
+      ??Log('Error', 'FilePos is not supported')->Ret(
+        $this->Next?->GetFilePos()
+        ?? $this->_GetParentNext()?->GetFilePos()
+        ?? TFilePos::GetEmpty()
+      );
+  }
+
 //****************************************************************
 // String
   

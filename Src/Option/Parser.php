@@ -2,6 +2,7 @@
 NameSpace Reformat\Option;
 
 Use Function Reformat\Log;
+Use Reformat\FilePos\IProvider As IFilePos;
 
 Use Function Reformat\Utils\Token\{
   TokenizeCode      ,
@@ -21,7 +22,7 @@ Class TParser
 
   Var $Tokens;
   
-  Function __Construct(Array $FilePos=[])
+  Function __Construct(?IFilePos $FilePos=Null)
   {
     $this->Log_FilePos($FilePos);
   }
@@ -44,7 +45,7 @@ Class TParser
     Return $Token->Text;
   }
   
-  Function Parse($Text, Array $FilePos=[])
+  Function Parse($Text, ?IFilePos $FilePos=Null)
   {
     $Tokens=TokenizeCode($Text, $FilePos);
     
