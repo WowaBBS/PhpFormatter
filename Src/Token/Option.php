@@ -2,7 +2,7 @@
 namespace Reformat\Token;
 
 Use Function Reformat\Log;
-Use Reformat\Utils\TOption As TOptionParser;
+Use Reformat\Option\TParser As TOptionParser;
 
 Class TOption Extends TText
 {

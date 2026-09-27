@@ -20,6 +20,7 @@ Include 'CheckPhp.php'     ;
 Include 'Config.php'       ;
 Include 'Linked/_All.php'  ;
 Include 'Utils/_All.php'   ;
+Include 'Option/_All.php'  ;
 Include 'Token/_All.php'   ;
 Include 'Filter/_All.php'  ;
 Include 'Process/_All.php' ;

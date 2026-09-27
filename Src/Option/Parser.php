@@ -1,5 +1,5 @@
 <?
-NameSpace Reformat\Utils;
+NameSpace Reformat\Option;
 
 Use Function Reformat\Log;
 
@@ -15,21 +15,12 @@ Use Function Reformat\Utils\Stream\{
   Filter ,
   Map    ,
 };
-Use Function Reformat\Utils\Str\LinePos;
 
-Class TOption
+Class TParser
 {
-  Var        $Tokens    ;
-  Var        $LastToken ;
-  Var Bool   $HasToken  ;
-  Var Array  $FilePos   ;
-  
-  Var String $File      ;
-  Var Int    $Line      ;
-  Var Int    $Pos       ;
-  Var Int    $FirstPos  ;
-  
-  Var Bool   $HasError  =False;
+  Use TraitLog;
+
+  Var $Tokens;
   
   Function __Construct(Array $FilePos=[])
   {
@@ -38,40 +29,14 @@ Class TOption
   
   Function NextToken(Bool $Next=True)
   {
-    Return $this->SafeNextToken($Next)?? $this->Error('Unexpected end or option')->Ret();
+    Return $this->SafeNextToken($Next)?? $this->Error('Unexpected end of option')->Ret();
   }
   
   Function SafeNextToken(Bool $Next=True)
   {
     $Res=$Next? Next($this->Tokens):$this->Tokens->Current();
-    $this->HasToken=(Bool)$Res;
-    If($Res)
-      $this->LastToken=$Res;
+    $this->Log_SetToken($Res);
     Return $Res;
-  }
-  
-  Function Warning (...$Args) { Return $this->Log('Warning' ,...$Args); }
-  Function Error   (...$Args) { Return $this->Log('Error'   ,...$Args); }
-  Function Debug   (...$Args) { Return $this->Log('Debug'   ,...$Args); }
-  Function Log(String $LogLevel, ...$Args)
-  {
-    If($LogLevel==='Error')
-      $this->HasError=True;
-  
-    $Line =$this->FilePos[1]?? 1;
-    $Pos  =$this->FilePos[$Line<=1? 3:2]?? $this->FilePos[2]?? 1;
-    If($Token=$this->LastToken)
-    {
-      $Line +=$Token->Line-1;
-      $Pos  +=$Token->Pos   ;
-      If(!$this->HasToken)
-        LinePos($Token->Text, $Line, $Pos);
-    }
-    Return Log($LogLevel, ...$Args)->File(
-      $this->FilePos[0]?? 'Source', 
-      $Line, 
-      $Pos
-    );
   }
   
   Function CheckWord($Token): False|String
@@ -80,47 +45,16 @@ Class TOption
     Return $Token->Text;
   }
   
-  
-  Static $Test_Option=<<<'HereDoc'
-    Path.Class.Field{
-      P1=True, 
-      P2={
-        S1="Helo\n",
-        S2=4,
-        S3=False,
-        S4='Hello\n',
-        S5=[1234,0123,0o123,0x1A,0b11111111,1_234_567,1e2],
-        S6={k1=2}, 
-        S6.k2:3.14, //Contains sub key k2
-        S7{k:1}, 
-        S8[2]
-      }
-    }
-    HereDoc;
-  Static $Test_Result=
-    ['Path'=>['Class'=>['Field'=>['P1'=>true,'P2'=>[
-      'S1'=>"Helo\n",
-      'S2'=>4,
-      'S3'=>False,
-      'S4'=>'Hello\n',
-      'S5'=>[1234,0123,0o123,0x1A,0b11111111,1_234_567,1e2],
-      'S6'=>['k1'=>2, 'k2'=>3.14],
-      'S7'=>['k'=>1],
-      'S8'=>[2]
-    ]]]]];
-  Static $Test_DebugPos=<<<'HereDoc'
-    P1=DebugPos
-    HereDoc;
-
-  Function Parse($Text)
+  Function Parse($Text, Array $FilePos=[])
   {
-    $Tokens=TokenizeCode($Text);
+    $Tokens=TokenizeCode($Text); //TODO:, $FilePos);
     
   //RemoveComments    ($Tokens);
   //RemoveWhiteSpaces ($Tokens);
     $this->Tokens=$Tokens
       |> Filter(fn($Token)=>!$Token->Is(T_COMMENT, T_WHITESPACE));
     
+  //$Vars=New TValue();
     $Vars=[];
     While($this->ParseMapItem($Vars, [','=>True, ';'=>True, ''=>True])===Null)
     {
@@ -131,6 +65,7 @@ Class TOption
   
   Function ParseMapItem(&$Vars, $End):?Bool
   {
+  //$Vars->MakeMap();
     If(!Is_Array($Vars))
     {
       If($Vars!==Null)
