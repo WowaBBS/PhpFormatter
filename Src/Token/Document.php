@@ -13,4 +13,5 @@ Class TDocument Extends TList
   }
   
   Function GetFilePos(): TFilePos { Return $this->FilePos; }
+  Function GetFilePosEnd():TFilePos { Return $this->Last?->GetFilePosEnd() ?? $this->FilePos; }
 }

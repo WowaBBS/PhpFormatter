@@ -10,15 +10,7 @@ Trait TraitLog
 {
   Var IFilePos $FilePos;
 
-  Function Log_FilePos(?IFilePos $FilePos)
-  {
-    If($FilePos===Null && $this->FilePos) // End of token
-    {
-      $Token=$this->FilePos;
-      $FilePos=$Token->GetFilePosEnd();
-    }
-    $this->FilePos=$FilePos;
-  }
+  Function Log_FilePos(IFilePos $FilePos) { $this->FilePos=$FilePos; }
   
   Function GetFilePos() { Return $this->FilePos?->GetFilePos()?? TFilePos::GetEmpty(); }
   

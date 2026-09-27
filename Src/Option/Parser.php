@@ -3,39 +3,41 @@ NameSpace Reformat\Option;
 
 Use Function Reformat\Log;
 Use Reformat\FilePos\IProvider As IFilePos;
-
-Use Function Reformat\Utils\Token\{
-  TokenizeCode      ,
-  RemoveComments    ,
-  RemoveWhiteSpaces ,
-};
-Use Function Reformat\Utils\Stream\{
-  Next   ,
-  Skip   ,
-  Filter ,
-  Map    ,
-};
+Use Function Reformat\Utils\Token\TokenizeCode;
 
 Class TParser
 {
   Use TraitLog;
 
-  Var $Tokens;
+  Var $Tokens    ;
+  Var $NextToken ;
   
   Function __Construct(?IFilePos $FilePos=Null)
   {
     $this->Log_FilePos($FilePos);
   }
   
-  Function NextToken(Bool $Next=True)
+  Function NextToken(Bool $PreView=False)
   {
-    Return $this->SafeNextToken($Next)?? $this->Error('Unexpected end of option')->Ret();
+    Return $this->SafeNextToken($PreView)?? ($PreView? Null:$this->Error('Unexpected end of option')->Ret());
   }
   
-  Function SafeNextToken(Bool $Next=True)
+  // Returns next token is not Comment or WhiteSpace
+  Function SafeNextToken(Bool $PreView)
   {
-    $Res=$Next? Next($this->Tokens):$this->Tokens->Current();
-    $this->Log_FilePos($Res);
+    $Res=$this->NextToken;
+    
+    While($Res?->Is(T_COMMENT, T_WHITESPACE))
+      $Res=$Res->Next; //Log('Debug', 'Token.Skip ', $Res);
+    
+    If($PreView)
+      Return $Res;
+
+    $this->Log_FilePos($Res?? $this->Tokens->GetFilePosEnd());
+  //If(!$Res) Log('Debug', 'LastFilePos: ', $this->Tokens->GetFilePosEnd());
+
+    $this->NextToken=$Res?->Next;
+  //Log('Debug', 'Token.', $PreView? 'PreView':'Next', ' ', $Res);
     Return $Res;
   }
   
@@ -45,25 +47,36 @@ Class TParser
     Return $Token->Text;
   }
   
+  Function IsNext(String ...$Args)
+  {
+    $Token=$this->NextToken(True);
+    If(!In_Array($Token?->Text?? '', $Args, True))
+      Return False;
+    $this->NextToken();
+    Return True;
+  }
+  
   Function Parse($Text, ?IFilePos $FilePos=Null)
   {
     $Tokens=TokenizeCode($Text, $FilePos);
     
-  //RemoveComments    ($Tokens);
-  //RemoveWhiteSpaces ($Tokens);
-    $this->Tokens=$Tokens
-      |> Filter(fn($Token)=>!$Token->Is(T_COMMENT, T_WHITESPACE));
+    $this->Tokens    =$Tokens;
+    $this->NextToken =$Tokens->First;
     
   //$Vars=New TValue();
     $Vars=[];
-    While($this->ParseMapItem($Vars, [','=>True, ';'=>True, ''=>True])===Null)
+    While(1)
     {
+      If(!$this->ParseMapItem($Vars)) 
+        Return $Vars; // Error
+      If(!$this->IsNext(',', ';'))
+        Break;
     }
     
     Return $Vars;
   }
   
-  Function ParseMapItem(&$Vars, $End):?Bool
+  Function ParseMapItem(&$Vars):Bool
   {
   //$Vars->MakeMap();
     If(!Is_Array($Vars))
@@ -72,15 +85,12 @@ Class TParser
         $this->Error('Map: Value has already exist: ', $Vars);
       $Vars=[];
     }
-    $Token=$this->NextToken(False);
-    If($Token===Null) Return False;
-    If($End[$Token->Text?? '']?? False) Return Null;
-    If(!$Token) Return False;
+    
     $Key=Null;
     If(!$this->ParseKey($Key)) Return False;
     Switch($Text=$this->NextToken()?->Text)
     {
-    Case '.'  : Return $this->ParseMapItem ($Vars[$Key], $End);
+    Case '.'  : Return $this->ParseMapItem ($Vars[$Key]);
     Case '{'  : Return $this->ParseMap     ($Vars[$Key]);
     Case '['  : Return $this->ParseList    ($Vars[$Key]);
     Case '=>' :
@@ -98,17 +108,24 @@ Class TParser
   
   Function ParseMap(&$Vars)
   {
+    If(!Is_Array($Vars))
+    {
+      If($Vars!==Null)
+        $this->Warning('Map: Value has already exist: ', $Vars);
+      $Vars=[];
+    }
+    If($this->IsNext('}')) Return True;
     While(1)
     {
-      $R=$this->ParseMapItem($Vars, ['}'=>True, ','=>True, ';'=>True]);
-    //If($R===Null) Break;
-      If($R===False) Return;
-      Switch(($Token=$this->NextToken())->Text)
+      $R=$this->ParseMapItem($Vars);
+      If($R===False) Return False;
+      Switch(($Token=$this->NextToken())?->Text?? '')
       {
+      Case '': Return False;
       Case ';':
       Case ',': Continue 2;
       Case '}': Return True;
-      Default: Return $this->Error('Unknown token ', $Token)->Ret(False);
+      Default: Return $this->Error('Map: Excepted ":", "." or "}", given ', $Token)->Ret(False);
       }
     }
     Return True;
@@ -119,14 +136,22 @@ Class TParser
     If($Vars!==Null)
       $this->Warning('List: Value has already exist: ', $Vars);
     $Vars=[];
+    
+    If($this->IsNext(']')) Return True;
     While(1)
     {
-      $Token=$this->NextToken(False)?->Text;
-      If($Token===']') { $this->NextToken(); Break; }
-      If($Token===',') $this->NextToken(); //TODO: Always ,
       $Value=Null;
       If(!$this->ParseValue($Value)) Return False;
       $Vars[]=$Value;
+      
+      Switch(($Token=$this->NextToken())?->Text?? '')
+      {
+      Case '': Return False;
+      Case ';':
+      Case ',': Continue 2;
+      Case ']': Return True;
+      Default: Return $this->Error('Map: Excepted ":", "." or "]", given ', $Token)->Ret(False);
+      }
     }
     Return True;
   }
@@ -186,7 +211,7 @@ Class TParser
     While(1)
     {
       $this->_Parse($Vars);
-      $Token=$this->NextToken($Tokens);
+      $Token=$this->NextToken();
       If(!$Token) Return;
       If($Token->Text===',') Continue;
       If($Token->Text==='}') Return True;

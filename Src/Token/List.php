@@ -1,6 +1,7 @@
 <?
 NameSpace Reformat\Token;
 
+Use Function Reformat\Log;
 Use Reformat\FilePos\TInfo As TFilePos;
 
 Class TList Extends TBase Implements \IteratorAggregate

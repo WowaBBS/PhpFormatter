@@ -50,7 +50,7 @@ $Tests=[
     'Option'=>'',
     'Logs'=>'Test.php(50,16) [Error] Unexpected end of option',
   ],
-  ['EmptyWithComment', __LINE__+2, 16,
+  ['EmptyWithComment', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
       // The comment but no option
       HereDoc,
