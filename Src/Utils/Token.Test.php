@@ -1,10 +1,9 @@
 <?
 NameSpace Reformat\Utils\Token;
 
-use function Reformat\Log;
-
 Include_Once '../_All.php';
-Include_Once 'Token.php';
+
+Use Function Reformat\Log;
 
 $Code=<<<'HereDoc'
   $Data //Comment

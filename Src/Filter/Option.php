@@ -1,11 +1,10 @@
 <?
-namespace Reformat\Filter;
+NameSpace Reformat\Filter;
 
-use function Reformat\Log;
-use Reformat\Token\TOption As TTokenOption;
-
-Include_Once 'Utils/Str.php'     ; Use Function Reformat\Utils\Str\Starts_With_List;
-Include_Once 'Utils/StrList.php' ; Use Function Reformat\Utils\StrList ;
+Use Function Reformat\Log;
+Use Function Reformat\Utils\Str\Starts_With_List;
+Use Function Reformat\Utils\StrList ;
+Use Reformat\Token\TOption As TTokenOption;
 
 /**
  */

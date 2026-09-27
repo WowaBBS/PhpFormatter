@@ -1,8 +1,5 @@
 <?
-namespace Reformat\Linked;
-
-Include_Once 'Iterator.php';
-Include_Once 'Weak.php';
+NameSpace Reformat\Linked;
 
 Trait TNode //Implements \IteratorAggregate
 {

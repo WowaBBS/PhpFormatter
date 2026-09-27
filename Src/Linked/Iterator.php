@@ -1,9 +1,7 @@
 <?
-namespace Reformat\Linked;
+NameSpace Reformat\Linked;
 
-Include_Once 'Weak.php';
-
-use function Reformat\Log;
+Use Function Reformat\Log;
 
 Class Iterator Implements \Iterator 
 {

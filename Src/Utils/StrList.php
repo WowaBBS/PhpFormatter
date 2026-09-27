@@ -1,6 +1,6 @@
 <?
 NameSpace Reformat\Utils\StrList;
-Include_Once 'Str.php'; Use Function Reformat\Utils\Str\{LenFirstSpaces};
+Use Function Reformat\Utils\Str\LenFirstSpaces;
 
 Function RemoveFirstLen(Array &$l, $Len)
 {

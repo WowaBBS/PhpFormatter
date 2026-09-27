@@ -1,9 +1,5 @@
 <?
-namespace Reformat\Linked;
-
-Include_Once 'Weak.php';
-Include_Once 'Node.php';
-Include_Once 'Iterator.php';
+NameSpace Reformat\Linked;
 
 Trait TList //Implements IteratorAggregate
 {

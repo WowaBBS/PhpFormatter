@@ -1,10 +1,9 @@
 <?
-namespace Reformat\Filter;
+NameSpace Reformat\Filter;
 
-use function Reformat\Log;
-use Reformat\Token\TComment As TTokenComment;
-
-Include_Once 'Utils/Str.php'; Use Function Reformat\Utils\Str\Starts_With_List;
+Use Function Reformat\Log;
+Use Function Reformat\Utils\Str\Starts_With_List;
+Use Reformat\Token\TComment As TTokenComment;
 
 /**
  * Functions:

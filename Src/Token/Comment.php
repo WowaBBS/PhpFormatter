@@ -1,10 +1,9 @@
 <?
-namespace Reformat\Token;
+NameSpace Reformat\Token;
 
-use function Reformat\Log;
-
-Include_Once 'Utils/Str.php'     ; Use Function Reformat\Utils\Str     \{Starts_With_List,};
-Include_Once 'Utils/StrList.php' ; Use Function Reformat\Utils\StrList \{RemoveFirstLen,IsAllStartsWith,LTrimMinSpaces, };
+Use Function Reformat\Log;
+Use Function Reformat\Utils\Str     \{Starts_With_List,};
+Use Function Reformat\Utils\StrList \{RemoveFirstLen,IsAllStartsWith,LTrimMinSpaces, };
 
 Class TComment Extends TText
 {

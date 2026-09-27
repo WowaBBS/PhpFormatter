@@ -1,9 +1,9 @@
 <?
-namespace Reformat\Linked;
+NameSpace Reformat\Linked;
 
 Include '../_All.php';
 
-use function Reformat\Log;
+Use Function Reformat\Log;
 
 //Include_Once 'List.php';
 

@@ -2,7 +2,6 @@
  NameSpace Reformat\Utils\Stream;
  
  Include_Once '../_All.php';
- Include_Once 'Stream.php';
  
  Use Function Reformat\Log;
 
