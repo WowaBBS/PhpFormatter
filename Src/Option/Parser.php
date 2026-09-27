@@ -7,7 +7,6 @@ Use Function Reformat\Utils\Token\{
   TokenizeCode      ,
   RemoveComments    ,
   RemoveWhiteSpaces ,
-  LinePosReIndex    ,
 };
 Use Function Reformat\Utils\Stream\{
   Next   ,
@@ -24,7 +23,7 @@ Class TParser
   
   Function __Construct(Array $FilePos=[])
   {
-    $this->FilePos=$FilePos;
+    $this->Log_FilePos($FilePos);
   }
   
   Function NextToken(Bool $Next=True)
@@ -35,7 +34,7 @@ Class TParser
   Function SafeNextToken(Bool $Next=True)
   {
     $Res=$Next? Next($this->Tokens):$this->Tokens->Current();
-    $this->Log_SetToken($Res);
+    $this->Log_FilePos($Res);
     Return $Res;
   }
   
@@ -47,7 +46,7 @@ Class TParser
   
   Function Parse($Text, Array $FilePos=[])
   {
-    $Tokens=TokenizeCode($Text); //TODO:, $FilePos);
+    $Tokens=TokenizeCode($Text, $FilePos);
     
   //RemoveComments    ($Tokens);
   //RemoveWhiteSpaces ($Tokens);

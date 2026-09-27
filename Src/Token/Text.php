@@ -29,12 +29,8 @@ Class TText Extends TBase
   
   Function GetFilePos()
   {
-    $SourceInfo=$this->GetDocument()?->GetSourceInfo()?? ['Source'];
-    Return [
-      $SourceInfo[0], //File
-      $this->Line +($SourceInfo[1]?? 0),
-      $this->Pos  +($SourceInfo[$this->Line<=1? 3:2]?? $SourceInfo[2]?? 0),
-    ];
+    $FilePos=$this->GetDocument()?->GetFilePos()?? ['Source'];
+    Return [$FilePos[0], $this->Line, $this->Pos];
   }  
   
 //****************************************************************

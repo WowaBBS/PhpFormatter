@@ -6,17 +6,28 @@ Use Function Reformat\Utils\Str\LinePos;
 
 Trait TraitLog
 {
-  Var       $LastToken ;
-  Var Bool  $HasToken  ;
-  Var Array $FilePos   ; //TODO: Remove
+  Var       $FilePos   ; //Token|Array
 //Var Bool  $HasError =False;
 
-  Function Log_SetToken($Token)
+  Function Log_FilePos($FilePos)
   {
-    $this->HasToken=(Bool)$Token;
-    If($Token)
-      $this->LastToken=$Token;
-    Return $Token;
+    If($FilePos===Null && Is_Object($this->FilePos)) // End of token
+    {
+      $Token=$this->FilePos;
+      $FilePos=$Token->GetFilePos();
+      LinePos($Token->Text, $FilePos[1], $FilePos[2]);
+    }
+    If(Is_Array($FilePos)) { $this->FilePos=$FilePos; Return; }
+    If(!Is_Object($FilePos)) Return Log('Error', 'Wrong FilePos, ', $FilePos)->Ret();
+    $this->FilePos=$FilePos;
+  }
+  
+  Function GetFilePos()
+  {
+    $Res=$this->FilePos;
+    If(Is_Object($Res))
+      $Res=$Res->GetFilePos();
+    Return $Res;
   }
   
   Function Warning (...$Args) { Return $this->Log('Warning' ,...$Args); }
@@ -25,21 +36,6 @@ Trait TraitLog
   Function Log(String $LogLevel, ...$Args)
   {
   //If($LogLevel==='Error') $this->HasError=True;
-    $FilePos=$this->FilePos?: [];
-  
-    $Line =$this->FilePos[1]?? 1;
-    $Pos  =$this->FilePos[$Line<=1? 3:2]?? $this->FilePos[2]?? 1;
-    If($Token=$this->LastToken)
-    {
-      $Line +=$Token->Line-1;
-      $Pos  +=$Token->Pos   ;
-      If(!$this->HasToken)
-        LinePos($Token->Text, $Line, $Pos);
-    }
-    Return Log($LogLevel, ...$Args)->File(
-      $this->FilePos[0]?? 'Source', 
-      $Line, 
-      $Pos
-    );
+    Return Log($LogLevel, ...$Args)->File(...$this->GetFilePos());
   }
 }

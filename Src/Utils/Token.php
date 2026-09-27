@@ -4,11 +4,11 @@ Use Function Reformat\Log;
 Use Function Reformat\Utils\Str\LinePos;
 
 Function Tokenize(
-  String $Source       ,
-  Array  $SourceInfo=[],
+  String $Source    ,
+  Array  $FilePos=[],
 )
 {
-  $Document=New \Reformat\Token\TDocument($SourceInfo);
+  $Document=New \Reformat\Token\TDocument($FilePos);
   $Tokens = \PhpToken::Tokenize($Source); //, TOKEN_PARSE); //Token_Get_All($Source);
   ForEach($Tokens As $Item)
     $Document->AddText(
@@ -21,12 +21,12 @@ Function Tokenize(
 }
 
 Function TokenizeCode(
-  String $Source       ,
-  Array  $SourceInfo=[],
+  String $Source    ,
+  Array  $FilePos=[],
 )
 {
   $StartWith='<?php ';
-  $Document=Tokenize($StartWith.$Source, $SourceInfo);
+  $Document=Tokenize($StartWith.$Source, $FilePos);
   $First=&$Document->First;
   If($First->Text===$StartWith)
     $First->Remove();
@@ -60,11 +60,13 @@ Function TrimWhiteSpaces($Tokens, $With=' ')
       $Item->Text=$With;
 }
 
-Function LinePosReIndex($Tokens, $Line=0, $FirstPos=0, $Pos=Null, $Tab=0)
+Function LinePosReIndex($Tokens, $Tab=0, $FilePos=Null)
 {
-  $Pos??=$FirstPos;
-  $Tab=0;
-  
+  $FilePos??=$Tokens->GetFilePos();
+  $Line     =$FilePos[1]?? 0;
+  $FirstPos =$FilePos[2]?? 0;
+  $Pos      =$FilePos[3]?? $FirstPos;
+
   ForEach($Tokens As $Token)
   {
     If($Token->GetTypeHandler()!=='Text') Continue;

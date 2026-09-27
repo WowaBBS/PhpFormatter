@@ -9,16 +9,16 @@ Class TDocument Extends TList
   Var Int    $FirstPos  =0;
   
   Function __Construct(
-    Array $SourceInfo=[],
+    Array $FilePos=[],
   )
   {
-    $this->FileName  =$SourceInfo[0]?? $this->FileName  ;
-    $this->StartLine =$SourceInfo[1]?? $this->StartLine ;
-    $this->StartPos  =$SourceInfo[2]?? $this->StartPos  ;
-    $this->FirstPos  =$SourceInfo[3]?? $this->StartPos  ;
+    $this->FileName  =$FilePos[0]?? $this->FileName  ;
+    $this->StartLine =$FilePos[1]?? $this->StartLine ;
+    $this->StartPos  =$FilePos[2]?? $this->StartPos  ;
+    $this->FirstPos  =$FilePos[3]?? $this->StartPos  ;
   }
   
-  Function GetSourceInfo()
+  Function GetFilePos()
   {
     Return [
       $this->FileName  ,
