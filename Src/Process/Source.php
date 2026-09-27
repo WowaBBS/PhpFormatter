@@ -1,28 +1,16 @@
 <?
-namespace Reformat\Process;
-use function Reformat\Log;
-use function Reformat\CheckPhp;
-use          Reformat\PhpToken;
+NameSpace Reformat\Process;
+
+Use Function Reformat\Log;
+Use Function Reformat\CheckPhp;
+Use Function Reformat\Utils\Token\Tokenize;
+Use Reformat\FilePos\TInfo As TFilePos;
 
 Abstract Class TSource Extends TBase
 {
-  Static Function Tokenize($Source)
-  {
-    $Document=New \Reformat\Token\TList();
-    $Tokens = \PhpToken::Tokenize($Source); //, TOKEN_PARSE); //Token_Get_All($Source);
-    ForEach($Tokens As $Item)
-      $Document->AddText(
-        $Item->id   ,
-        $Item->text ,
-        $Item->line ,
-        $Item->pos  ,
-      );
-    Return $Document;
-  }
-
   Function Source($Source)
   {
-    $Document=Self::Tokenize($Source);
+    $Document=Tokenize($Source, New TFilePos($this->ShortPath));
   
     $Result=$this->Filters->ProcessAll($Document);
     If($Result===False) Return -1; //Error happend

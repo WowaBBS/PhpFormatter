@@ -36,7 +36,7 @@ Abstract Class TBase
     If(!$Res) Return;
     $Log=Log('Error', 'Unused Option:');
     ForEach($Res As $Option)
-      $Log('  ', $Option);
+      $Log('  ', $Option->GetFilePos(),' ', $Option);
     $this->Options=[];
   }
 
