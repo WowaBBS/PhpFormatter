@@ -50,6 +50,12 @@ $Tests=[
     'Option'=>'',
     'Logs'=>'Test.php(50,16) [Error] Unexpected end of option',
   ],
+  ['EmptyWithComment', __LINE__+2, 16,
+    'Option'=><<<'HereDoc'
+      // The comment but no option
+      HereDoc,
+    'Logs'=>'Test.php(55,35) [Error] Unexpected end of option',
+  ],
 ];
 
 $LogBuffer=$Loader->Create_Object('/Stream/Buffer');

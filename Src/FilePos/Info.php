@@ -30,6 +30,7 @@ Class TInfo Implements IProvider, \WLib\Debug\ICustom
   Static Function GetEmpty():TInfo { Static $Res=New TInfo(); Return $Res; }
   
   Function GetFilePos():TInfo { Return $this; }
+  Function GetFilePosEnd():TInfo { Return $this; }
   
   Function ToArgs() { Return [$this->FileName, $this->Line, $this->Pos]; }
 

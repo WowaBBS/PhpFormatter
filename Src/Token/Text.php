@@ -37,6 +37,8 @@ Class TText Extends TBase
     Return New TFilePos($FilePos->FileName, $this->Line, $this->Pos);
   }
   
+  Function GetFilePosEnd():TFilePos { Return $this->GetFilePos()->AddText($this->Text); }
+  
 //****************************************************************
 // String
   

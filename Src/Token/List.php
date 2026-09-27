@@ -48,6 +48,17 @@ Class TList Extends TBase Implements \IteratorAggregate
         ?? TFilePos::GetEmpty()
       );
   }
+  
+  Function GetFilePosEnd():TFilePos
+  {
+    Return $this->Last?->GetFilePosEnd()
+      ??Log('Error', 'FilePosEnd is not supported')->Ret(
+        $this->Prev?->GetFilePosEnd()
+        ?? $this->Parent?->GetFilePosEnd()
+        ?? TFilePos::GetEmpty()
+      );
+  }
+  
 
 //****************************************************************
 // String

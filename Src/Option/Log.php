@@ -15,7 +15,7 @@ Trait TraitLog
     If($FilePos===Null && $this->FilePos) // End of token
     {
       $Token=$this->FilePos;
-      $FilePos=$Token->GetFilePos()->AddText($Token?->Text?? '');
+      $FilePos=$Token->GetFilePosEnd();
     }
     $this->FilePos=$FilePos;
   }
