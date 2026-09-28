@@ -23,9 +23,9 @@ $Tests=[
           S3=False,
           S4='Hello\n',
           S5=[1234,0123,0o123,0x1A,0b11111111,1_234_567,1e2],
-          S6={k1=2}, 
+          S6={k1=2},
           S6.k2:3.14, //Contains sub key k2
-          S7{k:1}, 
+          S7{k:1},
           S8[2]
         }
       }
@@ -71,15 +71,14 @@ ForEach($Tests As $Test)
   
   $LogBuffer->Clear();
   
-  $Parser  =New TParser($FilePos);
-  $Result=$Parser->Parse($Option, $FilePos);
+  $Parser=New TParser($Option, $FilePos);
+  $Result=$Parser->Parse();
   
   $ActualLog=Trim($LogBuffer->Get_Content());
   
   If($Desired=$Test['Desired']?? Null)
   {
-  //$Actual=$Result->ToValue();
-    $Actual=$Result;
+    $Actual=$Result->ToValue();
     // Проверяем, совпадает ли результат
     If($Actual !== $Desired)
       Log('Error', 'Parse.Result=')//, Depth(100))

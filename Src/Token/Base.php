@@ -21,7 +21,7 @@ Abstract Class TBase Implements \WLib\Debug\ICustom, IFilePos
   Function GetId() { Return 0; }
   
   Function Is(Int|String ...$Args) { Return In_Array($Id=$this->GetId(), $Args, True); } // Old style: || Is_Array($Args[0]?? Null) && In_Array($Id, $Args[0], True)
-  Function GetTokenName() { $Id=$this->GetId(); Return Is_Int($Id)? ($Id<128? Ord($Id):Token_Name($Id)):$Id; }
+  Function GetTokenName() { $Id=$this->GetId(); Return Is_Int($Id)? ($Id<128? Chr($Id):Token_Name($Id)):$Id; }
   
   Function GetRoot():TBase
   {
