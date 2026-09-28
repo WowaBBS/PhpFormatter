@@ -30,6 +30,9 @@ Class TText Extends TBase
   
   Function IsWord() { Return IsWord($this->Text); }
   
+//****************************************************************
+// IFilePos
+  
   Function GetFilePos():TFilePos
   {
     $FilePos=$this->GetDocument()?->GetFilePos()

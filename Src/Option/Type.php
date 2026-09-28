@@ -1,7 +1,7 @@
 <?
 NameSpace Reformat\Option;
 
-Enum EType
+Enum EType Implements \WLib\Debug\ICustom
 {
   Case Void   ;
   Case Null   ;
@@ -47,5 +47,14 @@ Enum EType
       Self::Map     => []    ,
     };
   } 
+//****************************************************************
+// Debug
 
+  //WLib\Debug\ICustom
+  Function Debug_Write(\WLib\Log\CFormat $To)
+  { //TODO: Workaround
+    $To->Write($this->name);
+  }
+
+//****************************************************************
 }

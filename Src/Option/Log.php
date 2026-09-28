@@ -8,7 +8,7 @@ Use Reformat\FilePos\IProvider As IFilePos;
 
 Trait TraitLog
 {
-  Var IFilePos $FilePos;
+  Var IFilePos $FilePos ;
 
   Function Log_FilePos(IFilePos $FilePos) { $this->FilePos=$FilePos; }
   
@@ -17,8 +17,10 @@ Trait TraitLog
   Function Warning (...$Args) { Return $this->Log('Warning' ,...$Args); }
   Function Error   (...$Args) { Return $this->Log('Error'   ,...$Args); }
   Function Debug   (...$Args) { Return $this->Log('Debug'   ,...$Args); }
+
+  Var          $Logger  ;
   Function Log(String $LogLevel, ...$Args)
   {
-    Return Log($LogLevel, ...$Args)->File(...$this->GetFilePos()->ToArgs());
+    Return Log($LogLevel, ...$Args)->Logger($this->Logger)->File(...$this->GetFilePos()->ToArgs());
   }
 }

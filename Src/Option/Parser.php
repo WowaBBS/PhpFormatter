@@ -56,7 +56,7 @@ Class TParser
   
   Function Parse()
   {
-    $Vars=New TValue();
+    $Vars=$this->NewValue();
     $Vars->MakeMap($this->PreView()?? $this->Tokens);
     While(1)
     {
@@ -73,7 +73,7 @@ Class TParser
   
   Function ParseMapItem($Vars):Bool
   {
-    $Key=New TValue();
+    $Key=$this->NewValue();
     If(!$this->ParseKey($Key)) Return False;
     $Token=$this->Next();
     Switch($Text=$Token?->Text?? '')
@@ -100,10 +100,11 @@ Class TParser
       {
       Case '': Return False;
       Case ';':
-      Case ',': Continue 2;
+      Case ',': Break;
       Case '}': Return True;
       Default: Return $this->Error('Map: Excepted ":", "." or "}", given ', $Token)->Ret(False);
       }
+      If($this->IsNext('}')) Return True; //,} or ;}
     }
     Return True;
   }
@@ -113,7 +114,7 @@ Class TParser
     If($this->IsNext(']')) Return True;
     While(1)
     {
-      $Value=New TValue();
+      $Value=$this->NewValue();
       If(!$this->ParseValue($Value)) Return False;
       $Vars[]=$Value;
       
@@ -121,10 +122,11 @@ Class TParser
       {
       Case '': Return False;
       Case ';':
-      Case ',': Continue 2;
+      Case ',': Break;
       Case ']': Return True;
       Default: Return $this->Error('Map: Excepted ":", "." or "]", given ', $Token)->Ret(False);
       }
+      If($this->IsNext(']')) Return True; //,] Or ;]
     }
     Return True;
   }
@@ -147,6 +149,26 @@ Class TParser
     Return True;
   }
   
+  Function _ParseNumeric():False|Ind|Float
+  {
+    $Token=$this->Next();
+    If($Token===Null) Return False;
+    Switch($Token->Id)
+    {
+    Case T_LNUMBER:
+    Case T_DNUMBER:
+      Return Eval('Return '.$Token->Text.';');
+    Default:
+      Switch(StrToLower($Token->Text))
+      {
+      Case 'nan': Return NAN; Break;
+      Case 'inf': Return INF; Break;
+      }
+    }
+    $this->Error('Numper expected: ', $Token)->Ret(False);
+    Return False;
+  }
+  
   Function ParseValue($Vars, $WordAllow=False)
   {
     $Token=$this->Next();
@@ -160,8 +182,13 @@ Class TParser
       $Value=Eval('Return '.$Token->Text.';');
       Break;
     Default:
-      Switch(StrToLOwer($Token->Text))
+      Switch(StrToLower($Token->Text))
       {
+      Case '-'     : 
+        $Value=$this->_ParseNumeric(); 
+        If($Value===False) Return False;
+        $Value=-$Value;
+        Break;
       Case 'null'  : $Value=Null  ; Break;
       Case 'true'  : $Value=True  ; Break;
       Case 'false' : $Value=False ; Break;
@@ -200,5 +227,12 @@ Class TParser
     If($Token->Text==='{') Return $this->ParseVarsMap($Vars);
     If(!$Token->IsWord()) Return $this->Error('Unknown word: ',$Token->Text)->Ret(False);
     Return $this->_Parse($Vars[$Token->Text]);
+  }
+
+  Function NewValue()
+  {
+    $Res=New TValue();
+    $Res->Parser=$this;
+    Return $Res;
   }
 }

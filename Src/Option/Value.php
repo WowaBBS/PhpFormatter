@@ -1,9 +1,11 @@
 <?
 NameSpace Reformat\Option;
 
+Use Function Reformat\Log;
+
 Class TValue Implements \ArrayAccess, \Countable, \IteratorAggregate
 {
-  Var ?TValue $Key   ;
+  Var ?TValue $Key   =Null;
   Var         $Value ;
   Var  EType  $Type  =EType::Default;
   
@@ -31,7 +33,9 @@ Class TValue Implements \ArrayAccess, \Countable, \IteratorAggregate
     }
     If(!$this->Type->IsVoid())
     {
-      Log('Error', $Type, ': Value has already exist: ', $this->ToValue());
+      $this->Warning($Type, ': Value has already exist: ', 
+        $this->ToValue(), ' setted in ', $this->FilePos->GetFilePos())
+        ->File(...$Token->GetFilePos()->ToArgs());
       //TODO: Error
     }
     
@@ -66,10 +70,13 @@ Class TValue Implements \ArrayAccess, \Countable, \IteratorAggregate
     If($Res)
     {
       $Res->AddFilePos($Key->FilePos);
-      Return $Res;
     }
-    $Res=New TValue();
-    $Res->SetFilePos($Key->FilePos);
+    Else
+    {
+      $Res=$this->NewValue();
+      $Res->SetFilePos($Key->FilePos);
+    }
+    $Res->Key=$Key;
     Return $Res;
   }
   
@@ -137,9 +144,32 @@ Class TValue Implements \ArrayAccess, \Countable, \IteratorAggregate
   {
     Return New ArrayIterator(Is_Array($this->Value)? $this->Value:[]);
   }
+  
 //****************************************************************
+// Logging
+
+  Function Warning (...$Args) { Return $this->Log('Warning' ,...$Args); }
+  Function Error   (...$Args) { Return $this->Log('Error'   ,...$Args); }
+  Function Debug   (...$Args) { Return $this->Log('Debug'   ,...$Args); }
+
+  Function Log(String $LogLevel, ...$Args)
+  {
+    Return Log($LogLevel, ...$Args)->Logger($this->Parser->Logger);
+  }
+
+//****************************************************************
+// Parser
+
+  Var $Parser;
+
+  Function NewValue()
+  {
+    $Res=New Self();
+    $Res->Parser=$this->Parser;
+    Return $Res;
+  }
   
-  
+//****************************************************************
 }
 
 ?>

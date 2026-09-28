@@ -26,7 +26,7 @@ Class TOption Extends TText
   {
     $FilePos=$Token->GetFilePos();
     $Parser=New TOptionParser($Text, $FilePos);
-    $this->Vars=$Parser->Parse();
+    $this->Vars=$Parser->Parse()->ToValue();
     Return True;
   }
   
