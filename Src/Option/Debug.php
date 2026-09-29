@@ -6,16 +6,16 @@ Use Function Reformat\Utils\Str\IsWord;
 
 Class TDebug Implements \WLib\Debug\ICustom
 {
-  Var $Res=[];
+  Var Array $Res=[];
   
   Function Last() { Return Array_Last($this->Res); }
   Function Last_Is(...$l) { Return In_Array($this->Last()?? '', $l, True); }
   Function Last_Remove()  { Return Array_Pop($this->Res); }
   
   Function Raw    ($v) { $this->Res[]=$v; Return $this; }
-  Function Null     () { Return $this->Raw('Null');}
-  Function Undefined() { Return $this->Raw('Undefined');}
-  Function Bool   ($v) { Return $this->Raw($v? 'True':'False');}
+  Function Null     () { Return $this->Raw('Null'); }
+  Function Undefined() { Return $this->Raw('Undefined'); }
+  Function Bool   ($v) { Return $this->Raw($v? 'True':'False'); }
   Function Int    ($v) { Return $this->Raw($v); }
   Function Float  ($v) { Return $this->Raw(Is_Finite($v)? $v:(Is_NaN($v)? 'NaN':($v>0? 'Inf':'-Inf'))); }
   Function String ($v) { Return $this->Raw(Json_EnCode($v ,JSON_PARTIAL_OUTPUT_ON_ERROR|JSON_UNESCAPED_SLASHES)); }
@@ -66,8 +66,8 @@ Class TDebug Implements \WLib\Debug\ICustom
     $v=$Value->Value;
     Switch($Value->Type)
     {
-    Case EType::Void   : $this->Undefined    (); Break;
-    Case EType::Null   : $this->Null         (); Break;
+    Case EType::Void   : $this->Undefined  (  ); Break;
+    Case EType::Null   : $this->Null       (  ); Break;
     Case EType::Bool   : $this->Bool       ($v); Break;
     Case EType::Int    : $this->Int        ($v); Break;
     Case EType::Float  : $this->Float      ($v); Break;
@@ -89,6 +89,43 @@ Class TDebug Implements \WLib\Debug\ICustom
     }
   }
   
+  Function Map_Key($v)
+  {
+    If(Is_String($v) && IsWord($v))
+      Return $this->Raw($v);
+    Else
+      Return $this->PhpVal($v);
+  }
+  
+  Function Value_Map_Key(TValue $Value)
+  {
+    If($Value->Type===EType::String && IsWord($Value->Value))
+      Return $this->Raw($Value->Value);
+    Else
+      Return $this->Value($Value);
+  }
+  
+  Function Map_Item($v, $k)
+  {
+    $this->Map_Key($k);
+    $this->Raw('=');
+    Return $this->PhpVal($v);
+  }
+  
+  Function Value_Map_Item(TValue $v, $k)
+  {
+    If($v->Key)
+      $this->Value_Map_Key($v->Key);
+    Else
+    {
+      $this->Raw($k);
+      Log('Error', 'Key ',$k,' is not exists in Value')
+        ->File(...$Value->GetFilePos()->ToArgs());
+    }
+    $this->Raw('=');
+    $this->Value($v);
+  }
+  
   Function List($Value)
   {
     $z=True;
@@ -102,21 +139,19 @@ Class TDebug Implements \WLib\Debug\ICustom
     Return $this->Raw(']');
   }
   
-  Function Map_Key($v)
+  Function Value_List(Array $Value)
   {
-    If(Is_String($v) && IsWord($v))
-      Return $this->Raw($v);
-    Else
-      Return $this->PhpVal($v);
+    $z=True;
+    $this->Raw('[');
+    ForEach($Value As $v)
+    {
+      If($z) $z=False;
+      Else $this->Raw(', ');
+      $this->Value($v);
+    }
+    $this->Raw(']');
   }
-  
-  Function Map_Item($v, $k)
-  {
-    $this->Map_Key($k);
-    $this->Raw('=');
-    Return $this->PhpVal($v);
-  }
-  
+
   Function Map($v)
   {
     If($this->Last_Is('=', '') && Count($v)===1)
@@ -125,12 +160,29 @@ Class TDebug Implements \WLib\Debug\ICustom
       Return $this->Map_Long($v);
   }
   
+  Function Value_Map($v)
+  {
+    If($this->Last_Is('=', '') && Count($v)===1)
+      $this->Value_Map_Short($v);
+    Else
+      $this->Value_Map_Long($v);
+  }
+  
   Function Map_Short($Value)
   {
     If($this->Last_Remove())
       $this->Raw('.');
     ForEach($Value As $k=>$v)
       $this->Map_Item($v, $k);
+    Return $this;
+  }
+  
+  Function Value_Map_Short(Array $Value)
+  {
+    If($this->Last_Remove())
+      $this->Raw('.');
+    ForEach($Value As $k=>$v)
+      $this->Value_Map_Item($v, $k);
     Return $this;
   }
   
@@ -148,68 +200,18 @@ Class TDebug Implements \WLib\Debug\ICustom
     Return $this;
   }
   
-  Function Value_Map_Key(TValue $Value)
-  {
-    If($Value->Type===EType::String && IsWord($Value->Value))
-      $this->Raw($Value->Value);
-    Else
-      $this->Value($Value);
-  }
-  
-  Function Value_Map_Item(TValue $v, $k)
-  {
-    If($v->Key)
-      $this->Value_Map_Key($v->Key);
-    Else
-    {
-      $this->Raw($k);
-      Log('Error', 'Key ',$k,' is not exists in Value')
-        ->File(...$Value->FilePos->GetFilePos()->ToArgs());
-    }
-    $this->Raw('=');
-    $this->Value($v);
-  }
-  
-  Function Value_List(Array $Value)
-  {
-    $z=True;
-    $this('[');
-    ForEach($Value As $v)
-    {
-      If($z) $z=False;
-      Else $this(', ');
-      $this->Value($v);
-    }
-    $this(']');
-  }
-
-  Function Value_Map(Array $Value)
-  {
-    If($this->Last_Is('=', '') && Count($Value)===1)
-      $this->Value_Map_Short($Value);
-    Else
-      $this->Value_Map_Long($Value);
-  }
-  
-  Function Value_Map_Short(Array $Value)
-  {
-    If($this->Last_Remove())
-      $this('.');
-    ForEach($Value As $k=>$v)
-      $this->Value_Map_Item($v, $k);
-  }
-  
   Function Value_Map_Long(Array $Value)
   {
-    $this('{');
+    $this->Raw('{');
     $z=True;
     ForEach($Value As $k=>$v)
     {
       If($z) $z=False;
-      Else $this(', ');
+      Else $this->Raw(', ');
       $this->Value_Map_Item($v, $k);
     }
-    $this('}');
+    $this->Raw('}');
+    Return $this;
   }
 //****************************************************************
 // String 

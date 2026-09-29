@@ -17,7 +17,7 @@ $Tests=[
     'Option'=><<<'HereDoc'
       Path.Class.Field{
         P1=True,
-        P2={
+        P2{
           S1="Helo\n",
           S2=4,
           S3=False,
@@ -168,5 +168,5 @@ $Loader->Done();
 
 Function Validate($v)
 {
-//  $v['P1']['k1']->GetInt();
+  $v['P1']['k1']->GetInt();
 }

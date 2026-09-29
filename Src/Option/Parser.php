@@ -193,8 +193,8 @@ Class TParser
       Case 'nan'   : $Value=NAN   ; Break;
       Case 'inf'   : $Value=INF   ; Break;
       Case 'debugpos' : $Value=$this->Debug('DebugPos')->Ret(True); Break;
-      Case '{': Return $this->ParseMap  ($Vars->Parser_MakeMap  ($Token));
-      Case '[': Return $this->ParseList ($Vars->Parser_MakeList ($Token));
+      Case '{': $Vars->Parser_MakeMap  ($Token); Return $this->ParseMap  ($Vars);
+      Case '[': $Vars->Parser_MakeList ($Token); Return $this->ParseList ($Vars);
       Default:
         If($WordAllow && $Token->IsWord()) { $Value=$Token->Text; Break; }
         Return $this->Error('Unknown Value token: ', $Token)->Ret(False);

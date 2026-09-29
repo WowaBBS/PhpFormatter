@@ -7,9 +7,10 @@ Use Function Reformat\Log;
 
 Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, \WLib\Debug\ICustom
 {
-  Var ?TValue $Key   =Null;
-  Var         $Value ;
-  Var  EType  $Type  =EType::Default;
+  Var ?TValue $Key    =Null;
+  Var         $Value  ;
+  Var  EType  $Type   =EType::Default;
+  Var         $Parsed =False;
   
   Function ToValue():Mixed
   {
@@ -38,13 +39,14 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
 //****************************************************************
 // Parser interface
   
-  Protected Function Parser_SetType(EType $Type, $Token, $Value)
+  Function Parser_SetType(EType $Type, $Token, $Value)
   {
     If($this->Type->Is($Type) && $Type->IsMap())
     {
       $this->AddToken($Token);
-      Return $this;
+      Return;
     }
+    
     If(!$this->Type->IsVoid())
     {
       $this->Warning($Type, ': Value ',$this->GetPath(),'=',$Value,' has already exist: ', 
@@ -56,10 +58,9 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     $this->Type    =$Type;
     $this->Value   =$Type->GetDefaultValue();
     $this->SetToken($Token);
-    Return $this;
   }
   
-  Function Parser_SetValue($v, $Token): Bool
+  Function Parser_SetValue($v, $Token)
   {
     Switch(GetType($v))
     {
@@ -70,43 +71,63 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     Case 'NULL'    : $this->Parser_SetType(EType::Null   ,$Token, $v); Break;
     Default:
       Log('Error', 'Unknown value ', $v)->BackTrace()->File(...$Token->GetFilePos()->ToArgs());
-      Return False;
+      Return;
     }
     $this->Value=$v; 
     $this->SetToken($Token); //TODO: Remove?
-    Return True;
   }
   
   Function Parser_MakeKey(TValue $Key)
   {
     $Token=$Key->GetFirstToken();
     $this->Parser_MakeMap($Token);
-    $Res=&$this->Value[$Key->Value];
-    $Res??=$this->NewValue();
+    $Res=&$this->Value[$this->_Key($Key->Value)];
+    $Res??=$this->Parser_NewValue();
     $Res->AddToken($Token);
     $Res->Key=$Key;
     Return $Res;
   }
   
-  Function Parser_MakeMap  ($Token) { Return $this->Parser_SetType(EType::Map  ,$Token, 'Map'  ); }
-  Function Parser_MakeList ($Token) { Return $this->Parser_SetType(EType::List ,$Token, 'List' ); }
+  Function Parser_MakeMap  ($Token) { $this->Parser_SetType(EType::Map  ,$Token, 'Map'  ); }
+  Function Parser_MakeList ($Token) { $this->Parser_SetType(EType::List ,$Token, 'List' ); }
   
-  Function Parser_KeyMap  (TValue $Key, $Token) { Return $this->Parser_MakeKey($Key)->Parser_MakeMap  ($Token); }
-  Function Parser_KeyList (TValue $Key, $Token) { Return $this->Parser_MakeKey($Key)->Parser_MakeList ($Token); }
+  Function Parser_KeyMap  (TValue $Key, $Token) { $Res=$this->Parser_MakeKey($Key); $Res->Parser_MakeMap  ($Token); Return $Res; }
+  Function Parser_KeyList (TValue $Key, $Token) { $Res=$this->Parser_MakeKey($Key); $Res->Parser_MakeList ($Token); Return $Res; }
   
   Function Parser_AddItem($Value=Null)
   {
-    $Value??=$this->NewValue();
+    $Value??=$this->Parser_NewValue();
     If(!$Value->Key)
     {
-      $Value->Key=$Value->NewValue();
+      $Value->Key=$Value->Parser_NewValue();
       $Value->Key->Parser_SetValue(Count($this->Value), $Value->GetFirstToken());
     }
     $this->Value[]=$Value;
     Return $Value;
   }
+  
+  Function Parser_NewValue()
+  {
+    $Res=$this->NewValue();
+    $Res->Parsed=True;
+    Return $Res;
+  }
 
 //****************************************************************
+// Modify
+
+  Function Modify_NeedMake() { Return True; }
+  Function Modify_MakeKey($key, $Key)
+  {
+    $this->Parser_MakeMap(Null);
+    $Res=&$this->Value[$key];
+    $Res??=$this->NewValue();
+    ($Res->Key=$this->NewValue())->Parser_SetValue($Key, Null);
+    Return $Res;
+  }
+
+//****************************************************************
+// Array access
   Protected Function _Key($Key) { Return Is_String($Key)? StrToLower($Key):$Key; }
   Protected Function _Value($Value, $Key=Null) { Return $Value; }
 
@@ -117,16 +138,16 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     
     If(!Is_Array($List))
     {
-      $this->Error('Key ', $Key, ' not found in ', $this->GetFilePos());
-      If(!$this->IsValidating()) Return Null;
-      $this->Parser_MakeMap  ();
+      $this->Error('Wring type ',$this->Type,' access by key ', $Key, '  setted in ', $this->GetFilePos());
+      If(!$this->Modify_NeedMake()) Return Null;
+      $this->Modify_MakeKey  ($key, $Key);
     }
     
     If(!Array_Key_Exists($key, $List))
     {
       $this->Error('Key ', $Key, ' not found in ', $this->GetFilePos());
-      If(!$this->IsValidating()) Return Null;
-      //TODO: Create Key
+      If(!$this->Modify_NeedMake()) Return Null;
+      $this->Modify_MakeKey  ($key, $Key);
     }
     
     Return $List[$key];
@@ -220,6 +241,63 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     $Res->Parent=\WeakReference::Create($this);
     Return $Res;
   }
+  
+//****************************************************************
+//
+
+  Function _SetType(EType $Type, $Default=Null)
+  {
+    If($this->Type->Is($Type)) Return False; //The same type
+    
+    If(!$this->Type->IsVoid())
+    {
+      If($Type->CanCast($this->Value))
+        $this->Value=$Type->Cast($this->Value);
+      Else
+      {
+        $this->Warning($Type, ': Value ',$this->GetPath(),'=',$Default,' has already exist: ', 
+          $this->ToDebug(), ' was setted in ', $this->GetFilePos())
+          ->File(...$this->GetFilePos()->ToArgs());
+      }
+    }
+    
+    $this->Type    =$Type;
+    $this->Value   =$Type->GetDefaultValue();
+    Return True;
+  }
+  
+  Function _SetValue($v, $Token)
+  {
+    Switch(GetType($v))
+    {
+    Case 'boolean' : $this->_SetType(EType::Bool   ,$v); Break;
+    Case 'integer' : $this->_SetType(EType::Int    ,$v); Break;
+    Case 'double'  : $this->_SetType(EType::Float  ,$v); Break;
+    Case 'string'  : $this->_SetType(EType::String ,$v); Break;
+    Case 'NULL'    : $this->_SetType(EType::Null   ,$v); Break;
+    Default:
+      Log('Error', 'Unknown value ', $v)->BackTrace()->File(...$Token->GetFilePos()->ToArgs());
+      Return;
+    }
+    $this->Value=$v; 
+    $this->SetToken($Token); //TODO: Remove?
+  }
+  
+//****************************************************************
+// Validator and Getter
+
+  Function GetByType(EType $Type, $Def)
+  { //TODO: Nullable
+    $this->_SetType($Type, Null, $Def);
+  }
+  
+  Function GetNull   (          ) { Return $this->GetByType(EType::Null        ); }
+  Function GetBool   ($Def=False) { Return $this->GetByType(EType::Bool   ,$Def); }
+  Function GetInt    ($Def=0    ) { Return $this->GetByType(EType::Int    ,$Def); }
+  Function GetFloat  ($Def=0.0  ) { Return $this->GetByType(EType::Float  ,$Def); }
+  Function GetString ($Def=''   ) { Return $this->GetByType(EType::String ,$Def); }
+  Function GetList   ($Def=[]   ) { Return $this->GetByType(EType::List   ,$Def); }
+  Function GetMap    ($Def=[]   ) { Return $this->GetByType(EType::Map    ,$Def); }
   
 //****************************************************************
 }
