@@ -57,7 +57,7 @@ Class TParser
   Function Parse()
   {
     $Vars=$this->NewValue();
-    $Vars->MakeMap($this->PreView()?? $this->Tokens);
+    $Vars->Parser_MakeMap($this->PreView()?? $this->Tokens);
     While(1)
     {
       If(!$this->ParseMapItem($Vars)) 
@@ -73,20 +73,20 @@ Class TParser
   
   Function ParseMapItem($Vars):Bool
   {
-    $Key=$this->NewValue();
+    $Key=$Vars->NewValue();
     If(!$this->ParseKey($Key)) Return False;
     $Token=$this->Next();
     Switch($Text=$Token?->Text?? '')
     {
-    Case '.'  : Return $this->ParseMapItem ($Vars->KeyMap  ($Key, $Token));
-    Case '{'  : Return $this->ParseMap     ($Vars->KeyMap  ($Key, $Token));
-    Case '['  : Return $this->ParseList    ($Vars->KeyList ($Key, $Token));
+    Case '.'  : Return $this->ParseMapItem ($Vars->Parser_KeyMap  ($Key, $Token));
+    Case '{'  : Return $this->ParseMap     ($Vars->Parser_KeyMap  ($Key, $Token));
+    Case '['  : Return $this->ParseList    ($Vars->Parser_KeyList ($Key, $Token));
     Case '=>' :
     Case '='  :
     Case ':'  : Break;
     Default   : Return $this->Error('Expected ".", "=", ":", "{" or "=>", given ',$Text)->Ret(False);
     }
-    Return $this->ParseValue($Vars->MakeKey($Key));
+    Return $this->ParseValue($Vars->Parser_MakeKey($Key));
   }
   
   Function ParseMap($Vars)
@@ -114,9 +114,7 @@ Class TParser
     If($this->IsNext(']')) Return True;
     While(1)
     {
-      $Value=$this->NewValue();
-      If(!$this->ParseValue($Value)) Return False;
-      $Vars[]=$Value;
+      If(!$this->ParseValue($Vars->Parser_AddItem())) Return False;
       
       Switch(($Token=$this->Next())?->Text?? '')
       {
@@ -140,10 +138,10 @@ Class TParser
     Case T_LNUMBER:
     Case T_DNUMBER:
     Case T_CONSTANT_ENCAPSED_STRING:
-      $Vars->SetValue(Eval('Return '.$Token->Text.';'), $Token);
+      $Vars->Parser_SetValue(Eval('Return '.$Token->Text.';'), $Token);
       Break;
     Default:
-      If($Token->IsWord()) { $Vars->SetValue($Token->Text, $Token); Break; }
+      If($Token->IsWord()) { $Vars->Parser_SetValue($Token->Text, $Token); Break; }
       Return $this->Error('Unknown Key token: ', $Token)->Ret(False);
     }
     Return True;
@@ -195,14 +193,14 @@ Class TParser
       Case 'nan'   : $Value=NAN   ; Break;
       Case 'inf'   : $Value=INF   ; Break;
       Case 'debugpos' : $Value=$this->Debug('DebugPos')->Ret(True); Break;
-      Case '{': Return $this->ParseMap  ($Vars->MakeMap  ($Token));
-      Case '[': Return $this->ParseList ($Vars->MakeList ($Token));
+      Case '{': Return $this->ParseMap  ($Vars->Parser_MakeMap  ($Token));
+      Case '[': Return $this->ParseList ($Vars->Parser_MakeList ($Token));
       Default:
         If($WordAllow && $Token->IsWord()) { $Value=$Token->Text; Break; }
         Return $this->Error('Unknown Value token: ', $Token)->Ret(False);
       }
     }
-    $Vars->SetValue($Value ,$Token); 
+    $Vars->Parser_SetValue($Value ,$Token); 
     Return True;
   }
   

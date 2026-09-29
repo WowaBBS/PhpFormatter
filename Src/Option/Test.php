@@ -61,10 +61,27 @@ $Tests=[
       Path.Class.Field{
         P1=True,
         P1=False,
+        P2={k1=[1,2,3]},
+        P2.k2=2,
+        P2.k1=3,
+        P3={k1=[1,2,3]; k2=9},
+        P3=False,
       }
       HereDoc,
     'Logs'=><<<'HereDoc'
-      Test.php(63,12) [Warning] Bool: Value has already exist: True setted in Test.php(62,12)
+      Test.php(63,12) [Warning] Bool: Value Path.Class.Field.P1=False has already exist: True was setted in Test.php(62,12)
+      Test.php(66,15) [Warning] Int: Value Path.Class.Field.P2.k1=3 has already exist: [1, 2, 3] was setted in Test.php(64,16)
+      Test.php(68,12) [Warning] Bool: Value Path.Class.Field.P3=False has already exist: ['k1'=>[1, 2, 3], 'k2'=>9] was setted in Test.php(67,12)
+      HereDoc,
+  ],
+  ['Validate', __LINE__+2, 7,
+    'Option'=><<<'HereDoc'
+      P1{
+        k1=True,
+      }
+      HereDoc,
+    'Validate'=>Validate(...),
+    'Logs'=><<<'HereDoc'
       HereDoc,
   ],
 ];
@@ -85,6 +102,8 @@ ForEach($Tests As $Test)
   $Parser=New TParser($Option, $FilePos);
   $Parser->Logger=$LogStream;
   $Result=$Parser->Parse();
+  If($Validate=$Test['Validate']?? Null)
+    $Validate($Result);
   $Parser->Logger=Null;
   
   $ActualLog=Trim($LogBuffer->Get_Content());
@@ -120,8 +139,12 @@ ForEach($Tests As $Test)
     $ActualLog =Explode("\n", $ActualLog);
     If(!Is_Array($DesiredLog)) $DesiredLog=Explode("\n", $DesiredLog);
   //If(Is_Array($DesiredLog)) $DesiredLog=Implode("\n", $DesiredLog);
-    $ActualLog =Implode("\n  | ", $ActualLog );
-    $DesiredLog=Implode("\n  | ", $DesiredLog);
+  
+    $ActualLog  = Array_Map(Trim(...), $ActualLog  ); //TODO: Space at the end of line
+    $DesiredLog = Array_Map(Trim(...), $DesiredLog );
+    
+    $ActualLog  =Implode("\n  | ", $ActualLog  );
+    $DesiredLog =Implode("\n  | ", $DesiredLog );
     If($ActualLog !== $DesiredLog)
       Log('Error', 'Parse.LogResult=')//, Depth(100))
         ('  Actual  :', $ActualLog  )
@@ -135,3 +158,8 @@ $Loader->GetLogger()->Remove($LogStream);
 $LogStream->Done();
 $LogBuffer->Done();
 $Loader->Done();
+
+Function Validate($v)
+{
+//  $v['P1']['k1']->GetInt();
+}
