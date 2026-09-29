@@ -5,7 +5,7 @@ Use Reformat\FilePos\TInfo     As TFilePos;
 Use Reformat\FilePos\IProvider As IFilePos;
 Use Function Reformat\Log;
 
-Class TValue Implements IFilePos//, \ArrayAccess, \Countable, \IteratorAggregate
+Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, \WLib\Debug\ICustom
 {
   Var ?TValue $Key   =Null;
   Var         $Value ;
@@ -20,23 +20,23 @@ Class TValue Implements IFilePos//, \ArrayAccess, \Countable, \IteratorAggregate
     
     Return $Res;
   }
-
+  
 //****************************************************************
 // Token info
   
-  Var $Tokens;
+  Var $Tokens=[];
   
-  Function SetToken($v) { $this->Tokens  =[$v]; }
-  Function AddToken($v) { $this->Tokens[]= $v ; }
+  Function SetToken($v) { If($v) $this->Tokens  =[$v]; }
+  Function AddToken($v) { If($v) $this->Tokens[]= $v ; }
 
-  Function GetFirstToken () { Return $this->Tokens[0]?? Null; }
-  Function GetLastToken  () { Return $this->Tokens[Count($this->Tokens)-1]?? Null; }
+  Function GetFirstToken () { Return Array_First ($this->Tokens); }
+  Function GetLastToken  () { Return Array_Last  ($this->Tokens); }
   
   Function GetFilePos    ():TFilePos { Return $this->GetFirstToken ()?->GetFilePos()?? TFilePos::GetEmpty(); }
   Function GetFilePosEnd ():TFilePos { Return $this->GetLastToken  ()?->GetFilePos()?? TFilePos::GetEmpty(); }
   
 //****************************************************************
-s// Parser interfac
+// Parser interface
   
   Protected Function Parser_SetType(EType $Type, $Token, $Value)
   {
@@ -48,7 +48,7 @@ s// Parser interfac
     If(!$this->Type->IsVoid())
     {
       $this->Warning($Type, ': Value ',$this->GetPath(),'=',$Value,' has already exist: ', 
-        $this->ToValue(), ' was setted in ', $this->GetFilePos())
+        $this->ToDebug(), ' was setted in ', $this->GetFilePos())
         ->File(...$Token->GetFilePos()->ToArgs());
       //TODO: Error
     }
@@ -106,18 +106,30 @@ s// Parser interfac
     Return $Value;
   }
 
-/*
 //****************************************************************
-  Function _Key($Key) { Return Is_String($Key)? StrToLower($Key):$Key; }
-  Function _Value($Value, $Key=Null) { Return $Value; }
+  Protected Function _Key($Key) { Return Is_String($Key)? StrToLower($Key):$Key; }
+  Protected Function _Value($Value, $Key=Null) { Return $Value; }
 
   Function Get($Key)
   {
     $key=$this->_Key($Key);
     $List=&$this->Value;
-    If(!Is_Array($List)) Return $this->Error('Key ', $Key, ' not found in ', $this->GetFilePos())->Ret(Null);
-    Return  Array_Key_Exists($key, $List)?
-      ($List[$key]?? Null):Null;
+    
+    If(!Is_Array($List))
+    {
+      $this->Error('Key ', $Key, ' not found in ', $this->GetFilePos());
+      If(!$this->IsValidating()) Return Null;
+      $this->Parser_MakeMap  ();
+    }
+    
+    If(!Array_Key_Exists($key, $List))
+    {
+      $this->Error('Key ', $Key, ' not found in ', $this->GetFilePos());
+      If(!$this->IsValidating()) Return Null;
+      //TODO: Create Key
+    }
+    
+    Return $List[$key];
   }
   
   Function Has($Key)
@@ -164,7 +176,7 @@ s// Parser interfac
   {
     Return New ArrayIterator(Is_Array($this->Value)? $this->Value:[]);
   }
-*/  
+  
 //****************************************************************
 // Logging
 
@@ -175,6 +187,17 @@ s// Parser interfac
   Function Log(String $LogLevel, ...$Args)
   {
     Return Log($LogLevel, ...$Args)->Logger($this->Parser->Logger);
+  }
+
+//****************************************************************
+// Debug
+
+  Function ToDebug():TDebug { Return New TDebug()->Value($this); } 
+
+  //WLib\Debug\ICustom
+  Function Debug_Write(\WLib\Log\CFormat $To)
+  {
+    $To->Write(...$this->ToDebug()->Res);
   }
 
 //****************************************************************

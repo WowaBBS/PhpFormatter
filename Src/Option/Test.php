@@ -71,7 +71,7 @@ $Tests=[
     'Logs'=><<<'HereDoc'
       Test.php(63,12) [Warning] Bool: Value Path.Class.Field.P1=False has already exist: True was setted in Test.php(62,12)
       Test.php(66,15) [Warning] Int: Value Path.Class.Field.P2.k1=3 has already exist: [1, 2, 3] was setted in Test.php(64,16)
-      Test.php(68,12) [Warning] Bool: Value Path.Class.Field.P3=False has already exist: ['k1'=>[1, 2, 3], 'k2'=>9] was setted in Test.php(67,12)
+      Test.php(68,12) [Warning] Bool: Value Path.Class.Field.P3=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Test.php(67,12)
       HereDoc,
   ],
   ['Validate', __LINE__+2, 7,
@@ -112,14 +112,21 @@ ForEach($Tests As $Test)
   {
     $Actual=$Result->ToValue();
     
-    $LogBuffer->Clear();
-    Log('Log', Depth(1000), $Actual)->Logger($LogStream);
-    $Actual=Trim($LogBuffer->Get_Content());
-    
-    $LogBuffer->Clear();
-    Log('Log', Depth(1000), $Desired)->Logger($LogStream);
-    $Desired=Trim($LogBuffer->Get_Content());
-    
+    If(True)
+    { //New
+      $Actual  =New TDebug($Result  );
+      $Desired =New TDebug($Desired );
+    }
+    Else
+    { //Old
+      $LogBuffer->Clear();
+      Log('Log', Depth(1000), $Actual)->Logger($LogStream);
+      $Actual=Trim($LogBuffer->Get_Content());
+
+      $LogBuffer->Clear();
+      Log('Log', Depth(1000), $Desired)->Logger($LogStream);
+      $Desired=Trim($LogBuffer->Get_Content());
+    }
     // Проверяем, совпадает ли результат
     If($Actual != $Desired)
       Log('Error', 'Parse.Result=')
@@ -140,8 +147,8 @@ ForEach($Tests As $Test)
     If(!Is_Array($DesiredLog)) $DesiredLog=Explode("\n", $DesiredLog);
   //If(Is_Array($DesiredLog)) $DesiredLog=Implode("\n", $DesiredLog);
   
-    $ActualLog  = Array_Map(Trim(...), $ActualLog  ); //TODO: Space at the end of line
-    $DesiredLog = Array_Map(Trim(...), $DesiredLog );
+    Array_Walk($ActualLog  ,fn(&$v)=>$v=Trim($v)); //TODO: Space at the end of line
+    Array_Walk($DesiredLog ,fn(&$v)=>$v=Trim($v));
     
     $ActualLog  =Implode("\n  | ", $ActualLog  );
     $DesiredLog =Implode("\n  | ", $DesiredLog );
