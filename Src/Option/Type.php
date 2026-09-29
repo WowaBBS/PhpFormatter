@@ -1,6 +1,8 @@
 <?
 NameSpace Reformat\Option;
 
+Use Function Reformat\Log;
+
 Enum EType Implements \WLib\Debug\ICustom
 {
   Case Void   ;
@@ -75,10 +77,28 @@ Enum EType Implements \WLib\Debug\ICustom
     Return $Res;
   }
   
+  Function IsCompatible(Self $Type)
+  {
+  //Log('Debug', 'Is Compatible ', $this, ' and ', $Type);
+    If($this->IsNumeric () && $Type->IsNumeric ()) Return True;
+    If($this->IsArray   () && $Type->IsArray   ()) Return True;
+    If($this->IsEmpty   () && $Type->IsEmpty   ()) Return True;
+    
+    Return False;
+  }
+  
   Function CanCast($Value)
   {
+    $Detected=Self::Detect($Value);
+    If(!$this->IsCompatible($Detected)) Return False;
+    Return $this->CanCastFull($Value);
+  }
+  
+  Function CanCastFull($Value)
+  {
     $Casted=$this->Cast($Value);
-    $Restored=Self::Detect($Value)->Cast($Casted);
+    $Detected=Self::Detect($Value);
+    $Restored=$Detected->Cast($Casted);
     Return $Value===$Restored;
   }
   

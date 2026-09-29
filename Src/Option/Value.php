@@ -249,6 +249,8 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   {
     If($this->Type->Is($Type)) Return False; //The same type
     
+    $Default??=$Type->GetDefaultValue(); //TODO: DEfault Null
+    
     If(!$this->Type->IsVoid())
     {
       If($Type->CanCast($this->Value))
@@ -261,8 +263,8 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
       }
     }
     
-    $this->Type    =$Type;
-    $this->Value   =$Type->GetDefaultValue();
+    $this->Type  =$Type    ;
+    $this->Value =$Default ;
     Return True;
   }
   

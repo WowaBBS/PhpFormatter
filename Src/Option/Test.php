@@ -56,6 +56,24 @@ $Tests=[
       HereDoc,
     'Logs'=>'Test.php(55,35) [Error] Unexpected end of option',
   ],
+  ['ParseError1', __LINE__+2, 7,
+    'Option'=><<<'HereDoc'
+      Key}
+      HereDoc,
+    'Logs'=>'Test.php(61,10) [Error] Expected ".", "=", ":", "{" or "=>", given }',
+  ],
+  ['ParseError2', __LINE__+2, 7,
+    'Option'=><<<'HereDoc'
+      Key={;
+      HereDoc,
+    'Logs'=>'Test.php(67,12) [Error] Unknown Key token: ;',
+  ],
+  ['ParseError2', __LINE__+2, 7,
+    'Option'=><<<'HereDoc'
+      Key={k1:'v1':
+      HereDoc,
+    'Logs'=>'Test.php(73,19) [Error] Map: Excepted ":", "." or "}", given :',
+  ],
   ['Errors', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
       Path.Class.Field{
@@ -69,19 +87,20 @@ $Tests=[
       }
       HereDoc,
     'Logs'=><<<'HereDoc'
-      Test.php(63,12) [Warning] Bool: Value Path.Class.Field.P1=False has already exist: True was setted in Test.php(62,12)
-      Test.php(66,15) [Warning] Int: Value Path.Class.Field.P2.k1=3 has already exist: [1, 2, 3] was setted in Test.php(64,16)
-      Test.php(68,12) [Warning] Bool: Value Path.Class.Field.P3=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Test.php(67,12)
+      Test.php(81,12) [Warning] Bool: Value Path.Class.Field.P1=False has already exist: True was setted in Test.php(80,12)
+      Test.php(84,15) [Warning] Int: Value Path.Class.Field.P2.k1=3 has already exist: [1, 2, 3] was setted in Test.php(82,16)
+      Test.php(86,12) [Warning] Bool: Value Path.Class.Field.P3=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Test.php(85,12)
       HereDoc,
   ],
   ['Validate', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
       P1{
-        k1=True,
+        k1=False,
       }
       HereDoc,
     'Validate'=>Validate(...),
     'Logs'=><<<'HereDoc'
+      Test.php(98,12) [Warning] Int: Value P1.k1=0 has already exist: False was setted in Test.php(98,12)
       HereDoc,
   ],
 ];
@@ -108,7 +127,7 @@ ForEach($Tests As $Test)
   
   $ActualLog=Trim($LogBuffer->Get_Content());
   
-  If($Desired=$Test['Desired']?? Null)
+  If(($Desired=$Test['Desired']?? Null)!==Null)
   {
     $Actual=$Result->ToValue();
     
@@ -141,7 +160,7 @@ ForEach($Tests As $Test)
     }
   }
   
-  If($DesiredLog=$Test['Logs']?? Null)
+  If(($DesiredLog=$Test['Logs']?? Null)!==Null)
   {
     $ActualLog =Explode("\n", $ActualLog);
     If(!Is_Array($DesiredLog)) $DesiredLog=Explode("\n", $DesiredLog);
