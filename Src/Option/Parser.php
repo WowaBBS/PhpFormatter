@@ -32,7 +32,7 @@ Class TParser
     Return $Res;
   }
   
-  Function SafeNext()
+  Function _SafeNext()
   {
     $Res=$this->PreView();
     $this->Log_FilePos($Res?? $this->Tokens->GetFilePosEnd());
@@ -42,7 +42,7 @@ Class TParser
   
   Function Next()
   {
-    Return $this->SafeNext()?? $this->Error('Unexpected end of option')->Ret();
+    Return $this->_SafeNext()?? $this->Error('Unexpected end of option')->Ret();
   }
   
   Function IsNext(String ...$Args)
@@ -57,16 +57,23 @@ Class TParser
   Function Parse()
   {
     $Vars=$this->NewValue();
+    $Vars->SetUsed();
     $Vars->Parser_MakeMap($this->PreView()?? $this->Tokens);
-    While(1)
-    {
-      If(!$this->ParseMapItem($Vars)) 
-        Return $Vars; // Error
-      If(!$this->IsNext(',', ';'))
-        Break;
-      If(!$this->SafeNext())
-        Break;
-    }
+    
+    If($this->IsNext('{')) $this->ParseMap  ($Vars); Else
+    If($this->IsNext('[')) $this->ParseList ($Vars); Else
+      While(1)
+      {
+        If(!$this->ParseMapItem($Vars))
+          Return $Vars; // Error
+        If(!$this->IsNext(',', ';'))
+          Break;
+        If(!$this->Preview())
+          Break;
+      }
+      
+    If($Rest=$this->Preview())
+      $this->Warning('Has unparsed data: ', $Rest->Text)->File($Rest->GetFilePos()->ToArgs());
     
   //Log('Debug', 'Parsed: ', $Vars);
     
@@ -111,9 +118,9 @@ Class TParser
     Return True;
   }
   
-  Function ParseList($Vars)
+  Function ParseList($Vars, $End=']')
   {
-    If($this->IsNext(']')) Return True;
+    If($this->IsNext($End)) Return True;
     While(1)
     {
       If(!$this->ParseValue($Vars->Parser_AddItem())) Return False;
@@ -123,10 +130,10 @@ Class TParser
       Case '': Return False;
       Case ';':
       Case ',': Break;
-      Case ']': Return True;
-      Default: Return $this->Error('Map: Excepted ":", "." or "]", given ', $Token)->Ret(False);
+      Case $End: Return True;
+      Default: Return $this->Error('List: Excepted ":", "." or "', $End, '", given ', $Token)->Ret(False);
       }
-      If($this->IsNext(']')) Return True; //,] Or ;]
+      If($this->IsNext($End)) Return True; //,] Or ;]
     }
     Return True;
   }
@@ -224,7 +231,6 @@ Class TParser
   {
     $Res=New TValue();
     $Res->Parser=$this;
-    $Res->SetUsed();
     Return $Res;
   }
 }

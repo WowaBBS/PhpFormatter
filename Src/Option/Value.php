@@ -264,7 +264,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     If(!$this->Type->IsVoid())
     {
       If($Type->CanCast($this->Value))
-        $this->Value=$Type->Cast($this->Value);
+        $this->Value=$Type->FastCast($this->Value);
       Else
         $this->Warning('Incompatible type ',$this->Type,', expected ', $Type, '; Current value is ', $this->Value)
           ->File($this->GetFilePos()->ToArgs());
@@ -308,6 +308,14 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   
   Function SetUsed() { $this->Used=True; }
   Function UnUsed() { $this->Used=False; }
+  Function UseAll()
+  {
+    $this->SetUsed();
+    $List=$this->Value;
+    If(!Is_Array($List)) Return;
+    ForEach($List As $Item)
+      $Item->UseAll();
+  }
 //****************************************************************
 // Validator and Getter
 

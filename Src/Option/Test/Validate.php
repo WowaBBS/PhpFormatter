@@ -1,10 +1,5 @@
-<?
-NameSpace Reformat\Option\Test\Validate;
-
-Function Validate($v)
-{
-  $v['P1']['k1']->GetInt();
-}
+<? NameSpace Reformat\Option\Test\Validate;
+If(!IsSet($Loader)) { $CustomTest=__FILE__; Include '../Test.php'; }
 
 Return [
   ['Conflicts', __LINE__+2, 7,
@@ -20,9 +15,9 @@ Return [
       }
       HereDoc,
     'Logs'=><<<'HereDoc'
-      Test.php(14,12) [Warning] Path.Class.Field.P1: Bool=False has already exist: True was setted in Test.php(13,12)
-      Test.php(17,15) [Warning] Path.Class.Field.P2.k1: Int=3 has already exist: [1, 2, 3] was setted in Test.php(15,16)
-      Test.php(19,12) [Warning] Path.Class.Field.P3: Bool=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Test.php(18,12)
+      Validate.php(9,12) [Warning] Path.Class.Field.P1: Bool=False has already exist: True was setted in Validate.php(8,12)
+      Validate.php(12,15) [Warning] Path.Class.Field.P2.k1: Int=3 has already exist: [1, 2, 3] was setted in Validate.php(10,16)
+      Validate.php(14,12) [Warning] Path.Class.Field.P3: Bool=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Validate.php(13,12)
       HereDoc,
   ],
   ['WrongType', __LINE__+2, 7,
@@ -34,7 +29,7 @@ Return [
       HereDoc,
     'Validate'=>Validate(...),
     'Logs'=><<<'HereDoc'
-      Test.php(31,12) [Warning] P1.k1: Incompatible type Bool, expected Int; Current value is False
+      Validate.php(26,12) [Warning] P1.k1: Incompatible type Bool, expected Int; Current value is False
       HereDoc,
   ],
   ['UnusedValues', __LINE__+2, 7,
@@ -46,7 +41,12 @@ Return [
       HereDoc,
     'Validate'=>Validate(...),
     'Logs'=><<<'HereDoc'
-      Test.php(44,12) [Warning] P1.k2: This value is unused: "Hello"
+      Validate.php(39,12) [Warning] P1.k2: This value is unused: "Hello"
       HereDoc,
   ],
 ];
+
+Function Validate($v)
+{
+  $v['P1']['k1']->GetInt();
+}

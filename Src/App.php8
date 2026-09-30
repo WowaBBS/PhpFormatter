@@ -6,7 +6,7 @@ Set_Time_Limit(0);
 
 Set_Include_Path(''); //Fix include path for include security
 
-$LogFile='.Formatter.log';
+$LogFile??='.Formatter.log';
 $argv=[$argv[0], GetCwd()];
 
 Include '_All.php';
@@ -34,8 +34,14 @@ $root = $argv[1];
 
 $Process=New TProcess();
 $Process->Init();
-If($Process->Folder($root)<0)
-  Exit(1);
+$Res=0;
+If(Is_File($root)) $Res=$Process->File   ($root)<0? 1:0; Else
+If(Is_Dir ($root)) $Res=$Process->Folder ($root)<0? 1:0; Else
+{
+  Log('Error', $root, ' not found');
+}
 
 //TODO: $Process->Done();
 $Loader->Done();
+
+Exit($Res);

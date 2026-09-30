@@ -1,7 +1,8 @@
 <?
 namespace Reformat\Option;
 
-Include_Once '../_All.php';
+Include_Once __DIR__.'/../_All.php';
+//Include_Once '../_All.php';
 $Loader->Load_Type('/Debug/Depth'); Use Function WLib\Debug\Depth;
 
 Use Function Reformat\Log;
@@ -9,8 +10,6 @@ Use Reformat\FilePos\TInfo As TFilePos;
 Use Reformat\Option\TParser;
 
 Set_Time_Limit(1);
-
-$SourceFile=BaseName(__FILE__);
 
 $TestList=[
   'Examples'   =>Include 'Test/Examples.php'   ,
@@ -20,12 +19,16 @@ $TestList=[
   'Validate'   =>Include 'Test/Validate.php'   ,
 ];
 
+If(IsSet($CustomTest))
+  $TestList=[BaseName($CustomTest, '.php')=>Include $CustomTest];
+
 $LogBuffer=$Loader->Create_Object('/Stream/Buffer');
 $LogStream=$Loader->Create_Object('/Log/Logger/Stream', ['Stream'=>$LogBuffer, 'AutoDoneStream'=>False]);
 
 ForEach($TestList As $TestsName=>$Tests)
 {
   Log('Debug', 'Tests: ', $TestsName);
+  $SourceFile=$TestsName.'.php';
   ForEach($Tests As $Test)
   {
     $Name=$Test[0];
@@ -49,35 +52,16 @@ ForEach($TestList As $TestsName=>$Tests)
     
     If(($Desired=$Test['Desired']?? Null)!==Null)
     {
-      $Actual=$Result->ToValue();
+      $Actual  =New TDebug($Result  );
+      $Desired =New TDebug($Desired );
       
-      If(True)
-      { //New
-        $Actual  =New TDebug($Result  );
-        $Desired =New TDebug($Desired );
-      }
-      Else
-      { //Old
-        $LogBuffer->Clear();
-        Log('Log', Depth(1000), $Actual)->Logger($LogStream);
-        $Actual=Trim($LogBuffer->Get_Content());
-  
-        $LogBuffer->Clear();
-        Log('Log', Depth(1000), $Desired)->Logger($LogStream);
-        $Desired=Trim($LogBuffer->Get_Content());
-      }
       // Проверяем, совпадает ли результат
       If($Actual != $Desired)
-        Log('Error', 'Parse.Result=')
-          ('  Actual  :', $Actual  )
-          ('  Desired :', $Desired );
-      Else
-      {
-        $Debug=New TDebug();
-        $Debug->Value($Result);
-        Log('Debug', 'Parse.Result=', ...$Debug->Res);
-      //Log('Debug', 'Parse.Result=', ...$Result->ToDebugArr());
-      }
+        Log('Error', 'Parse.Result: ')
+          ('  Actual  : ', $Actual  )
+          ('  Desired : ', $Desired );
+      Else If($Test['ShowResult']?? False)
+        Log('Debug', 'Parse.Result=', $Actual);
     }
     
     If(($DesiredLog=$Test['Logs']?? '')!==False)

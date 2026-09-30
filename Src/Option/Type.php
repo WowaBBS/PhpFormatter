@@ -60,7 +60,7 @@ Enum EType Implements \WLib\Debug\ICustom
     'string'  =>Self::String ,
     'array'   =>Self::Map    ,
     'object'  =>Self::Error  , //TODO: Iterable and __ToString()
-    //TODO: Another
+    //TODO: Another types
   ];
   
   Static Function Detect($Value)
@@ -77,14 +77,23 @@ Enum EType Implements \WLib\Debug\ICustom
     Return $Res;
   }
   
+  Const KindByType=[
+    Self::Void   ->name => 'Void'    ,
+    Self::Null   ->name => 'Void'    ,
+    Self::Bool   ->name => 'Bool'    ,
+    Self::Int    ->name => 'Numeric' ,
+    Self::Float  ->name => 'Numeric' ,
+    Self::String ->name => 'String'  ,
+    Self::List   ->name => 'Array'   ,
+    Self::Map    ->name => 'Array'   ,
+    Self::Error  ->name => 'Void'    ,
+  ];
+  
+  Function GetKind() { Return Self::KindByType[$this->name]; }
+  
   Function IsCompatible(Self $Type)
   {
-  //Log('Debug', 'Is Compatible ', $this, ' and ', $Type);
-    If($this->IsNumeric () && $Type->IsNumeric ()) Return True;
-    If($this->IsArray   () && $Type->IsArray   ()) Return True;
-    If($this->IsEmpty   () && $Type->IsEmpty   ()) Return True;
-    
-    Return False;
+    Return $this->GetKind()==$Type->GetKind();
   }
   
   Function CanCast($Value)
@@ -94,45 +103,29 @@ Enum EType Implements \WLib\Debug\ICustom
     Return $this->CanCastFull($Value);
   }
   
-  Function CanCastFull($Value)
+  Function _CanCast($Value)
   {
-    $Casted=$this->Cast($Value);
+    $Casted=$this->FastCast($Value);
     $Detected=Self::Detect($Value);
-    $Restored=$Detected->Cast($Casted);
+    $Restored=$Detected->FastCast($Casted);
     Return $Value===$Restored;
   }
   
-  Function Cast($Value)
+  Function FastCast($Value)
   {
     Return Match($this) {
       Self::Void    => Null ,
       Self::Null    => Null ,
-      Self::Bool    => Self::Cast_Bool   ($Value ),
-      Self::Int     => Self::Cast_Int    ($Value ),
-      Self::Float   => Self::Cast_Float  ($Value ),
-      Self::String  => Self::Cast_String ($Value ),
-      Self::List    => Self::Cast_List   ($Value ),
-      Self::Map     => Self::Cast_Map    ($Value ),
+      Self::Bool    => @(Bool   )($Value),
+      Self::Int     => @(Int    )($Value),
+      Self::Float   => @(Float  )($Value),
+      Self::String  => @(String )($Value),
+      Self::List    => Array_Values(@(Array)($Value)),
+      Self::Map     => @(Array  )($Value),
       Self::Error   => Null ,
     };
   }
   
-  Static Function Cast_Bool   ($Value ) { Return @(Bool   )$Value; }
-  Static Function Cast_Int    ($Value ) { Return Cast_Int    ($Value ); }
-  Static Function Cast_Float  ($Value ) { Return Cast_Float  ($Value ); }
-  Static Function Cast_String ($Value ) { Return Cast_String ($Value ); }
-  Static Function Cast_List   ($Value )
-  {
-    $Value=Cast_Array($Value );
-    Return Array_Is_List($Value)? $Value: Array_Values($Value);
-  }
-  
-  Static Function Cast_Map    ($Value )
-  { 
-    $Value=Cast_Array($Value );
-    Return $Value; 
-  }
-
 //****************************************************************
 // Debug
 
