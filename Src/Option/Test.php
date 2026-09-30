@@ -56,23 +56,41 @@ $Tests=[
       HereDoc,
     'Logs'=>'Test.php(55,35) [Error] Unexpected end of option',
   ],
-  ['ParseError1', __LINE__+2, 7,
+  ['ParseError.ParseMapItem', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
       Key}
       HereDoc,
     'Logs'=>'Test.php(61,10) [Error] Expected ".", "=", ":", "{" or "=>", given }',
   ],
-  ['ParseError2', __LINE__+2, 7,
+  ['ParseError.ParseKey', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
       Key={;
       HereDoc,
     'Logs'=>'Test.php(67,12) [Error] Unknown Key token: ;',
   ],
-  ['ParseError2', __LINE__+2, 7,
+  ['ParseError.ParseMap', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
       Key={k1:'v1':
       HereDoc,
     'Logs'=>'Test.php(73,19) [Error] Map: Excepted ":", "." or "}", given :',
+  ],
+  ['ParseError.ParseNumeric', __LINE__+2, 7,
+    'Option'=><<<'HereDoc'
+      Key={k1:-v1}
+      HereDoc,
+    'Logs'=>'Test.php(79,16) [Error] Number expected, given: v1',
+  ],
+  ['ParseError.ParseValue', __LINE__+2, 7,
+    'Option'=><<<'HereDoc'
+      Key={k1:v1}
+      HereDoc,
+    'Logs'=>'Test.php(85,15) [Error] Unknown Value token: v1',
+  ],
+  ['ParseError.ParseMap2', __LINE__+2, 7,
+    'Option'=><<<'HereDoc'
+      Key{k1:'v1' v2}
+      HereDoc,
+    'Logs'=>'Test.php(91,19) [Error] Map: Excepted ":", "." or "}", given v2',
   ],
   ['Errors', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
@@ -87,9 +105,9 @@ $Tests=[
       }
       HereDoc,
     'Logs'=><<<'HereDoc'
-      Test.php(81,12) [Warning] Bool: Value Path.Class.Field.P1=False has already exist: True was setted in Test.php(80,12)
-      Test.php(84,15) [Warning] Int: Value Path.Class.Field.P2.k1=3 has already exist: [1, 2, 3] was setted in Test.php(82,16)
-      Test.php(86,12) [Warning] Bool: Value Path.Class.Field.P3=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Test.php(85,12)
+      Test.php(99,12) [Warning] Bool: Value Path.Class.Field.P1=False has already exist: True was setted in Test.php(98,12)
+      Test.php(102,15) [Warning] Int: Value Path.Class.Field.P2.k1=3 has already exist: [1, 2, 3] was setted in Test.php(100,16)
+      Test.php(104,12) [Warning] Bool: Value Path.Class.Field.P3=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Test.php(103,12)
       HereDoc,
   ],
   ['Validate', __LINE__+2, 7,
@@ -100,7 +118,7 @@ $Tests=[
       HereDoc,
     'Validate'=>Validate(...),
     'Logs'=><<<'HereDoc'
-      Test.php(98,12) [Warning] Int: Value P1.k1=0 has already exist: False was setted in Test.php(98,12)
+      Test.php(116,12) [Warning] Int: Value P1.k1=0 has already exist: False was setted in Test.php(116,12)
       HereDoc,
   ],
 ];

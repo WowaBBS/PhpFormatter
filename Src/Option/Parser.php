@@ -102,7 +102,7 @@ Class TParser
       Case ';':
       Case ',': Break;
       Case '}': Return True;
-      Default: Return $this->Error('Map: Excepted ":", "." or "}", given ', $Token)->Ret(False);
+      Default: Return $this->Error('Map: Excepted ":", "." or "}", given ', $Token->Text)->Ret(False);
       }
       If($this->IsNext('}')) Return True; //,} or ;}
     }
@@ -163,7 +163,7 @@ Class TParser
       Case 'inf': Return INF; Break;
       }
     }
-    $this->Error('Numper expected: ', $Token)->Ret(False);
+    $this->Error('Number expected, given: ', $Token->Text)->Ret(False);
     Return False;
   }
   
@@ -197,7 +197,7 @@ Class TParser
       Case '[': $Vars->Parser_MakeList ($Token); Return $this->ParseList ($Vars);
       Default:
         If($WordAllow && $Token->IsWord()) { $Value=$Token->Text; Break; }
-        Return $this->Error('Unknown Value token: ', $Token)->Ret(False);
+        Return $this->Error('Unknown Value token: ', $Token->Text)->Ret(False);
       }
     }
     $Vars->Parser_SetValue($Value ,$Token); 
@@ -213,18 +213,9 @@ Class TParser
       If(!$Token) Return;
       If($Token->Text===',') Continue;
       If($Token->Text==='}') Return True;
+      Break;
     }
     $this->Error('Expected , or } but taken: ',$Token->Text)->Ret();
-  }
-  
-  Function ParseVars($Vars)
-  {
-    $Token=$this->Next();
-    If(!$Token) Return;
-    If($Token->Text==='=') Return $this->ParseValue($Vars);
-    If($Token->Text==='{') Return $this->ParseVarsMap($Vars);
-    If(!$Token->IsWord()) Return $this->Error('Unknown word: ',$Token->Text)->Ret(False);
-    Return $this->_Parse($Vars[$Token->Text]);
   }
 
   Function NewValue()
