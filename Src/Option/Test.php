@@ -105,10 +105,18 @@ $Tests=[
       }
       HereDoc,
     'Logs'=><<<'HereDoc'
-      Test.php(99,12) [Warning] Bool: Value Path.Class.Field.P1=False has already exist: True was setted in Test.php(98,12)
-      Test.php(102,15) [Warning] Int: Value Path.Class.Field.P2.k1=3 has already exist: [1, 2, 3] was setted in Test.php(100,16)
-      Test.php(104,12) [Warning] Bool: Value Path.Class.Field.P3=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Test.php(103,12)
+      Test.php(99,12) [Warning] Path.Class.Field.P1: Bool=False has already exist: True was setted in Test.php(98,12)
+      Test.php(102,15) [Warning] Path.Class.Field.P2.k1: Int=3 has already exist: [1, 2, 3] was setted in Test.php(100,16)
+      Test.php(104,12) [Warning] Path.Class.Field.P3: Bool=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Test.php(103,12)
       HereDoc,
+  ],
+  ['Option1', __LINE__+1, 16,
+    'Option'=>'Filter.Comment.Test=True;',
+    'Logs'=>'',
+  ],
+  ['Option2', __LINE__+1, 16,
+    'Option'=>'Filter.Comment.Test=True',
+    'Logs'=>'',
   ],
   ['Validate', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
@@ -119,14 +127,14 @@ $Tests=[
       HereDoc,
     'Validate'=>Validate(...),
     'Logs'=><<<'HereDoc'
-      Test.php(116,12) [Warning] P1.k1: Incompatible type Bool, expected Int; Current value is False
+      Test.php(124,12) [Warning] P1.k1: Incompatible type Bool, expected Int; Current value is False
+      Test.php(125,12) [Warning] P1.k2: This value is unused: "Hello"
       HereDoc,
   ],
 ];
 
 $LogBuffer=$Loader->Create_Object('/Stream/Buffer');
 $LogStream=$Loader->Create_Object('/Log/Logger/Stream', ['Stream'=>$LogBuffer, 'AutoDoneStream'=>False]);
-$Loader->GetLogger()->Add($LogStream);
 
 ForEach($Tests As $Test)
 {
@@ -141,7 +149,10 @@ ForEach($Tests As $Test)
   $Parser->Logger=$LogStream;
   $Result=$Parser->Parse();
   If($Validate=$Test['Validate']?? Null)
+  {
     $Validate($Result);
+    $Result->CheckUnused();
+  }
   $Parser->Logger=Null;
   
   $ActualLog=Trim($LogBuffer->Get_Content());
@@ -179,7 +190,7 @@ ForEach($Tests As $Test)
     }
   }
   
-  If(($DesiredLog=$Test['Logs']?? Null)!==Null)
+  If(($DesiredLog=$Test['Logs']?? '')!==False)
   {
     $ActualLog =Explode("\n", $ActualLog);
     If(!Is_Array($DesiredLog)) $DesiredLog=Explode("\n", $DesiredLog);
@@ -199,7 +210,6 @@ ForEach($Tests As $Test)
   }
 }
 
-$Loader->GetLogger()->Remove($LogStream);
 $LogStream->Done();
 $LogBuffer->Done();
 $Loader->Done();

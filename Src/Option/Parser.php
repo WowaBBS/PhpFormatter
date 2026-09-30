@@ -64,6 +64,8 @@ Class TParser
         Return $Vars; // Error
       If(!$this->IsNext(',', ';'))
         Break;
+      If(!$this->SafeNext())
+        Break;
     }
     
   //Log('Debug', 'Parsed: ', $Vars);
@@ -222,6 +224,7 @@ Class TParser
   {
     $Res=New TValue();
     $Res->Parser=$this;
+    $Res->SetUsed();
     Return $Res;
   }
 }

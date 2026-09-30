@@ -30,5 +30,6 @@ Function Cast_Values()
     New ArrayIterator(['a'=>'b']),
     //TODO: Does not work
     New Class Implements Stringable{ Function __ToString():String { Return 'Hello'; } },
+    New Class Implements Stringable{ Function __ToString():String { Return 15; } },
   ];
 }

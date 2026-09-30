@@ -33,17 +33,9 @@ Class TList Extends TBase
     Return $Changed? True:Null;
   }
 
-  Function Option_Validate($Vars, $Option):True|String
+  Function Option_Validate($Vars, $Option)
   {
-    ForEach($Vars As $FilterName=>$FilterVars)
-      If($Filter=$this->List[$FilterName]?? Null)
-      {
-        $R=$Filter->Option_Validate($FilterVars, $Option);
-        If(Is_String($R))
-          Return $R;
-      }
-      Else
-        Return 'Unknown filter '.$FilterName;
-    Return True;
+    ForEach($this->List As $FilterName=>$Filter)
+      $Filter->Option_Validate($Vars[$FilterName], $Option);
   }
 }

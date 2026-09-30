@@ -37,17 +37,26 @@ Function Cast_String ($Value )
     'boolean' =>$Value? '1':'0',
     'double'  =>@(String)$Value ,
     'string'  =>$Value,
-    'array'   =>@(String)$Value , //TODO Implode
+    'array'   =>Cast_String_Array ($Value), //TODO Implode
     'object'  =>Cast_String_Object($Value),
     Default   =>0,
   };
 }
 
+Function Cast_String_Array($Value):String
+{
+  $Res=[];
+  ForEach($Value As $v)
+    $Res[]=Cast_String ($v);
+  Return Implode($Res);
+}
+
 Function Cast_String_Object($Value):String
 {
-//Log('Debug', 'IsStringable=', $Value InstanceOf Stringable ,' ',$Value);
-  If($Value InstanceOf Stringable)
+  If($Value InstanceOf \Stringable)
     Return $Value;
+  If(\Is_Iterable($Value))
+    Return Cast_String_Array($Value);
   Return 'Object';
 }
 

@@ -18,26 +18,18 @@ Abstract Class TBase
   //****************************************************************
   // Option
   
-  Function Option_Validate($Vars, $Option):True|String
+  Function Option_Validate($Vars, $Option)
   {
     $this->Options[]=$Option;
-    $Res=False;
-    If($FilterVars=$Vars['Filter']?? Null)
-      Return $this->Filters->Option_Validate($FilterVars, $Option);
-    Return 'Unknown Option';
+    $this->Filters->Option_Validate($Vars['Filter'], $Option);
   }
   
   Function Option_CheckUnused()
   {
-    $Res=[];
-    ForEach($this->Options As $Option)
-      If($Option->Valid && !$Option->Used)
-        $Res[]=$Option;
-    If(!$Res) Return;
-    $Log=Log('Error', 'Unused Option:');
-    ForEach($Res As $Option)
-      $Log('  ', $Option->GetFilePos(),' ', $Option);
-    $this->Options=[];
+    $Options=$this->Options; $this->Options=[];
+    
+    ForEach($Options As $Option)
+      $Option->CheckUnUsed();
   }
 
   //****************************************************************

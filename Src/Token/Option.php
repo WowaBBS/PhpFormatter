@@ -9,7 +9,6 @@ Class TOption Extends TText
   Var Mixed $Vars  =Null ;
   Var       $Token ;//{ Get=>$this->Token?->Get(); Set=>$value?->ToWeak(); }
   Var       $Valid =False;
-  Var       $Used  =False;
   
   Function __Construct($Text, $Token, $Source)
   {
@@ -26,17 +25,18 @@ Class TOption Extends TText
   {
     $FilePos=$Token->GetFilePos();
     $Parser=New TOptionParser($Text, $FilePos);
-    $this->Vars=$Parser->Parse()->ToValue();
+    $this->Vars=$Parser->Parse();
     Return True;
   }
   
   Function Validate($Source)
   {
-    $Valid=$Source->Option_Validate($this->Vars, $this);
-    If($Valid===True)
-      $this->Valid=True;
-    Else
-      Log('Error', 'Option ', $Valid,': ', $Res);
+    $Source->Option_Validate($this->Vars, $this);
+  }
+  
+  Function CheckUnUsed()
+  {
+    $this->Vars->CheckUnUsed();
   }
   
 //****************************************************************

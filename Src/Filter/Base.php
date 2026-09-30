@@ -79,8 +79,7 @@ class TBase
   {
   }
   
-  Function Option_Validate($Vars, $Option):True|String
+  Function Option_Validate($Vars, $Option)
   {
-    Return 'Not supperted by the filter';
   }
 }

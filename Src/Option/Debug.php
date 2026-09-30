@@ -23,7 +23,7 @@ Class TDebug Implements \WLib\Debug\ICustom
   Function Error (...$Args)
   {
     Log('Error', ...$Args)->BackTrace();
-    Return $this->Raw('Error');
+    Return $this->Write('Error', '(', ...$Args)->Raw(')');
   }
   
   Function Write(...$Args)
@@ -120,7 +120,7 @@ Class TDebug Implements \WLib\Debug\ICustom
     {
       $this->Raw($k);
       Log('Error', 'Key ',$k,' is not exists in Value')
-        ->File(...$Value->GetFilePos()->ToArgs());
+        ->File($Value->GetFilePos()->ToArgs());
     }
     $this->Raw('=');
     $this->Value($v);

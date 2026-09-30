@@ -41,9 +41,9 @@ Class TComment Extends TBase
     Return New TTokenComment($Token, $To);
   }
 
-  Function Option_Validate($Vars, $Option):True|String
+  Function Option_Validate($Vars, $Option)
   {
-    If($Vars['Test']?? False) Return True;
-    Return Parent::Option_Validate($Vars, $Option);
+    Parent::Option_Validate($Vars, $Option);
+    $Vars['Test']->GetBool();
   }
 }

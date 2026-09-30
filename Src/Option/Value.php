@@ -49,9 +49,9 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     
     If(!$this->Type->IsVoid())
     {
-      $this->Warning($Type, ': Value ',$this->GetPath(),'=',$Value,' has already exist: ', 
+      $this->Warning($Type, '=',$Value,' has already exist: ', 
         $this->ToDebug(), ' was setted in ', $this->GetFilePos())
-        ->File(...$Token->GetFilePos()->ToArgs());
+        ->File($Token->GetFilePos()->ToArgs());
       //TODO: Error
     }
     
@@ -69,8 +69,8 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     Case 'double'  : $this->Parser_SetType(EType::Float  ,$Token, $v); Break;
     Case 'string'  : $this->Parser_SetType(EType::String ,$Token, $v); Break;
     Case 'NULL'    : $this->Parser_SetType(EType::Null   ,$Token, $v); Break;
-    Default:
-      Log('Error', 'Unknown value ', $v)->BackTrace()->File(...$Token->GetFilePos()->ToArgs());
+    Default: //Global log
+      Log('Error', 'Unknown value ', $v)->BackTrace()->File($Token->GetFilePos()->ToArgs());
       Return;
     }
     $this->Value=$v; 
@@ -145,12 +145,17 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     
     If(!Array_Key_Exists($key, $List))
     {
-      $this->Error('Key ', $Key, ' not found in ', $this->GetFilePos());
-      If(!$this->Modify_NeedMake()) Return Null;
+      If(!$this->Modify_NeedMake())
+      {
+        $this->Error('Key ', $Key, ' not found in ', $this->GetFilePos());
+        Return Null;
+      }
       $this->Modify_MakeKey  ($key, $Key);
     }
     
-    Return $List[$key];
+    $Res=$List[$key];
+    $Res->SetUsed();
+    Return $Res;
   }
   
   Function Has($Key)
@@ -207,7 +212,10 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
 
   Function Log(String $LogLevel, ...$Args)
   {
-    Return Log($LogLevel, ...$Args)->Logger($this->Parser->Logger);
+    $Res=Log($LogLevel, $this->GetPath(), ': ', ...$Args)->Logger($this->Parser->Logger);
+    If($Pos=$this->GetFilePos())
+      $Res->File($Pos->ToArgs());
+    Return $Res;
   }
 
 //****************************************************************
@@ -230,7 +238,9 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   Function GetPath()
   {
     $Parent=$this->Parent?->Get();
-    $Res=$this->Key?->Value?? 'Unknown';
+    $Res=$this->Key?->Value?? ($Parent? Null:'Root');
+    $Res??=Log('Error', 'Unknown key for value: ', $this->ToDebug())->Ret('Unknown key');
+    
     Return ($Parent?->Parent!==Null? $Parent->GetPath().'.':'').$Res;
   }
 
@@ -256,8 +266,8 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
       If($Type->CanCast($this->Value))
         $this->Value=$Type->Cast($this->Value);
       Else
-        $this->Warning($this->GetPath(), ': Incompatible type ',$this->Type,', expected ', $Type, '; Current value is ', $this->Value)
-          ->File(...$this->GetFilePos()->ToArgs());
+        $this->Warning('Incompatible type ',$this->Type,', expected ', $Type, '; Current value is ', $this->Value)
+          ->File($this->GetFilePos()->ToArgs());
     }
     
     $this->Type  =$Type    ;
@@ -275,7 +285,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     Case 'string'  : $this->_SetType(EType::String ,$v); Break;
     Case 'NULL'    : $this->_SetType(EType::Null   ,$v); Break;
     Default:
-      Log('Error', 'Unknown value ', $v)->BackTrace()->File(...$Token->GetFilePos()->ToArgs());
+      Log('Error', 'Unknown value ', $v)->BackTrace()->File($Token->GetFilePos()->ToArgs());
       Return;
     }
     $this->Value=$v; 
@@ -284,11 +294,20 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   
 //****************************************************************
 // Using
+
   Var $Used=False;
   
   Function CheckUnused()
   {
+    If(!$this->Used) Return $this->Warning('This value is unused: ', $this->ToDebug())->Ret();
+    $List=$this->Value;
+    If(!Is_Array($List)) Return;
+    ForEach($List As $Item)
+      $Item->CheckUnused();
   }
+  
+  Function SetUsed() { $this->Used=True; }
+  Function UnUsed() { $this->Used=False; }
 //****************************************************************
 // Validator and Getter
 

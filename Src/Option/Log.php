@@ -21,6 +21,6 @@ Trait TraitLog
   Var          $Logger  ;
   Function Log(String $LogLevel, ...$Args)
   {
-    Return Log($LogLevel, ...$Args)->Logger($this->Logger)->File(...$this->GetFilePos()->ToArgs());
+    Return Log($LogLevel, ...$Args)->Logger($this->Logger)->File($this->GetFilePos()->ToArgs());
   }
 }
