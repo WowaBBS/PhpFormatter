@@ -1,6 +1,8 @@
 <?
 NameSpace Reformat\Option;
 
+Use Function Reformat\Log;
+
 Function Cast_Bool   ($Value ) { Return @(Bool   )$Value; }
 Function Cast_Int    ($Value )
 {
@@ -43,6 +45,7 @@ Function Cast_String ($Value )
 
 Function Cast_String_Object($Value):String
 {
+//Log('Debug', 'IsStringable=', $Value InstanceOf Stringable ,' ',$Value);
   If($Value InstanceOf Stringable)
     Return $Value;
   Return 'Object';

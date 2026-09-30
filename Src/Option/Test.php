@@ -114,11 +114,12 @@ $Tests=[
     'Option'=><<<'HereDoc'
       P1{
         k1=False,
+        k2='Hello',
       }
       HereDoc,
     'Validate'=>Validate(...),
     'Logs'=><<<'HereDoc'
-      Test.php(116,12) [Warning] Int: Value P1.k1=0 has already exist: False was setted in Test.php(116,12)
+      Test.php(116,12) [Warning] P1.k1: Incompatible type Bool, expected Int; Current value is False
       HereDoc,
   ],
 ];

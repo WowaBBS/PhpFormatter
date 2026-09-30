@@ -249,18 +249,15 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   {
     If($this->Type->Is($Type)) Return False; //The same type
     
-    $Default??=$Type->GetDefaultValue(); //TODO: DEfault Null
+    $Default??=$Type->GetDefaultValue(); //TODO: Default Null
     
     If(!$this->Type->IsVoid())
     {
       If($Type->CanCast($this->Value))
         $this->Value=$Type->Cast($this->Value);
       Else
-      {
-        $this->Warning($Type, ': Value ',$this->GetPath(),'=',$Default,' has already exist: ', 
-          $this->ToDebug(), ' was setted in ', $this->GetFilePos())
+        $this->Warning($this->GetPath(), ': Incompatible type ',$this->Type,', expected ', $Type, '; Current value is ', $this->Value)
           ->File(...$this->GetFilePos()->ToArgs());
-      }
     }
     
     $this->Type  =$Type    ;
@@ -285,6 +282,13 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     $this->SetToken($Token); //TODO: Remove?
   }
   
+//****************************************************************
+// Using
+  Var $Used=False;
+  
+  Function CheckUnused()
+  {
+  }
 //****************************************************************
 // Validator and Getter
 
