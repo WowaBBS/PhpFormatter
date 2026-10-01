@@ -49,10 +49,13 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     
     If(!$this->Type->IsVoid())
     {
-      $this->Warning($Type, '=',$Value,' has already exist: ', 
-        $this->ToDebug(), ' was setted in ', $this->GetFilePos())
-        ->File($Token->GetFilePos()->ToArgs());
-      //TODO: Error
+      If($Type->IsArray() && $this->Type->IsArray() && $this->Count()===0)
+        {}// Ok, allow change List<=>Map when array is empty
+      Else
+        $this->Warning($Type, '=',$Value,' has already exist: ', 
+          $this->ToDebug(), ' was setted in ', $this->GetFilePos())
+          ->File($Token->GetFilePos()->ToArgs());
+        //TODO: Error
     }
     
     $this->Type    =$Type;
@@ -92,7 +95,10 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   {
     $Res=$this;
     ForEach($Path As $Key)
-      $Res=$Res->Parser_MakeKey($Key);
+      If($Key!==Null)
+        $Res=$Res->Parser_MakeKey($Key);
+      Else
+        $Res=$Res->Parser_AddItem();
     Return $Res;
   }
 

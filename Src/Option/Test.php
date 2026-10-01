@@ -27,12 +27,12 @@ $LogStream=$Loader->Create_Object('/Log/Logger/Stream', ['Stream'=>$LogBuffer, '
 
 ForEach($TestList As $TestsName=>$Tests)
 {
-  Log('Debug', 'Tests: ', $TestsName);
+  Log('Log', 'Tests: ', $TestsName);
   $SourceFile=$TestsName.'.php';
   ForEach($Tests As $Test)
   {
     $Name=$Test[0];
-    Log('Debug', '  Test: ', $Name);
+    Log('Log', '  Test: ', $Name);
     $FilePos=New TFilePos($SourceFile, $Test[1], $Test[2]);
     $Option=$Test['Option'];
     
@@ -61,7 +61,7 @@ ForEach($TestList As $TestsName=>$Tests)
           ('  Actual  : ', $Actual  )
           ('  Desired : ', $Desired );
       Else If($Test['ShowResult']?? False)
-        Log('Debug', 'Parse.Result=', $Actual);
+        Log('Log', 'Parse.Result=', $Actual);
     }
     
     If(($DesiredLog=$Test['Logs']?? '')!==False)
@@ -80,7 +80,7 @@ ForEach($TestList As $TestsName=>$Tests)
           ('  Actual  :', $ActualLog  )
           ('  Desired :', $DesiredLog );
     //Else
-    //  Log('Debug', 'Parse.LogResult=', $ActualLog);//, Depth(100))
+    //  Log('Log, 'Parse.LogResult=', $ActualLog);//, Depth(100))
     }
   }
 }

@@ -2,19 +2,21 @@
 NameSpace Reformat\Option;
 
 Use Function Reformat\Log;
+Use Reformat\FilePos\TInfo     As TFilePos;
 Use Reformat\FilePos\IProvider As IFilePos;
 Use Function Reformat\Utils\Token\TokenizeCode;
 
 Class TParser
 {
-  Use TraitLog;
+  Var IFilePos $FilePos   ;
+  Var          $Tokens    ;
+  Var          $NextToken ;
 
-  Var $Tokens    ;
-  Var $NextToken ;
+  Function GetFilePos() { Return $this->FilePos?->GetFilePos()?? TFilePos::GetEmpty(); }
   
   Function __Construct(String $Text, ?IFilePos $FilePos=Null)
   {
-    $this->Log_FilePos($FilePos);
+    $this->FilePos = $FilePos;
     $Tokens=TokenizeCode($Text, $FilePos);
     
     $this->Tokens    =$Tokens;
@@ -27,7 +29,7 @@ Class TParser
     $Res=$this->NextToken;
     
     While($Res?->Is(T_COMMENT, T_WHITESPACE))
-      $Res=$Res->Next; //Log('Debug', 'Token.Skip ', $Res);
+      $Res=$Res->Next;
       
     Return $Res;
   }
@@ -35,8 +37,8 @@ Class TParser
   Function _SafeNext()
   {
     $Res=$this->PreView();
-    $this->Log_FilePos($Res?? $this->Tokens->GetFilePosEnd());
-    $this->NextToken=$Res?->Next;
+    $this->FilePos   =$Res?? $this->Tokens->GetFilePosEnd();
+    $this->NextToken =$Res?->Next;
     Return $Res;
   }
   
@@ -56,7 +58,9 @@ Class TParser
   
   Function Parse()
   {
-    $Vars=$this->NewValue();
+    $Vars=New TValue();
+    $Vars->Parser=$this;
+    
     $Vars->SetUsed();
     $Vars->Parser_MakeMap($this->PreView()?? $this->Tokens, False);
     
@@ -76,7 +80,6 @@ Class TParser
     If($Rest=$this->Preview())
       $this->Warning('Has unparsed data: ', $Rest->Text)->File($Rest->GetFilePos()->ToArgs());
     
-  //Log('Debug', 'Parsed: ', $Vars);
     //TODO: Only if debug
     $Vars->Verify();
     Return $Vars;
@@ -85,7 +88,7 @@ Class TParser
   Function ParseArrayItem($Vars, $End=']'):Bool
   {
     $Path=$this->ParsePath($Vars);
-  //Log('Debug', 'ParseArrayItem.Path: ', $Path);
+    If($Path===Null) Return False;
     Switch(($Token=$this->PreView())?->Text?? '')
     {
     Case '{': //Merge mode
@@ -97,7 +100,6 @@ Class TParser
     Case ':':
     Case '=':
       $this->Next();
-    //Log('Debug', 'KeyToValue: ', $Token);
       Break; // The next is a Value
     Case ';': //Is Value
     Case ',':
@@ -141,13 +143,11 @@ Class TParser
   Function ParsePath($Parent):?Array
   {
     $Item=$this->ParseKey($Parent);
-  //Log('Debug', 'ParsePath.First=', $Item);
     If(!$Item) Return Null;
     $Res=[$Item];
     While(1)
     {
       $Token=$this->PreView();
-    //Log('Debug', 'ParsePath.Token: ', $Token);
       Switch($Token?->Text?? '')
       {
       Case '.'  :
@@ -158,30 +158,29 @@ Class TParser
         $this->Next();
         $Item=$this->ParseKey($Item, True);
         If(!$Item) Return Null;
-      //Log('Debug', 'ParsePath.Add: ', New TDebug($Item));
         $Res[]=$Item;
         Break;
       Case '[':
         $this->Next();
         $Item=$Item->NewValue();
-        $Item->Parser_MakeList($Token);
+        $Item->Parser_MakeList($Token, True);
         If(!$this->ParseArray($Item, ']')) Return Null;
+        If($Item->Count()===0)
+        { //Special for autoincrement key
+          $Res[]=Null;
+          Break;
+        }
         If($Item->Count()!==1 || !$Item->Has(0))
           Return $this->Error('ParsePath: Unknown key ',$Item, ' for path ', $Item->GetPath())
             ->File($Token->GetFilePos()->ToArgs())->Ret();
         $Item=$Item->Value[0]; //TODO: Parser_GetPathItem()
         If(!$Item) Return Null;
-      //Log('Debug', 'ParsePath.Add[]: ', New TDebug($Item));
         $Res[]=$Item;
         Break;
-    //Case ':': Case '=': Case '{': Case '=>': Break 2;
       Default:
-      //Return $this->Error('ParsePath: Unknown key ',$Item, ' for path ', $Item->GetPath())
-      //  ->File($Token->GetFilePos()->ToArgs())->Ret();
         Break 2;
       }
     }
-  //Log('Debug', 'ParsePath: ', New TDebug($Res));
     Return $Res;
   }
   
@@ -205,11 +204,9 @@ Class TParser
     Return False;
   }
   
-  Function ParseValue(TValue $Res, $ForKey=False, $ForNextKey=False, $Merge=!False):?TValue
+  Function ParseValue(TValue $Res, $ForKey=False, $ForNextKey=False, $Merge=False):?TValue
   {
-  //$Res=$Parent->NewValue();
     $Token=$this->Next();
-  //Log('Debug', 'ParseValue.Token: ', $Token);
     If($Token===Null) Return Null;
     Switch($Token->Id)
     {
@@ -220,7 +217,6 @@ Class TParser
     Case T_LNUMBER:
     Case T_DNUMBER:
     Case T_CONSTANT_ENCAPSED_STRING:
-    //Log('Debug', 'Eval ',$Token->Text);
       $Value=Eval('Return '.$Token->Text.';');
       Break;
     Default:
@@ -247,15 +243,22 @@ Class TParser
         Return $this->Error('ParseValue: Unknown token: ', $Token->Text)->Ret();
       }
     }
-  //Log('Debug', 'ParseValue=', $Value);
     $Res->Parser_SetValue($Value ,$Token);
     Return $Res;
   }
   
-  Function NewValue()
+//****************************************************************
+// Log
+
+  Var $Logger;
+
+  Function Warning (...$Args) { Return $this->Log('Warning' ,...$Args); }
+  Function Error   (...$Args) { Return $this->Log('Error'   ,...$Args); }
+  Function Debug   (...$Args) { Return $this->Log('Debug'   ,...$Args); }
+
+  Function Log(String $LogLevel, ...$Args)
   {
-    $Res=New TValue();
-    $Res->Parser=$this;
-    Return $Res;
+    Return Log($LogLevel, ...$Args)->Logger($this->Logger)->File($this->GetFilePos()->ToArgs());
   }
+//****************************************************************
 }

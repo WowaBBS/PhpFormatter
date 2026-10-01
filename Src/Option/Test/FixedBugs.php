@@ -8,4 +8,10 @@ Return [
   ['Option2', __LINE__+1, 16,
     'Option'=>'Filter.Comment.Test=True',
   ],
+  ['PhpLike.Array', __LINE__+2, 7,
+    'Option'=><<<'HereDoc'
+      ['Path'=>['Class'=>['Field'=>[]]]]
+      HereDoc,
+    'Desired'=>['Path'=>['Class'=>['Field'=>[]]]],
+  ],
 ];
