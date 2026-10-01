@@ -39,9 +39,9 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
 //****************************************************************
 // Parser interface
   
-  Function Parser_SetType(EType $Type, $Token, $Value)
+  Function Parser_SetType(EType $Type, $Token, $Value, $Merge=True)
   {
-    If($this->Type->Is($Type) && $Type->IsMap())
+    If($this->Type->Is($Type) && $Type->IsMap() && $Merge)
     {
       $this->AddToken($Token);
       Return;
@@ -69,11 +69,6 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     Case 'double'  : $this->Parser_SetType(EType::Float  ,$Token, $v); Break;
     Case 'string'  : $this->Parser_SetType(EType::String ,$Token, $v); Break;
     Case 'NULL'    : $this->Parser_SetType(EType::Null   ,$Token, $v); Break;
-    Case 'object'  :
-      If($v InstanceOf Self)
-      { //TODO: Assign
-        $this->Parser_SetType(EType::Null   ,$Token, $v);
-      }
     Default: //Global log
       Log('Error', 'Unknown value ', $v)->BackTrace()->File($Token->GetFilePos()->ToArgs());
       Return;
@@ -85,7 +80,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   Function Parser_MakeKey(TValue $Key)
   {
     $Token=$Key->GetFirstToken();
-    $this->Parser_MakeMap($Token);
+    $this->Parser_MakeMap($Token, True);
     $Res=&$this->Value[$this->_Key($Key->Value)];
     $Res??=$this->Parser_NewValue();
     $Res->AddToken($Token);
@@ -100,27 +95,12 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
       $Res=$Res->Parser_MakeKey($Key);
     Return $Res;
   }
-/*
-  Function Parser_PathSet(Array $Path, Self $Value)
-  {
-    $LastKey=Array_Pop($Path);
-    $Dst=$this->Parser_MakePath($Path);
-    $Dst->_Map_SetValue($LastKey, $Value);
-  }
+
+  Function Parser_MakeMap  ($Token, $Merge) { $this->Parser_SetType(EType::Map  ,$Token, 'Map'  ,$Merge); }
+  Function Parser_MakeList ($Token, $Merge) { $this->Parser_SetType(EType::List ,$Token, 'List' ,$Merge); }
   
-  Function _Map_SetValue($Key, $Value)
-  {
-    $key=$this->_Key($Key->Value);
-    $Old=$this->Value[$key]?? Null;
-    $this->Value[$key]=$Value;
-    If($Old) Log('Error', 'TODO: Override');
-  }
-*/
-  Function Parser_MakeMap  ($Token) { $this->Parser_SetType(EType::Map  ,$Token, 'Map'  ); }
-  Function Parser_MakeList ($Token) { $this->Parser_SetType(EType::List ,$Token, 'List' ); }
-  
-  Function Parser_KeyMap  (TValue $Key, $Token) { $Res=$this->Parser_MakeKey($Key); $Res->Parser_MakeMap  ($Token); Return $Res; }
-  Function Parser_KeyList (TValue $Key, $Token) { $Res=$this->Parser_MakeKey($Key); $Res->Parser_MakeList ($Token); Return $Res; }
+  Function Parser_KeyMap  (TValue $Key, $Token) { $Res=$this->Parser_MakeKey($Key); $Res->Parser_MakeMap  ($Token, True); Return $Res; }
+  Function Parser_KeyList (TValue $Key, $Token) { $Res=$this->Parser_MakeKey($Key); $Res->Parser_MakeList ($Token, True); Return $Res; }
   
   Function Parser_AddItem($Value=Null)
   {
@@ -147,7 +127,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   Function Modify_NeedMake() { Return True; }
   Function Modify_MakeKey($key, $Key)
   {
-    $this->Parser_MakeMap(Null);
+    $this->Parser_MakeMap(Null, True);
     $Res=&$this->Value[$key];
     $Res??=$this->NewValue();
     ($Res->Key=$this->NewValue())->Parser_SetValue($Key, Null);
@@ -261,11 +241,11 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
 // Context
 
   Var $Parser;
-  Var $Parent;
+  Var $Parent { Get=>$this->Parent?->Get(); Set=>$value? \WeakReference::Create($value):Null; }
   
   Function GetPath()
   {
-    $Parent=$this->Parent?->Get();
+    $Parent=$this->Parent;
     $Res=$this->Key?->Value?? ($Parent? Null:'Root');
     $Res??=$this->ToDebug();
   //$Res??=Log('Error', 'Unknown key for value: ', $this->ToDebug())->Ret('Unknown key');
@@ -277,7 +257,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   {
     $Res=New Self();
     $Res->Parser=$this->Parser;
-    $Res->Parent=\WeakReference::Create($this);
+    $Res->Parent=$this;
     Return $Res;
   }
   
@@ -351,12 +331,12 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   Function Verify()
   { //TODO: Only if debug
     If($Key=$this->Key)
-      If(($Parent=$Key->Parent?->Get())!==$this)
+      If(($Parent=$Key->Parent)!==$this)
         Log('Error', 'Key has wrong parent');
         
     If(Is_Array($List=$this->Value))
       ForEach($List As $Item)
-        If(($Parent=$Item->Parent?->Get())!==$this)
+        If(($Parent=$Item->Parent)!==$this)
           Log('Error', 'Item has wrong parent');
   }
   

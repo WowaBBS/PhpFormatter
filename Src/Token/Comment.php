@@ -7,20 +7,19 @@ Use Function Reformat\Utils\StrList \{RemoveFirstLen,IsAllStartsWith,LTrimMinSpa
 
 Class TComment Extends TText
 {
-  Var $Id    =T_COMMENT;
+  Var $Id =T_COMMENT;
   
   Var $Group=Null;
   
   Var $InnerTab =2;
-  Var $Start    ="/*\n"  ;
-  Var $Loop     =' * '   ;
-  Var $EndCr    =True    ;
-  Var $End      ="\n */" ;
+  Var $Start    ="/*\n" ;
+  Var $Loop     =' * '  ;
+  Var $EndCr    =True   ;
+  Var $End      =" */"  ;
   
   Function __Construct($From, $To)
   {
     Parent::__Construct($From->Id, $From->Text, $From->Line, $From->Pos);
-    
   }
   
   Function GetState() { Return [$this->State, $this->Id, $this->Start, $this->Loop, $this->EndCr, $this->End, $this->InnerTab]; }
@@ -61,8 +60,9 @@ Class TComment Extends TText
       $First=SubStr($First, StrLen($With));
       $HasFirst=StrLen(Trim($First))>0;
       $Last=Array_Pop($List);
-      If(!Str_Ends_With($Last, '*/')) Break; // Error
-      $Last=SubStr($Last,0, -2);
+      $HasEnd=Str_Ends_With($Last, '*/');
+      If($HasEnd)
+        $Last=SubStr($Last,0, -2);
       $HasLast=StrLen($Last)>0;
       
       If(IsAllStartsWith($List, '* '))
@@ -78,7 +78,7 @@ Class TComment Extends TText
       $this->Start     =$With.($HasFirst? '':"\n");
       $this->Loop      =$Loop;
       $this->EndCr     =!$HasLast;
-      $this->End       ='*/' ;
+      $this->End       =$HasEnd? '*/' :'';
       Return;
     Default:
       

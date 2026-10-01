@@ -58,7 +58,7 @@ Class TParser
   {
     $Vars=$this->NewValue();
     $Vars->SetUsed();
-    $Vars->Parser_MakeMap($this->PreView()?? $this->Tokens);
+    $Vars->Parser_MakeMap($this->PreView()?? $this->Tokens, False);
     
   //If($this->IsNext('(')) $this->ParseArray ($Vars, ')'); Else //TODO: ?
     If($this->IsNext('[')) $this->ParseArray ($Vars, ']'); Else //TODO: Ini file like, now PhpLike
@@ -85,16 +85,18 @@ Class TParser
   Function ParseArrayItem($Vars, $End=']'):Bool
   {
     $Path=$this->ParsePath($Vars);
-    $MapMerge=False;
   //Log('Debug', 'ParseArrayItem.Path: ', $Path);
     Switch(($Token=$this->PreView())?->Text?? '')
     {
-  //Case '{': $MapMerge=True; //TOOD: Enable
+    Case '{': //Merge mode
+      $this->Next();
+      $Vars=$Vars->Parser_MakePath($Path);
+      $Vars->Parser_MakeMap  ($Token, True); 
+      Return $this->ParseArray($Vars, '}');
     Case '=>': //Is really key
     Case ':':
     Case '=':
       $this->Next();
-    Case '{': //TODO: Remove
     //Log('Debug', 'KeyToValue: ', $Token);
       Break; // The next is a Value
     Case ';': //Is Value
@@ -108,8 +110,8 @@ Class TParser
     Default: Return $this->Error('ArrayItem: Excepted "=>", ":", "=", "{", ":", "." or "', $End, '", given "', $Token, '"')->File($Token->GetFilePos()->ToArgs())->Ret(False);
     }
     
-    $Vars=$Vars->Parser_MakePath($Path);    
-    $Value=$this->ParseValue($Vars, False, False, $MapMerge);
+    $Vars=$Vars->Parser_MakePath($Path);
+    $Value=$this->ParseValue($Vars);
     If(!$Value) Return False;
     Return True;
   }
@@ -203,7 +205,7 @@ Class TParser
     Return False;
   }
   
-  Function ParseValue(TValue $Res, $ForKey=False, $ForNextKey=False, $MapMerge=False):?TValue
+  Function ParseValue(TValue $Res, $ForKey=False, $ForNextKey=False, $Merge=!False):?TValue
   {
   //$Res=$Parent->NewValue();
     $Token=$this->Next();
@@ -236,16 +238,17 @@ Class TParser
       Case 'nan'   : $Value=NAN   ; Break;
       Case 'inf'   : $Value=INF   ; Break;
       Case 'debugpos' : $Value=$this->Debug('DebugPos')->Ret(True); Break;
-      Case '{': $Res->Parser_MakeMap  ($Token); Return $this->ParseArray($Res, '}')? $Res:Null;
-      Case '[': $Res->Parser_MakeList ($Token); Return $this->ParseArray($Res, ']')? $Res:Null;
-      Case '(': $Res->Parser_MakeList ($Token); Return $this->ParseArray($Res, ')')? $Res:Null;
+
+      Case '{': $Res->Parser_MakeMap  ($Token, $Merge); Return $this->ParseArray($Res, '}')? $Res:Null;
+      Case '[': $Res->Parser_MakeList ($Token, $Merge); Return $this->ParseArray($Res, ']')? $Res:Null;
+    //Case '(': $Res->Parser_MakeList ($Token, $Merge); Return $this->ParseArray($Res, ')')? $Res:Null;
       Default:
         If($ForKey && $Token->IsWord()) { $Value=$Token->Text; Break; }
         Return $this->Error('ParseValue: Unknown token: ', $Token->Text)->Ret();
       }
     }
-  //Log('Debug', 'ParseValue=', $Value);    
-    $Res->Parser_SetValue($Value ,$Token); 
+  //Log('Debug', 'ParseValue=', $Value);
+    $Res->Parser_SetValue($Value ,$Token);
     Return $Res;
   }
   
