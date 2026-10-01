@@ -27,7 +27,7 @@ Return [
           S6={k1=2},
           S6.k2:3.14, //Contains sub key k2
           S7{k:1},
-          S8[2]
+          S8=[2]
         }
       }
       HereDoc,
@@ -92,6 +92,7 @@ Return [
       HereDoc,
     'Desired'=>$Desired,
   ],
+/* TODO:
   ['PhpLike.Var', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
       $Path['Class']['Field']=[
@@ -127,6 +128,26 @@ Return [
           'S8'=>[2]
         ]
       ]
+    //$Path->Class->Field['P2']['S5'][]=-INF;
+      HereDoc,
+    'Desired'=>$Desired,
+  ],
+  ['IniLike', __LINE__+2, 7,
+    'Option'=><<<'HereDoc'
+      [Path.Class.Field]
+      
+      P1=True
+      P2.S1="Helo\n"
+      P2.S2=4
+      P2.S3=False
+      P2.S4='Hello\n'
+      P2.S5=[1234,0123,0o123,0x1A,0b11111111,1_234_567,1e2,-1,NAN,INF]
+      P2.S5[]=-INF
+      P2.S6=['k1'=>2]
+      P2.S6=['k2'=>3.14] //Contains sub key k2
+      P2.S7=['k'=>1]
+      P2.S8=[2]
+      
       HereDoc,
     'Desired'=>$Desired,
   ],

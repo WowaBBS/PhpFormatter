@@ -69,6 +69,11 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     Case 'double'  : $this->Parser_SetType(EType::Float  ,$Token, $v); Break;
     Case 'string'  : $this->Parser_SetType(EType::String ,$Token, $v); Break;
     Case 'NULL'    : $this->Parser_SetType(EType::Null   ,$Token, $v); Break;
+    Case 'object'  :
+      If($v InstanceOf Self)
+      { //TODO: Assign
+        $this->Parser_SetType(EType::Null   ,$Token, $v);
+      }
     Default: //Global log
       Log('Error', 'Unknown value ', $v)->BackTrace()->File($Token->GetFilePos()->ToArgs());
       Return;
@@ -87,7 +92,30 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     $Res->Key=$Key;
     Return $Res;
   }
+
+  Function Parser_MakePath(Array $Path)
+  {
+    $Res=$this;
+    ForEach($Path As $Key)
+      $Res=$Res->Parser_MakeKey($Key);
+    Return $Res;
+  }
+/*
+  Function Parser_PathSet(Array $Path, Self $Value)
+  {
+    $LastKey=Array_Pop($Path);
+    $Dst=$this->Parser_MakePath($Path);
+    $Dst->_Map_SetValue($LastKey, $Value);
+  }
   
+  Function _Map_SetValue($Key, $Value)
+  {
+    $key=$this->_Key($Key->Value);
+    $Old=$this->Value[$key]?? Null;
+    $this->Value[$key]=$Value;
+    If($Old) Log('Error', 'TODO: Override');
+  }
+*/
   Function Parser_MakeMap  ($Token) { $this->Parser_SetType(EType::Map  ,$Token, 'Map'  ); }
   Function Parser_MakeList ($Token) { $this->Parser_SetType(EType::List ,$Token, 'List' ); }
   
@@ -239,7 +267,8 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   {
     $Parent=$this->Parent?->Get();
     $Res=$this->Key?->Value?? ($Parent? Null:'Root');
-    $Res??=Log('Error', 'Unknown key for value: ', $this->ToDebug())->Ret('Unknown key');
+    $Res??=$this->ToDebug();
+  //$Res??=Log('Error', 'Unknown key for value: ', $this->ToDebug())->Ret('Unknown key');
     
     Return ($Parent?->Parent!==Null? $Parent->GetPath().'.':'').$Res;
   }
@@ -316,6 +345,21 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     ForEach($List As $Item)
       $Item->UseAll();
   }
+//****************************************************************
+// Verify
+
+  Function Verify()
+  { //TODO: Only if debug
+    If($Key=$this->Key)
+      If(($Parent=$Key->Parent?->Get())!==$this)
+        Log('Error', 'Key has wrong parent');
+        
+    If(Is_Array($List=$this->Value))
+      ForEach($List As $Item)
+        If(($Parent=$Item->Parent?->Get())!==$this)
+          Log('Error', 'Item has wrong parent');
+  }
+  
 //****************************************************************
 // Validator and Getter
 

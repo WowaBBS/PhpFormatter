@@ -60,11 +60,12 @@ Class TParser
     $Vars->SetUsed();
     $Vars->Parser_MakeMap($this->PreView()?? $this->Tokens);
     
-    If($this->IsNext('{')) $this->ParseMap  ($Vars); Else
-    If($this->IsNext('[')) $this->ParseList ($Vars); Else
+  //If($this->IsNext('(')) $this->ParseArray ($Vars, ')'); Else //TODO: ?
+    If($this->IsNext('[')) $this->ParseArray ($Vars, ']'); Else //TODO: Ini file like, now PhpLike
+    If($this->IsNext('{')) $this->ParseArray ($Vars, '}'); Else
       While(1)
       {
-        If(!$this->ParseMapItem($Vars))
+        If(!$this->ParseArrayItem($Vars))
           Return $Vars; // Error
         If(!$this->IsNext(',', ';'))
           Break;
@@ -76,54 +77,49 @@ Class TParser
       $this->Warning('Has unparsed data: ', $Rest->Text)->File($Rest->GetFilePos()->ToArgs());
     
   //Log('Debug', 'Parsed: ', $Vars);
-    
+    //TODO: Only if debug
+    $Vars->Verify();
     Return $Vars;
   }
   
-  Function ParseMapItem($Vars):Bool
+  Function ParseArrayItem($Vars, $End=']'):Bool
   {
-    $Key=$Vars->NewValue();
-    If(!$this->ParseKey($Key)) Return False;
-    $Token=$this->Next();
-    Switch($Text=$Token?->Text?? '')
+    $Path=$this->ParsePath($Vars);
+    $MapMerge=False;
+  //Log('Debug', 'ParseArrayItem.Path: ', $Path);
+    Switch(($Token=$this->PreView())?->Text?? '')
     {
-    Case '.'  : Return $this->ParseMapItem ($Vars->Parser_KeyMap  ($Key, $Token));
-    Case '{'  : Return $this->ParseMap     ($Vars->Parser_KeyMap  ($Key, $Token));
-    Case '['  : Return $this->ParseList    ($Vars->Parser_KeyList ($Key, $Token));
-    Case '=>' :
-    Case '='  :
-    Case ':'  : Break;
-    Default   : Return $this->Error('Expected ".", "=", ":", "{" or "=>", given ',$Text)->Ret(False);
+  //Case '{': $MapMerge=True; //TOOD: Enable
+    Case '=>': //Is really key
+    Case ':':
+    Case '=':
+      $this->Next();
+    Case '{': //TODO: Remove
+    //Log('Debug', 'KeyToValue: ', $Token);
+      Break; // The next is a Value
+    Case ';': //Is Value
+    Case ',':
+    Case $End:
+      If(Count($Path)!==1)
+        Return $this->Error('Array: Value ',New TDebug($Path), ' like a key path')->Ret(False);
+      $Vars->Parser_AddItem($Path[0]); //TODO: Check $
+      Return True;
+    Case '': Return False;
+    Default: Return $this->Error('ArrayItem: Excepted "=>", ":", "=", "{", ":", "." or "', $End, '", given "', $Token, '"')->File($Token->GetFilePos()->ToArgs())->Ret(False);
     }
-    Return $this->ParseValue($Vars->Parser_MakeKey($Key));
-  }
-  
-  Function ParseMap($Vars)
-  {
-    If($this->IsNext('}')) Return True;
-    While(1)
-    {
-      $R=$this->ParseMapItem($Vars);
-      If($R===False) Return False;
-      Switch(($Token=$this->Next())?->Text?? '')
-      {
-      Case '': Return False;
-      Case ';':
-      Case ',': Break;
-      Case '}': Return True;
-      Default: Return $this->Error('Map: Excepted ":", "." or "}", given ', $Token->Text)->Ret(False);
-      }
-      If($this->IsNext('}')) Return True; //,} or ;}
-    }
+    
+    $Vars=$Vars->Parser_MakePath($Path);    
+    $Value=$this->ParseValue($Vars, False, False, $MapMerge);
+    If(!$Value) Return False;
     Return True;
   }
   
-  Function ParseList($Vars, $End=']')
+  Function ParseArray($Vars, $End=']')
   {
     If($this->IsNext($End)) Return True;
     While(1)
     {
-      If(!$this->ParseValue($Vars->Parser_AddItem())) Return False;
+      If(!$this->ParseArrayItem($Vars, $End)) Return False;
       
       Switch(($Token=$this->Next())?->Text?? '')
       {
@@ -131,29 +127,60 @@ Class TParser
       Case ';':
       Case ',': Break;
       Case $End: Return True;
-      Default: Return $this->Error('List: Excepted ":", "." or "', $End, '", given ', $Token)->Ret(False);
+      Default: Return $this->Error('Array: Excepted ":", "." or "', $End, '", given "', $Token?->Text, '"')->Ret(False);
       }
       If($this->IsNext($End)) Return True; //,] Or ;]
     }
     Return True;
   }
   
-  Function ParseKey($Vars)
+  Function ParseKey($Parent, $ForNext=False):?TValue { Return $this->ParseValue($Parent->NewValue(), True, $ForNext); }
+  
+  Function ParsePath($Parent):?Array
   {
-    $Token=$this->Next();
-    If($Token===Null) Return False;
-    Switch($Token->Id)
+    $Item=$this->ParseKey($Parent);
+  //Log('Debug', 'ParsePath.First=', $Item);
+    If(!$Item) Return Null;
+    $Res=[$Item];
+    While(1)
     {
-    Case T_LNUMBER:
-    Case T_DNUMBER:
-    Case T_CONSTANT_ENCAPSED_STRING:
-      $Vars->Parser_SetValue(Eval('Return '.$Token->Text.';'), $Token);
-      Break;
-    Default:
-      If($Token->IsWord()) { $Vars->Parser_SetValue($Token->Text, $Token); Break; }
-      Return $this->Error('Unknown Key token: ', $Token)->Ret(False);
+      $Token=$this->PreView();
+    //Log('Debug', 'ParsePath.Token: ', $Token);
+      Switch($Token?->Text?? '')
+      {
+      Case '.'  :
+      Case '\\' :
+      Case '::' :
+      Case '/'  :
+      Case '->' :
+        $this->Next();
+        $Item=$this->ParseKey($Item, True);
+        If(!$Item) Return Null;
+      //Log('Debug', 'ParsePath.Add: ', New TDebug($Item));
+        $Res[]=$Item;
+        Break;
+      Case '[':
+        $this->Next();
+        $Item=$Item->NewValue();
+        $Item->Parser_MakeList($Token);
+        If(!$this->ParseArray($Item, ']')) Return Null;
+        If($Item->Count()!==1 || !$Item->Has(0))
+          Return $this->Error('ParsePath: Unknown key ',$Item, ' for path ', $Item->GetPath())
+            ->File($Token->GetFilePos()->ToArgs())->Ret();
+        $Item=$Item->Value[0]; //TODO: Parser_GetPathItem()
+        If(!$Item) Return Null;
+      //Log('Debug', 'ParsePath.Add[]: ', New TDebug($Item));
+        $Res[]=$Item;
+        Break;
+    //Case ':': Case '=': Case '{': Case '=>': Break 2;
+      Default:
+      //Return $this->Error('ParsePath: Unknown key ',$Item, ' for path ', $Item->GetPath())
+      //  ->File($Token->GetFilePos()->ToArgs())->Ret();
+        Break 2;
+      }
     }
-    Return True;
+  //Log('Debug', 'ParsePath: ', New TDebug($Res));
+    Return $Res;
   }
   
   Function _ParseNumeric():False|Ind|Float
@@ -176,12 +203,18 @@ Class TParser
     Return False;
   }
   
-  Function ParseValue($Vars, $WordAllow=False)
+  Function ParseValue(TValue $Res, $ForKey=False, $ForNextKey=False, $MapMerge=False):?TValue
   {
+  //$Res=$Parent->NewValue();
     $Token=$this->Next();
-    If($Token===Null) Return False;
+  //Log('Debug', 'ParseValue.Token: ', $Token);
+    If($Token===Null) Return Null;
     Switch($Token->Id)
     {
+    Case T_VARIABLE:
+      // TODO: If(!$ForKey) Unknown token
+      $Value=SubStr($Token->Text,1);
+      Break;
     Case T_LNUMBER:
     Case T_DNUMBER:
     Case T_CONSTANT_ENCAPSED_STRING:
@@ -189,11 +222,12 @@ Class TParser
       $Value=Eval('Return '.$Token->Text.';');
       Break;
     Default:
+      If($ForNextKey && $Token->IsWord()) { $Value=$Token->Text; Break; }
       Switch(StrToLower($Token->Text))
       {
       Case '-'     : 
         $Value=$this->_ParseNumeric(); 
-        If($Value===False) Return False;
+        If($Value===False) Return Null;
         $Value=-$Value;
         Break;
       Case 'null'  : $Value=Null  ; Break;
@@ -202,31 +236,19 @@ Class TParser
       Case 'nan'   : $Value=NAN   ; Break;
       Case 'inf'   : $Value=INF   ; Break;
       Case 'debugpos' : $Value=$this->Debug('DebugPos')->Ret(True); Break;
-      Case '{': $Vars->Parser_MakeMap  ($Token); Return $this->ParseMap  ($Vars);
-      Case '[': $Vars->Parser_MakeList ($Token); Return $this->ParseList ($Vars);
+      Case '{': $Res->Parser_MakeMap  ($Token); Return $this->ParseArray($Res, '}')? $Res:Null;
+      Case '[': $Res->Parser_MakeList ($Token); Return $this->ParseArray($Res, ']')? $Res:Null;
+      Case '(': $Res->Parser_MakeList ($Token); Return $this->ParseArray($Res, ')')? $Res:Null;
       Default:
-        If($WordAllow && $Token->IsWord()) { $Value=$Token->Text; Break; }
-        Return $this->Error('Unknown Value token: ', $Token->Text)->Ret(False);
+        If($ForKey && $Token->IsWord()) { $Value=$Token->Text; Break; }
+        Return $this->Error('ParseValue: Unknown token: ', $Token->Text)->Ret();
       }
     }
-    $Vars->Parser_SetValue($Value ,$Token); 
-    Return True;
+  //Log('Debug', 'ParseValue=', $Value);    
+    $Res->Parser_SetValue($Value ,$Token); 
+    Return $Res;
   }
   
-  Function ParseVarsMap($Vars)
-  {
-    While(1)
-    {
-      $this->_Parse($Vars);
-      $Token=$this->Next();
-      If(!$Token) Return;
-      If($Token->Text===',') Continue;
-      If($Token->Text==='}') Return True;
-      Break;
-    }
-    $this->Error('Expected , or } but taken: ',$Token->Text)->Ret();
-  }
-
   Function NewValue()
   {
     $Res=New TValue();
