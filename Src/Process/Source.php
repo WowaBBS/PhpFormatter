@@ -12,7 +12,7 @@ Abstract Class TSource Extends TBase
   {
     $Document=Tokenize($Source, New TFilePos($this->ShortPath));
   
-    $Result=$this->Filters->ProcessAll($Document);
+    $Result=$this->Filter->ProcessAll($Document);
     If($Result===False) Return -1; //Error happend
     $this->Option_CheckUnused();
     $Changed=$Result===True  ;

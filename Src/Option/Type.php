@@ -66,7 +66,7 @@ Enum EType Implements \WLib\Debug\ICustom
   Static Function Detect($Value)
   {
     $Type=GetType($Value);
-    $Res=Self::$TypeDetect[$Type]?? Self::Error;
+    $Res=Self::TypeDetect[$Type]?? Self::Error;
     If($Res===Self::Map && Array_Is_List($Value))
       $Res=Self::List;
     Return $Res;
@@ -83,7 +83,7 @@ Enum EType Implements \WLib\Debug\ICustom
   {
     $Detected=Self::Detect($Value);
     If(!$this->IsCompatible($Detected)) Return False;
-    Return $this->CanCastFull($Value);
+    Return $this->_CanCast($Value);
   }
   
   Function _CanCast($Value)

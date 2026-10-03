@@ -33,8 +33,9 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   Function GetFirstToken () { Return Array_First ($this->Tokens); }
   Function GetLastToken  () { Return Array_Last  ($this->Tokens); }
   
-  Function GetFilePos    ():TFilePos { Return $this->GetFirstToken ()?->GetFilePos()?? TFilePos::GetEmpty(); }
-  Function GetFilePosEnd ():TFilePos { Return $this->GetLastToken  ()?->GetFilePos()?? TFilePos::GetEmpty(); }
+  Function GetFilePos      ():TFilePos { Return $this->GetFirstToken ()?->GetFilePos()?? $this->GetFilePosError (); }
+  Function GetFilePosEnd   ():TFilePos { Return $this->GetLastToken  ()?->GetFilePos()?? $this->GetFilePosError (); }
+  Function GetFilePosError ():TFilePos { Return TFilePos::GetEmptyWithError('Path: ', $this->GetPath()); }
   
 //****************************************************************
 // Parser interface
@@ -379,15 +380,9 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     $this->_SetType($Type, Null, $Def);
   }
   
-  Function GetNull   (          ) { Return $this->GetByType(EType::Null        ); }
-  Function GetBool   ($Def=False) { Return $this->GetByType(EType::Bool   ,$Def); }
   Function GetInt    ($Def=0    ) { Return $this->GetByType(EType::Int    ,$Def); }
-  Function GetFloat  ($Def=0.0  ) { Return $this->GetByType(EType::Float  ,$Def); }
-  Function GetString ($Def=''   ) { Return $this->GetByType(EType::String ,$Def); }
-  Function GetList   ($Def=[]   ) { Return $this->GetByType(EType::List   ,$Def); }
-  Function GetMap    ($Def=[]   ) { Return $this->GetByType(EType::Map    ,$Def); }
   
-  Function CheckType(String|Callable $CheckType, $ShowError=False)
+  Function CheckType(String|Callable $CheckType, $ShowError=True)
   {
     If(Is_Callable($CheckType))
     {
@@ -398,7 +393,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     Else
     {
       $Type=$this->Type->IsType($CheckType);
-      If($Type->CanCast($this->Value))
+      If($Type && $Type->CanCast($this->Value))
       {
       //$this->Value=$Type->FastCast($this->Value);
         Return True;
@@ -407,7 +402,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
       $Res=['Wrong type ', $this->Type, ', required ', $CheckType];
     }
     
-    Log('Error', 'CheckType: ', ...((Array)$Res));
+    $this->Log('Error', 'CheckType: ', ...((Array)$Res));
     Return False;
   }
   

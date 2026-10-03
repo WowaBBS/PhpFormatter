@@ -1,8 +1,8 @@
 <?
 NameSpace Reformat\Token;
 
-Use Function Reformat\Log;
 Use Reformat\FilePos\TInfo As TFilePos;
+Use Function Reformat\Log;
 
 Class TList Extends TBase Implements \IteratorAggregate
 {
@@ -46,7 +46,7 @@ Class TList Extends TBase Implements \IteratorAggregate
       ??Log('Error', 'FilePos is not supported')->Ret(
         $this->Next?->GetFilePos()
         ?? $this->_GetParentNext()?->GetFilePos()
-        ?? TFilePos::GetEmpty()
+        ?? TFilePos::GetEmptyWithError()
       );
   }
   
@@ -56,7 +56,7 @@ Class TList Extends TBase Implements \IteratorAggregate
       ??Log('Error', 'FilePosEnd is not supported')->Ret(
         $this->Prev?->GetFilePosEnd()
         ?? $this->Parent?->GetFilePosEnd()
-        ?? TFilePos::GetEmpty()
+        ?? TFilePos::GetEmptyWithError()
       );
   }
   

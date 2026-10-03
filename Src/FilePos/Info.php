@@ -1,6 +1,8 @@
 <?
 NameSpace Reformat\FilePos; //TFilePos
 
+Use Function Reformat\Log;
+
 $Loader->Load_Interface('/Debug/Custom');
 
 Use Function Reformat\Utils\Str\TextSize;
@@ -28,6 +30,11 @@ Class TInfo Implements IProvider, \WLib\Debug\ICustom
   
   
   Static Function GetEmpty():TInfo { Static $Res=New TInfo(); Return $Res; }
+  Static Function GetEmptyWithError(...$Args):TInfo
+  {
+    Log('Error', 'There is no FilePos ', ...$Args)->BackTrace();
+    Return Self::GetEmpty();
+  }
   
   Function GetFilePos():TInfo { Return $this; }
   Function GetFilePosEnd():TInfo { Return $this; }

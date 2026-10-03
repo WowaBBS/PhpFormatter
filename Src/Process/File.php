@@ -34,7 +34,7 @@ Abstract Class TFile Extends TSource
     
     if ($source === false) Return Log('Error', 'Cannot read file ', $FilePath)->Ret(-2);
     
-    $this->Filters->FileStart();
+    $this->Filter->FileStart();
     
     $Result = $this->Source($source);
     

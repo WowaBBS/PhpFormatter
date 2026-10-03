@@ -9,7 +9,7 @@ Class TDocument Extends TList
   
   Function __Construct(?TFilePos $FilePos=Null)
   {
-    $this->FilePos =$FilePos?? TFilePos::GetEmpty();
+    $this->FilePos =$FilePos?? TFilePos::GetEmptyWithError();
   }
   
   Function GetFilePos(): TFilePos { Return $this->FilePos; }

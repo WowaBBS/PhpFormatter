@@ -14,7 +14,7 @@ Class TParser
   Var          $Tokens  ;
   Var          $Current ;
 
-  Function GetFilePos() { Return $this->FilePos?->GetFilePos()?? TFilePos::GetEmpty(); }
+  Function GetFilePos() { Return $this->FilePos?->GetFilePos()?? TFilePos::GetEmptyWithError(); }
   
   Function __Construct(String $Text, ?IFilePos $FilePos=Null)
   {

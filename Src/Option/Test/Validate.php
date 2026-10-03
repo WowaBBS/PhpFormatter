@@ -30,7 +30,7 @@ $Res=[
       HereDoc,
     'Validate'=>&$Validate,
     'Logs'=><<<'HereDoc'
-      Validate.php(27,12) [Warning] P1.k1: Incompatible type Bool, expected Int; Current value is False
+      Validate.php(27,12) [Error] P1.k1: CheckType: Wrong type Bool, required Int
       HereDoc,
   ],
   ['UnusedValues', __LINE__+2, 7,
@@ -50,7 +50,7 @@ $Res=[
 $Validate=
   Function($v)
   {
-    $v['P1']['k1']->GetInt();
+    $v['P1']['k1']->CheckType('Int');
   };
 
 UnSet($Validate);

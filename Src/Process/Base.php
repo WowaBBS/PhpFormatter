@@ -7,14 +7,14 @@ Use Function Reformat\Filter\CreateList;
 
 Abstract Class TBase Implements IOptionReceiver
 {
-  Var $Filters;
+  Var $Filter;
   Var $ShortPath ='Source';
   Var $FilePath  ='Source';
   Var $Options   =[];
   
   Function Init()
   {
-    $this->Filters=CreateList($this); //TODO: $Config
+    $this->Filter=CreateList($this); //TODO: $Config
   }
   
   //****************************************************************
@@ -29,7 +29,7 @@ Abstract Class TBase Implements IOptionReceiver
   
   Function Option_Do($Op)
   {
-    $Op->Sub('Filter', $this->Filters);
+    $Op->Sub('Filter', $this->Filter);
     $Op->BaseCalled();
   }
   

@@ -17,7 +17,7 @@ Class TOperation
   Function GetSet($Key, $Value, Null|String|Callable $Type=Null, $Comment='')
   {
     $Vars=$this->Vars[$Key];
-    $Valid=$Type && $Vars->Type->HasValue() && $Vars->CheckType($Type, $this->Op==='Check');
+    $Valid=$Type && $Vars->Type->HasValue() && $Vars->CheckType($Type, $this->Op==='Check', False);
     
     Switch($this->Op)
     {
@@ -48,8 +48,7 @@ Class TOperation
   Function Sub($Key, $Value, $Comment='')
   {
     $Save=$this->State_Save();
-    $Vars=$this->Vars[$Key];
-    $this->Vars=$Vars;
+    $Vars=$this->Vars=$this->Vars[$Key];
     If(Is_Array($Value))
     {
       ForEach($Value As $k=>$v)
