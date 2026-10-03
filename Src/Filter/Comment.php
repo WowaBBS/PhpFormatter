@@ -1,9 +1,10 @@
 <?
 NameSpace Reformat\Filter;
 
+Use Reformat\Token\TComment As TTokenComment;
+
 Use Function Reformat\Log;
 Use Function Reformat\Utils\Str\Starts_With_List;
-Use Reformat\Token\TComment As TTokenComment;
 
 /**
  * Functions:
@@ -41,9 +42,9 @@ Class TComment Extends TBase
     Return New TTokenComment($Token, $To);
   }
 
-  Function Option_Validate($Vars, $Option)
+  Function Option_Do($Op)
   {
-    Parent::Option_Validate($Vars, $Option);
-    $Vars['Test']->GetBool();
+    Parent::Option_Do($Op);
+    $this->Test=$Op->GetSet('Test', $this->Test, 'Bool');
   }
 }

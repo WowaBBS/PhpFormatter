@@ -33,9 +33,10 @@ Class TList Extends TBase
     Return $Changed? True:Null;
   }
 
-  Function Option_Validate($Vars, $Option)
+  Function Option_Do($Op)
   {
+    Parent::Option_Do($Op);
     ForEach($this->List As $FilterName=>$Filter)
-      $Filter->Option_Validate($Vars[$FilterName], $Option);
+      $Op->Sub($FilterName, $Filter);
   }
 }

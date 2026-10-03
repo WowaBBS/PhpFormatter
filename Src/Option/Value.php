@@ -404,7 +404,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
         Return True;
       }
       If(!$ShowError) Return False;
-      $Res=['Wrong type ', $Item->Type, ', required ', $Valid!==False? $Valid: $Type];
+      $Res=['Wrong type ', $this->Type, ', required ', $CheckType];
     }
     
     Log('Error', 'CheckType: ', ...((Array)$Res));

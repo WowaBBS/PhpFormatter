@@ -1,9 +1,11 @@
 <?
-namespace Reformat\Process;
-use function Reformat\Log;
-use function Reformat\Filter\CreateList;
+NameSpace Reformat\Process;
 
-Abstract Class TBase
+Use Reformat\Option\IReceiver As IOptionReceiver;
+Use Function Reformat\Log;
+Use Function Reformat\Filter\CreateList;
+
+Abstract Class TBase Implements IOptionReceiver
 {
   Var $Filters;
   Var $ShortPath ='Source';
@@ -21,7 +23,14 @@ Abstract Class TBase
   Function Option_Validate($Vars, $Option)
   {
     $this->Options[]=$Option;
-    $this->Filters->Option_Validate($Vars['Filter'], $Option);
+    $Op=New \Reformat\Option\TOperation($Vars, 'Check');
+    $Op->Receive($this);
+  }
+  
+  Function Option_Do($Op)
+  {
+    $Op->Sub('Filter', $this->Filters);
+    $Op->BaseCalled();
   }
   
   Function Option_CheckUnused()

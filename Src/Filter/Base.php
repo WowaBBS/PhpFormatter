@@ -1,8 +1,10 @@
 <?
-namespace Reformat\Filter;
-use function Reformat\Log;
+NameSpace Reformat\Filter;
 
-class TBase
+Use Reformat\Option\IReceiver As IOptionReceiver;
+Use Function Reformat\Log;
+
+Class TBase Implements IOptionReceiver
 {
   Var $Source;
   
@@ -79,7 +81,5 @@ class TBase
   {
   }
   
-  Function Option_Validate($Vars, $Option)
-  {
-  }
+  Function Option_Do($Op) { $Op->BaseCalled(); }
 }
