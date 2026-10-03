@@ -171,7 +171,8 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     
     If(!Is_Array($List))
     {
-      $this->Error('Wring type ',$this->Type,' access by key ', $Key, '  setted in ', $this->GetFilePos());
+      If(!$this->Type->IsVoid())
+        $this->Error('Wrong type ',$this->Type,' access by key ', $Key, '  setted in ', $this->GetFilePos());
       If(!$this->Modify_NeedMake()) Return Null;
       $this->Modify_MakeKey  ($key, $Key);
     }
