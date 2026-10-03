@@ -44,8 +44,8 @@ Trait TNode //Implements \IteratorAggregate
   Function Insert($Item) //Right
   {
     $Item->_CheckParent();
-    
     $this->_Insert_Range($Item, $Item);
+    Return $Item;
   }
 
   Function _Insert_Range($From, $To) //Right

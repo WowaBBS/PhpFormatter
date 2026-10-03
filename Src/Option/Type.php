@@ -13,9 +13,21 @@ Enum EType Implements \WLib\Debug\ICustom
   Case String ;
   Case List   ;
   Case Map    ;
-  Case Error  ;
+  Case Error  ; //Used only for detect
   
   Const Default=Self::Void;
+
+  Protected Const TypeInfo = [      //Type 0      , Kind 1   ,Default 2  ,FastCast 3
+    Self::Void   ->name =>[Self::Void   ,'Void'    ,Null       ,Self::_Cast_Null   (...)],
+    Self::Null   ->name =>[Self::Null   ,'Void'    ,Null       ,Self::_Cast_Null   (...)],
+    Self::Bool   ->name =>[Self::Bool   ,'Bool'    ,False      ,Self::_Cast_Bool   (...)],
+    Self::Int    ->name =>[Self::Int    ,'Numeric' ,0          ,Self::_Cast_Int    (...)],
+    Self::Float  ->name =>[Self::Float  ,'Numeric' ,0.         ,Self::_Cast_Float  (...)],
+    Self::String ->name =>[Self::String ,'String'  ,''         ,Self::_Cast_String (...)],
+    Self::List   ->name =>[Self::List   ,'Array'   ,[]         ,Self::_Cast_List   (...)],
+    Self::Map    ->name =>[Self::Map    ,'Array'   ,[]         ,Self::_Cast_Array  (...)],
+    Self::Error  ->name =>[Self::Error  ,'Void'    ,Self::Error,Self::_Cast_Null   (...)],
+  ];
   
   Function IsVoid   () { Return $this===Self::Void   ; }
   Function IsNull   () { Return $this===Self::Null   ; }
@@ -30,24 +42,12 @@ Enum EType Implements \WLib\Debug\ICustom
   Function IsNumeric () { Return $this->IsInt  () || $this->IsFloat (); }
   Function IsArray   () { Return $this->IsList () || $this->IsMap   (); }
   Function IsEmpty   () { Return $this->IsVoid () || $this->IsNull  () || $this->IsError(); }
+  Function HasValue  () { Return !$this->IsVoid (); }
 
   Function Is(Self $Type) { Return $this===$Type; }
 //Function CanSet(Self $Type) { Return $this===Self::Void && $this===$Type; }
   
-  Function GetDefaultValue()
-  {
-    Return Match($this) {
-      Self::Void    => Null  ,
-      Self::Null    => Null  ,
-      Self::Bool    => False ,
-      Self::Int     => 0     ,
-      Self::Float   => 0.    ,
-      Self::String  => ''    ,
-      Self::List    => []    ,
-      Self::Map     => []    ,
-      Self::Error   => Self::Error,
-    };
-  }
+  Function GetDefaultValue() { Return Self::TypeInfo[$this->name][2]; }
   
 //****************************************************************
 // Cast
@@ -67,29 +67,12 @@ Enum EType Implements \WLib\Debug\ICustom
   {
     $Type=GetType($Value);
     $Res=Self::$TypeDetect[$Type]?? Self::Error;
-    Switch($Res)
-    {
-    Case Self::Map:
-      If(Array_Is_List($Value))
-        $Res=Self::List;
-      Break;
-    }
+    If($Res===Self::Map && Array_Is_List($Value))
+      $Res=Self::List;
     Return $Res;
   }
   
-  Const KindByType=[
-    Self::Void   ->name => 'Void'    ,
-    Self::Null   ->name => 'Void'    ,
-    Self::Bool   ->name => 'Bool'    ,
-    Self::Int    ->name => 'Numeric' ,
-    Self::Float  ->name => 'Numeric' ,
-    Self::String ->name => 'String'  ,
-    Self::List   ->name => 'Array'   ,
-    Self::Map    ->name => 'Array'   ,
-    Self::Error  ->name => 'Void'    ,
-  ];
-  
-  Function GetKind() { Return Self::KindByType[$this->name]; }
+  Function GetKind() { Return Self::TypeInfo[$this->name][1]; }
   
   Function IsCompatible(Self $Type)
   {
@@ -111,21 +94,42 @@ Enum EType Implements \WLib\Debug\ICustom
     Return $Value===$Restored;
   }
   
-  Function FastCast($Value)
-  {
-    Return Match($this) {
-      Self::Void    => Null ,
-      Self::Null    => Null ,
-      Self::Bool    => @(Bool   )($Value),
-      Self::Int     => @(Int    )($Value),
-      Self::Float   => @(Float  )($Value),
-      Self::String  => @(String )($Value),
-      Self::List    => Array_Values(@(Array)($Value)),
-      Self::Map     => @(Array  )($Value),
-      Self::Error   => Null ,
-    };
-  }
+  Static Function _Cast_Null   ($v) { Return Null; }
+  Static Function _Cast_Bool   ($v) { Return @(Bool   )$v; }
+  Static Function _Cast_Int    ($v) { Return @(Int    )$v; }
+  Static Function _Cast_Float  ($v) { Return @(Float  )$v; }
+  Static Function _Cast_String ($v) { Return @(String )$v; }
+  Static Function _Cast_Array  ($v) { Return @(Array  )$v; }
+  Static Function _Cast_List   ($v) { Return Array_Values(@(Array  )$v); }
   
+  Function FastCast($Value) { Return Self::TypeInfo[$this->name][3]($Value); }
+  
+//****************************************************************
+
+  Const CheckTypes=[
+    'Null'    =>[Self::Null                ],
+    
+    'Bool'    =>[Self::Bool                ],
+    'Int'     =>[Self::Int                 ],
+    'Float'   =>[Self::Float   ,Self::Int  ],
+    'String'  =>[Self::String              ],
+    'List'    =>[Self::List    ,Self::Map  ],
+    'Map'     =>[Self::Map     ,Self::List ],
+    
+    '?Bool'   =>[Self::Bool                ,Self::Null],
+    '?Int'    =>[Self::Int                 ,Self::Null],
+    '?Float'  =>[Self::Float   ,Self::Int  ,Self::Null],
+    '?String' =>[Self::String              ,Self::Null],
+    '?List'   =>[Self::List    ,Self::Map  ,Self::Null],
+    '?Map'    =>[Self::Map     ,Self::List ,Self::Null],
+  ];
+
+  Function IsType(String $Type)
+  {
+    $Types=Self::CheckTypes[$Type]?? Log('Error', 'Type ', $Type, ' is not found')->Ret([]);
+    Return In_Array($this, $Types, True)? $Types[0]:False;
+  }
+
 //****************************************************************
 // Debug
 

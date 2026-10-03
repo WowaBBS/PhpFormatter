@@ -2,15 +2,17 @@
 NameSpace Reformat\Option;
 
 Use Function Reformat\Log;
-Use Reformat\FilePos\TInfo     As TFilePos;
-Use Reformat\FilePos\IProvider As IFilePos;
+Use Reformat\FilePos\TInfo     As TFilePos   ;
+Use Reformat\FilePos\IProvider As IFilePos   ;
+Use Reformat\Token\TText       As TTokenText ;
 Use Function Reformat\Utils\Token\TokenizeCode;
+Use Function Reformat\Utils\Str\LinePos;
 
 Class TParser
 {
-  Var IFilePos $FilePos   ;
-  Var          $Tokens    ;
-  Var          $NextToken ;
+  Var IFilePos $FilePos ;
+  Var          $Tokens  ;
+  Var          $Current ;
 
   Function GetFilePos() { Return $this->FilePos?->GetFilePos()?? TFilePos::GetEmpty(); }
   
@@ -19,14 +21,15 @@ Class TParser
     $this->FilePos = $FilePos;
     $Tokens=TokenizeCode($Text, $FilePos);
     
-    $this->Tokens    =$Tokens;
-    $this->NextToken =$Tokens->First;    
+    $this->Tokens  =$Tokens;
+    $this->Current =New TTokenText(0,'',0,0);
+    $this->Current->Next=$Tokens->First;
   }
   
   // Returns next token is not Comment or WhiteSpace
   Function PreView()
   {
-    $Res=$this->NextToken;
+    $Res=$this->Current?->Next;
     
     While($Res?->Is(T_COMMENT, T_WHITESPACE))
       $Res=$Res->Next;
@@ -37,8 +40,8 @@ Class TParser
   Function _SafeNext()
   {
     $Res=$this->PreView();
-    $this->FilePos   =$Res?? $this->Tokens->GetFilePosEnd();
-    $this->NextToken =$Res?->Next;
+    $this->FilePos=$Res?? $this->Tokens->GetFilePosEnd();
+    $this->Current=$Res;
     Return $Res;
   }
   
@@ -91,24 +94,26 @@ Class TParser
     If($Path===Null) Return False;
     Switch(($Token=$this->PreView())?->Text?? '')
     {
-    Case '{': //Merge mode
+    Case '{'  : //Merge mode
       $this->Next();
       $Vars=$Vars->Parser_MakePath($Path);
-      $Vars->Parser_MakeMap  ($Token, True); 
+      $Vars->Parser_MakeMap($Token, True); 
       Return $this->ParseArray($Vars, '}');
-    Case '=>': //Is really key
-    Case ':':
-    Case '=':
+    Case '=>' : //Is really key
+    Case ':'  :
+    Case '='  :
+    Case '\\' :
+    Case '/'  :
       $this->Next();
       Break; // The next is a Value
-    Case ';': //Is Value
-    Case ',':
-    Case $End:
+    Case ';'  : //Is Value
+    Case ','  :
+    Case $End :
       If(Count($Path)!==1)
         Return $this->Error('Array: Value ',New TDebug($Path), ' like a key path')->Ret(False);
       $Vars->Parser_AddItem($Path[0]); //TODO: Check $
       Return True;
-    Case '': Return False;
+    Case ''   : Return False;
     Default: Return $this->Error('ArrayItem: Excepted "=>", ":", "=", "{", ":", "." or "', $End, '", given "', $Token, '"')->File($Token->GetFilePos()->ToArgs())->Ret(False);
     }
     
@@ -118,7 +123,7 @@ Class TParser
     Return True;
   }
   
-  Function ParseArray($Vars, $End=']')
+  Function ParseArray($Vars, $End=']'):Bool
   {
     If($this->IsNext($End)) Return True;
     While(1)
@@ -138,7 +143,10 @@ Class TParser
     Return True;
   }
   
-  Function ParseKey($Parent, $ForNext=False):?TValue { Return $this->ParseValue($Parent->NewValue(), True, $ForNext); }
+  Function ParseKey($Parent, $ForNext=False):?TValue
+  {
+    Return $this->ParseValue($Parent->NewValue(), True, $ForNext);
+  }
   
   Function ParsePath($Parent):?Array
   {
@@ -165,16 +173,11 @@ Class TParser
         $Item=$Item->NewValue();
         $Item->Parser_MakeList($Token, True);
         If(!$this->ParseArray($Item, ']')) Return Null;
-        If($Item->Count()===0)
-        { //Special for autoincrement key
-          $Res[]=Null;
-          Break;
-        }
-        If($Item->Count()!==1 || !$Item->Has(0))
-          Return $this->Error('ParsePath: Unknown key ',$Item, ' for path ', $Item->GetPath())
-            ->File($Token->GetFilePos()->ToArgs())->Ret();
-        $Item=$Item->Value[0]; //TODO: Parser_GetPathItem()
+        
+        $Item=$Item->Parser_GetPathItem();
+        
         If(!$Item) Return Null;
+        
         $Res[]=$Item;
         Break;
       Default:
@@ -184,7 +187,7 @@ Class TParser
     Return $Res;
   }
   
-  Function _ParseNumeric():False|Ind|Float
+  Function _ParseNumeric():False|Int|Float
   {
     $Token=$this->Next();
     If($Token===Null) Return False;
@@ -204,14 +207,48 @@ Class TParser
     Return False;
   }
   
+  Var $Consts=[
+    'null'  =>Null  ,
+    'true'  =>True  ,
+    'on'    =>True  ,
+    'yes'   =>True  ,
+    'false' =>False ,
+    'off'   =>False ,
+    'no'    =>False ,
+    'nan'   =>\NAN  ,
+    'inf'   =>\INF  ,
+  ];
+  
   Function ParseValue(TValue $Res, $ForKey=False, $ForNextKey=False, $Merge=False):?TValue
   {
     $Token=$this->Next();
     If($Token===Null) Return Null;
+    $HasError=False;
     Switch($Token->Id)
     {
+    Case T_NAME_QUALIFIED:
+      $HasError=!$ForKey;
+      If($HasError)
+        Break;
+      
+      $List=Explode('\\', $Token->Text);
+      $Value=Array_Shift($List);
+      $Token->Text=$Value;
+
+      $Insert=$Token;
+      $Line =$Token->Line ;
+      $Pos  =$Token->Pos  ;
+      LinePos($Value, $Line, $Pos);
+      ForEach($List As $Item)
+      {
+        $Insert=$Insert->Insert(New TTokenText(Ord('\\'), '\\', $Line, $Pos));
+        LinePos('\\', $Line, $Pos);
+        $Insert=$Insert->Insert(New TTokenText(T_STRING, $Item, $Line, $Pos));
+        LinePos($Item, $Line, $Pos);
+      }      
+      Break;
     Case T_VARIABLE:
-      // TODO: If(!$ForKey) Unknown token
+      $HasError=!$ForKey;
       $Value=SubStr($Token->Text,1);
       Break;
     Case T_LNUMBER:
@@ -221,28 +258,26 @@ Class TParser
       Break;
     Default:
       If($ForNextKey && $Token->IsWord()) { $Value=$Token->Text; Break; }
-      Switch(StrToLower($Token->Text))
+      Switch($text=StrToLower($Token->Text))
       {
-      Case '-'     : 
+      Case '-':
         $Value=$this->_ParseNumeric(); 
         If($Value===False) Return Null;
         $Value=-$Value;
         Break;
-      Case 'null'  : $Value=Null  ; Break;
-      Case 'true'  : $Value=True  ; Break;
-      Case 'false' : $Value=False ; Break;
-      Case 'nan'   : $Value=NAN   ; Break;
-      Case 'inf'   : $Value=INF   ; Break;
       Case 'debugpos' : $Value=$this->Debug('DebugPos')->Ret(True); Break;
 
       Case '{': $Res->Parser_MakeMap  ($Token, $Merge); Return $this->ParseArray($Res, '}')? $Res:Null;
       Case '[': $Res->Parser_MakeList ($Token, $Merge); Return $this->ParseArray($Res, ']')? $Res:Null;
     //Case '(': $Res->Parser_MakeList ($Token, $Merge); Return $this->ParseArray($Res, ')')? $Res:Null;
       Default:
+        If(Array_Key_Exists($text, $this->Consts)) { $Value=$this->Consts[$text]; Break; }
         If($ForKey && $Token->IsWord()) { $Value=$Token->Text; Break; }
-        Return $this->Error('ParseValue: Unknown token: ', $Token->Text)->Ret();
+        $HasError=True;
       }
     }
+    If($HasError)
+      Return $this->Error('ParseValue: Unknown token: ', $Token->Text)->Ret();
     $Res->Parser_SetValue($Value ,$Token);
     Return $Res;
   }

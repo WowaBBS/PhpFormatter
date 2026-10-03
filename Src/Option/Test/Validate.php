@@ -1,7 +1,8 @@
 <? NameSpace Reformat\Option\Test\Validate;
 If(!IsSet($Loader)) { $CustomTest=__FILE__; Include '../Test.php'; }
 
-Return [
+$Validate=Null;
+$Res=[
   ['Conflicts', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
       Path.Class.Field{
@@ -15,9 +16,9 @@ Return [
       }
       HereDoc,
     'Logs'=><<<'HereDoc'
-      Validate.php(9,12) [Warning] Path.Class.Field.P1: Bool=False has already exist: True was setted in Validate.php(8,12)
-      Validate.php(12,15) [Warning] Path.Class.Field.P2.k1: Int=3 has already exist: [1, 2, 3] was setted in Validate.php(10,16)
-      Validate.php(14,12) [Warning] Path.Class.Field.P3: Bool=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Validate.php(13,12)
+      Validate.php(10,12) [Warning] Path.Class.Field.P1: Bool=False has already exist: True was setted in Validate.php(9,12)
+      Validate.php(13,15) [Warning] Path.Class.Field.P2.k1: Int=3 has already exist: [1, 2, 3] was setted in Validate.php(11,16)
+      Validate.php(15,12) [Warning] Path.Class.Field.P3: Bool=False has already exist: {k1=[1, 2, 3], k2=9} was setted in Validate.php(14,12)
       HereDoc,
   ],
   ['WrongType', __LINE__+2, 7,
@@ -27,9 +28,9 @@ Return [
       //k2='Hello',
       }
       HereDoc,
-    'Validate'=>Validate(...),
+    'Validate'=>&$Validate,
     'Logs'=><<<'HereDoc'
-      Validate.php(26,12) [Warning] P1.k1: Incompatible type Bool, expected Int; Current value is False
+      Validate.php(27,12) [Warning] P1.k1: Incompatible type Bool, expected Int; Current value is False
       HereDoc,
   ],
   ['UnusedValues', __LINE__+2, 7,
@@ -39,14 +40,19 @@ Return [
         k2='Hello',
       }
       HereDoc,
-    'Validate'=>Validate(...),
+    'Validate'=>&$Validate,
     'Logs'=><<<'HereDoc'
-      Validate.php(39,12) [Warning] P1.k2: This value is unused: "Hello"
+      Validate.php(40,12) [Warning] P1.k2: This value is unused: "Hello"
       HereDoc,
   ],
 ];
 
-Function Validate($v)
-{
-  $v['P1']['k1']->GetInt();
-}
+$Validate=
+  Function($v)
+  {
+    $v['P1']['k1']->GetInt();
+  };
+
+UnSet($Validate);
+
+Return $Res;

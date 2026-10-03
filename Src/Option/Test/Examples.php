@@ -114,7 +114,7 @@ Return [
   ],
   ['PhpLike.OOP', __LINE__+2, 7,
     'Option'=><<<'HereDoc'
-      $Path->Class->Field=[
+      Path\Class::$Field=[
         'P1'=>True,
         'P2'=>[
           'S1'=>"Helo\n",
@@ -128,7 +128,7 @@ Return [
           'S8'=>[2]
         ]
       ];
-      $Path->Class->Field['P2']['S5'][]=-INF; //Add forgotten ,-INF
+      Path::$Class->Field['P2']->S5[]=-INF; //Add forgotten ,-INF
       HereDoc,
     'Desired'=>$Desired,
   ],
@@ -143,11 +143,34 @@ Return [
       P2.S3=False
       P2.S4='Hello\n'
       P2.S5=[1234,0123,0o123,0x1A,0b11111111,1_234_567,1e2,-1,NAN,INF]
-      P2.S5[]=-INF
       P2.S6=['k1'=>2]
       P2.S6=['k2'=>3.14] //Contains sub key k2
       P2.S7=['k'=>1]
       P2.S8=[2]
+      
+      [Path.Class.Field.P2]
+      S5[]=-INF
+      
+      HereDoc,
+    'Desired'=>$Desired,
+  ],
+  ['YamlLike', __LINE__+2, 7,
+    'Option'=><<<'HereDoc'
+      Path.Class.Field:
+        P1: Yes
+        P2:
+          S1: "Helo\n"
+          S2: 4
+          S3: No
+          S4: 'Hello\n'
+          S5: [1234,0123,0o123,0x1A,0b11111111,1_234_567,1e2,-1,NAN,INF]
+          S6: [k1: 2]
+          S6  {k2: 3.14} //Contains sub key k2
+          S7: [k: 1]
+          S8: [2]
+      
+      Path.Class.Field.P2:
+        S5[]=-INF
       
       HereDoc,
     'Desired'=>$Desired,

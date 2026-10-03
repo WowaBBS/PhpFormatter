@@ -90,15 +90,27 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     $Res->Key=$Key;
     Return $Res;
   }
+  
+  Function Parser_GetPathItem()
+  {
+    If($this->Count()===0) Return $this; //[]
+    If($this->Count()!==1 || !$this->Has(0))
+      Return $this->Error('ParsePath: Unknown key ',$Item, ' for path ', $Item->GetPath())
+        ->File($Token->GetFilePos()->ToArgs())->Ret();
+    $Res=$this->Value[0]; //[Key]
+    Array_UnShift ($Res->Tokens, Array_Shift($this->Tokens));
+    Array_Push    ($Res->Tokens, ...$this->Tokens);
+    Return $Res;
+  }
 
   Function Parser_MakePath(Array $Path)
   {
     $Res=$this;
     ForEach($Path As $Key)
-      If($Key!==Null)
-        $Res=$Res->Parser_MakeKey($Key);
+      If($Key->Type->IsArray())
+        $Res=$Res->Parser_AddItem(Null, $Key);
       Else
-        $Res=$Res->Parser_AddItem();
+        $Res=$Res->Parser_MakeKey($Key);
     Return $Res;
   }
 
@@ -108,8 +120,14 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   Function Parser_KeyMap  (TValue $Key, $Token) { $Res=$this->Parser_MakeKey($Key); $Res->Parser_MakeMap  ($Token, True); Return $Res; }
   Function Parser_KeyList (TValue $Key, $Token) { $Res=$this->Parser_MakeKey($Key); $Res->Parser_MakeList ($Token, True); Return $Res; }
   
-  Function Parser_AddItem($Value=Null)
+  Function Parser_AddItem ($Value=Null, $Key=Null)
   {
+    If(!$this->Type->Is(EType::List))
+    {
+      $Key??=$Value;
+      $this->Warning('Sould be list at ',$Key?->GetFilePos());
+      $this->Parser_MakeList($Key->GetFirstToken(), True);
+    }
     $Value??=$this->Parser_NewValue();
     If(!$Value->Key)
     {
@@ -269,7 +287,6 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   
 //****************************************************************
 //
-
   Function _SetType(EType $Type, $Default=Null)
   {
     If($this->Type->Is($Type)) Return False; //The same type
@@ -305,6 +322,14 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     }
     $this->Value=$v; 
     $this->SetToken($Token); //TODO: Remove?
+  }
+  
+  //Unused
+  Function SetError(Array|String $Error, $Token=Null)
+  {
+    $this->Type  =EType::Error;
+    $this->Value =$Error;
+    $this->SetToken($Token);
   }
   
 //****************************************************************
@@ -361,6 +386,30 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   Function GetString ($Def=''   ) { Return $this->GetByType(EType::String ,$Def); }
   Function GetList   ($Def=[]   ) { Return $this->GetByType(EType::List   ,$Def); }
   Function GetMap    ($Def=[]   ) { Return $this->GetByType(EType::Map    ,$Def); }
+  
+  Function CheckType(String|Callable $CheckType, $ShowError=False)
+  {
+    If(Is_Callable($CheckType))
+    {
+      $Res=$Type($this); //Returns Str: Error|Null
+      If($Res===Null) Return True;
+      If(!$ShowError) Return False;
+    }
+    Else
+    {
+      $Type=$this->Type->IsType($CheckType);
+      If($Type->CanCast($this->Value))
+      {
+      //$this->Value=$Type->FastCast($this->Value);
+        Return True;
+      }
+      If(!$ShowError) Return False;
+      $Res=['Wrong type ', $Item->Type, ', required ', $Valid!==False? $Valid: $Type];
+    }
+    
+    Log('Error', 'CheckType: ', ...((Array)$Res));
+    Return False;
+  }
   
 //****************************************************************
 }

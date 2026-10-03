@@ -11,17 +11,19 @@ Use Reformat\Option\TParser;
 
 Set_Time_Limit(1);
 
-$TestList=[
-  'Examples'   =>Include 'Test/Examples.php'   ,
-  'Debug'      =>Include 'Test/Debug.php'      ,
-  'ParseError' =>Include 'Test/ParseError.php' ,
-  'FixedBugs'  =>Include 'Test/FixedBugs.php'  ,
-  'Validate'   =>Include 'Test/Validate.php'   ,
-];
-
 If(IsSet($CustomTest))
-  $TestList=[BaseName($CustomTest, '.php')=>Include $CustomTest];
-
+  $TestList=[
+    BaseName($CustomTest, '.php')=>Include $CustomTest
+  ];
+Else
+  $TestList=[
+    'Examples'   =>Include 'Test/Examples.php'   ,
+    'Debug'      =>Include 'Test/Debug.php'      ,
+    'ParseError' =>Include 'Test/ParseError.php' ,
+    'FixedBugs'  =>Include 'Test/FixedBugs.php'  ,
+    'Validate'   =>Include 'Test/Validate.php'   ,
+  ];
+  
 $LogBuffer=$Loader->Create_Object('/Stream/Buffer');
 $LogStream=$Loader->Create_Object('/Log/Logger/Stream', ['Stream'=>$LogBuffer, 'AutoDoneStream'=>False]);
 
