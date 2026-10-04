@@ -7,6 +7,7 @@ Use Function Reformat\Log;
 Class TBase Implements IOptionReceiver
 {
   Var $Source { Get=>$this->Source?->Get(); Set=>$value? \WeakReference::Create($value):Null; }
+  Var Bool $InProcess=False;
   
   Static Function GetName() { Return 'Base'; }
   
@@ -21,10 +22,16 @@ Class TBase Implements IOptionReceiver
   
   Function ProcessAll($Document):?Bool
   {
+    If($this->InProcess)
+      Return Log('Error', 'Filter has alredy started')->BackTrace()->Ret(False);
     $this->Source->Options->LoadDefault();
     $this->CodeStart();
     $First=$Document->First;
+    $this->InProcess=True;
     $r=$this->ProcessNode($Document);
+    If(!$this->InProcess)
+      Return Log('Error', 'Filter has wrong status InProcess')->BackTrace()->Ret(False);
+    $this->InProcess=False;
     If($r===False) Return False;
     If($r!==Null) Return Log('Error', 'Unknown token process:')->Debug($r)->Ret(False);
     
@@ -41,17 +48,20 @@ Class TBase Implements IOptionReceiver
   
   Function ProcessOption($Token)
   {
+    $this->Source->Options->Apply($Token);
   }
   
   Function ProcessNode($Node)
   {
     ForEach($Node As $Token)
     {
+      If($Token->GetId()==='Option')
+        $this->ProcessOption($Token);
       Switch($TypeHandler=$Token->GetTypeHandler())
       {
       Case 'Text': $r=$this->ProcessText($Token); Break;
       Case 'Node': $r=$this->ProcessMode($Token); Break;
-      Case 'Opt' : $r=$this->ProcessOption($Token); Break;
+    //Case 'Opt' : $r=$this->ProcessOption($Token); Break;
       Default: Return Log('Fatal', 'Unknown TypeHandler=',$TypeHandler)->Ret(False);
       }
         

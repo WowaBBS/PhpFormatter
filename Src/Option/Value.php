@@ -60,6 +60,8 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     
     $this->Type  =$Type    ;
     $this->Value =$Default ;
+    If(!$Type->IsMap())
+      $this->SetHasValue();
     Return $Res;
   }
   
@@ -71,6 +73,26 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     $this->SetToken($Token);
   }
   
+//****************************************************************
+// Has Value
+  Var         $HasValue =False;
+  
+  Function SetHasValue()
+  {
+    If($this->HasValue) Return;
+    $this->HasValue=True;
+    $this->Parent?->SetHasValue();
+  }
+  
+  Function CountHasValue()
+  {
+    $Res=0;
+    ForEach($this->Value As $Item)
+      If($Item->HasValue)
+        $Res++;
+    Return $Res;
+  }
+
 //****************************************************************
 // Token info
   
@@ -111,6 +133,8 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     $this->Type    =$Type;
     $this->Value   =$Type->GetDefaultValue();
     $this->SetToken($Token);
+    If(!$Type->IsMap())
+      $this->SetHasValue();
   }
   
   Function Parser_SetValue($v, $Token)
@@ -199,12 +223,18 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
 // Modify
 
   Function Modify_NeedMake() { Return True; }
+  Function Modify_SetValue($v)
+  {
+    $this->Type  =EType::Detect($v); 
+    $this->Value =$v; 
+  }
+  
   Function Modify_MakeKey($key, $Key)
   {
     $this->Parser_MakeMap(Null, True);
     $Res=&$this->Value[$key];
     $Res??=$this->NewValue();
-    ($Res->Key=$this->NewValue())->Parser_SetValue($Key, Null);
+    ($Res->Key=$this->NewValue())->Modify_SetValue($Key, Null);
     Return $Res;
   }
 
@@ -252,7 +282,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
     UnSet($this->Vars[$this->_Key($Key)]);
   }
   
-  Function Set($Key, $v)
+  Function Set($Key, $v) //TODO: Error
   {
     if(Is_Null($Key))
       $this->Add($v);
@@ -260,7 +290,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
       $this->Value[$this->_Key($Key)]=$this->_Value($v, $Key);
   }
   
-  Function Add($v)
+  Function Add($v) //TODO: Error
   {
     $this->Value[]=$this->_Value($v);
   }
@@ -345,7 +375,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   
   Function CheckUnused()
   {
-    If(!$this->Used) Return $this->Warning('This value is unused: ', $this->ToDebug())->Ret();
+    If(!$this->Used) Return $this->Warning('This key is unused. Value: ', $this->ToDebug())->Ret();
     $List=$this->Value;
     If(!Is_Array($List)) Return;
     ForEach($List As $Item)

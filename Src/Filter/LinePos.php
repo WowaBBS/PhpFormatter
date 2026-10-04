@@ -12,10 +12,10 @@ class TLinePos Extends TBase
 {
   Static Function GetName() { Return 'LinePos'; }
   
-  Var $FirstLine =0;
-  Var $FirstPos  =0;
-  Var $Line =0;
-  Var $Pos  =0;
+  Var $FirstLine =1;
+  Var $FirstPos  =1;
+  Var $Line =1;
+  Var $Pos  =1;
   Var $Tab  =0;
 
   Function CodeStart()

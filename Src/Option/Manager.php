@@ -1,6 +1,8 @@
 <?
 NameSpace Reformat\Option;
 
+Use Function Reformat\Log;
+
 Class TManager
 {
   Function __Construct(IReceiver $Object) { $this->Object=$Object; }
@@ -21,6 +23,11 @@ Class TManager
     
     ForEach($Options As $Option)
       $Option->CheckUnUsed();
+  }
+  
+  Function Apply(IProvider $Option)
+  {
+    $this->Process($Option->GetVars(), 'Set');
   }
 
 //****************************************************************
@@ -46,6 +53,7 @@ Class TManager
   Function SaveDefault()
   {
     $this->Default=$this->ReadCurrent();
+    Log('Debug', 'Default: ', $this->Default); //->Debug($this->Default);
   }
   
   Function ReadCurrent()

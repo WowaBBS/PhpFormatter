@@ -160,9 +160,19 @@ Class TDebug Implements \WLib\Debug\ICustom
       Return $this->Map_Long($v);
   }
   
+  Function Value_Has($v) { Return $v->HasValue; } //TODO: Optional?
+  Function Value_Count($v)
+  {
+    $Res=0;
+    ForEach($v As $i)
+      If($this->Value_Has($i))
+        $Res++;
+    Return $Res;
+  }
+  
   Function Value_Map($v)
   {
-    If($this->Last_Is('=', '') && Count($v)===1)
+    If($this->Last_Is('=', '') && $this->Value_Count($v)===1) //TODO: Optional?
       $this->Value_Map_Short($v);
     Else
       $this->Value_Map_Long($v);
@@ -182,7 +192,8 @@ Class TDebug Implements \WLib\Debug\ICustom
     If($this->Last_Remove())
       $this->Raw('.');
     ForEach($Value As $k=>$v)
-      $this->Value_Map_Item($v, $k);
+      If($this->Value_Has($v))
+        $this->Value_Map_Item($v, $k);
     Return $this;
   }
   
@@ -206,6 +217,7 @@ Class TDebug Implements \WLib\Debug\ICustom
     $z=True;
     ForEach($Value As $k=>$v)
     {
+      If(!$this->Value_Has($v)) Continue;
       If($z) $z=False;
       Else $this->Raw(', ');
       $this->Value_Map_Item($v, $k);

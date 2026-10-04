@@ -22,8 +22,8 @@ Class TOperation
     Switch($this->Op)
     {
     Case 'None'  : Break;
-    Case 'Get'   : Return $Valid? $Vars->GetValue(): $Value;
-    Case 'Set'   : $Vars->SetValue($Value); Break;
+    Case 'Set'   : Return $Valid? $Vars->GetValue(): $Value;
+    Case 'Get'   : $Vars->SetValue($Value); Break;
     Case 'Check' : Break;
     }
     Return $Value;
@@ -34,6 +34,7 @@ Class TOperation
     Return [
       $this->Vars       ,
       $this->BaseCalled ,
+      $this->Op         ,
     ];
   }
   
@@ -42,6 +43,7 @@ Class TOperation
     [
       $this->Vars       ,
       $this->BaseCalled ,
+      $this->Op         ,
     ]=$v;
   }
   
@@ -93,6 +95,11 @@ Class TOperation
       $this->BaseCalled=True;
     Else
       Log('Error', 'Option_Do: Base method has already called')->BackTrace();
+  }
+  
+  Function DebugPos()
+  {
+    $this->Vars->Debug('DebugPos');
   }
 }
  

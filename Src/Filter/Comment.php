@@ -15,7 +15,7 @@ Class TComment Extends TBase
 {
   Static Function GetName() { Return 'Comment'; }
   
-  Var $Test=False;
+  Var $DebugCheckInfo=False;
   
   Function ProcessText($Token)//:Void|String|Token
   {
@@ -39,12 +39,19 @@ Class TComment Extends TBase
       Log('Fatal', 'Unknown token')->Debug($Token);
       Return False;
     }
-    Return New TTokenComment($Token, $To);
+    $Res=New TTokenComment($Token, $To);
+    If($this->DebugCheckInfo)
+    {
+      $Res->TestInnerText();
+      //Log('Debug', 'Comment:')($Res->GetInnerText());
+    }
+    Return $Res;
   }
 
   Function Option_Do($Op)
   {
     Parent::Option_Do($Op);
-    $this->Test=$Op->GetSet('Test', $this->Test, 'Bool');
+    $this->DebugCheckInfo=$Op->GetSet('DebugCheckInfo', $this->DebugCheckInfo, 'Bool');
+    If($Op->GetSet('DebugPos', False, 'Bool') && $this->InProcess) $Op->DebugPos();
   }
 }

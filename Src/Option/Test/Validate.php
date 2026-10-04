@@ -42,7 +42,7 @@ $Res=[
       HereDoc,
     'Validate'=>&$Validate,
     'Logs'=><<<'HereDoc'
-      Validate.php(40,12) [Warning] P1.k2: This value is unused: "Hello"
+      Validate.php(40,12) [Warning] P1.k2: This key is unused. Value: "Hello"
       HereDoc,
   ],
 ];

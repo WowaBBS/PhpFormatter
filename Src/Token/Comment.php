@@ -22,8 +22,8 @@ Class TComment Extends TText
     Parent::__Construct($From->Id, $From->Text, $From->Line, $From->Pos);
   }
   
-  Function GetState() { Return [$this->State, $this->Id, $this->Start, $this->Loop, $this->EndCr, $this->End, $this->InnerTab]; }
-  Function SetState($v) {      [$this->State, $this->Id, $this->Start, $this->Loop, $this->EndCr, $this->End, $this->InnerTab]=$v; }
+  Function GetState() { Return [$this->Text, $this->Id, $this->Start, $this->Loop, $this->EndCr, $this->End, $this->InnerTab]; }
+  Function SetState($v) {      [$this->Text, $this->Id, $this->Start, $this->Loop, $this->EndCr, $this->End, $this->InnerTab]=$v; }
 
 //Function GetTypeHandler() { Return 'Text'; }
   
@@ -115,12 +115,19 @@ Class TComment Extends TText
     $this->SetInnerText($InnerText);
     $Actual=$this->GetState();
     $this->SetState($Desired);
-  
+    
     If($Actual===$Desired) Return True;
-    Log('Error', 'TestInnerText Failed')->Debug([
-      'Desired' => $Desired ,
-      'Actual'  => $Actual  ,
-    ]);
+
+    $DesiredText = Array_Shift($Desired );
+    $ActualText  = Array_Shift($Actual  );
+  
+    $Log=Log('Error', 'TestInnerText Failed');
+    If($Actual!==$Desired)
+      $Log('  Desired :', $Desired )
+          ('  Actual  :', $Actual  );
+    If($ActualText!==$DesiredText)
+      $Log('  Desired.Text' )($DesiredText )
+          ('  Actual.Text'  )($ActualText  );
     Return False;
   }
 }

@@ -1,9 +1,8 @@
 <?
   // Check=[Start:String, Loop:String, End:String, Tab:Int]
   
-  // WFormat: Test=DebugPos;
-  // WFormat: Filter.Comment.Test=True;
-  // WFormat: CheckCommentDetect=True;
+  // WFormat: Filter.Comment.DebugPos=True;
+  // WFormat: Filter.Comment.DebugCheckInfo=True;
 
   // Single inline comment // Check=['// ', '// ', '', 2]
    // Single inline comment2 // Check=['// ', '// ', '', 3]
