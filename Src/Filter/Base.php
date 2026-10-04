@@ -6,15 +6,13 @@ Use Function Reformat\Log;
 
 Class TBase Implements IOptionReceiver
 {
-  Var $Source;
-  
-  Function GetSource() { Return $this->Source->Get(); }
+  Var $Source { Get=>$this->Source?->Get(); Set=>$value? \WeakReference::Create($value):Null; }
   
   Static Function GetName() { Return 'Base'; }
   
   Function Init($Source)
   {
-    $this->Source=\WeakReference::Create($Source);
+    $this->Source=$Source;
   }
   
   Static Function IsApplicable($Process) { return True; }
@@ -23,6 +21,7 @@ Class TBase Implements IOptionReceiver
   
   Function ProcessAll($Document):?Bool
   {
+    $this->Source->Options->LoadDefault();
     $this->CodeStart();
     $First=$Document->First;
     $r=$this->ProcessNode($Document);

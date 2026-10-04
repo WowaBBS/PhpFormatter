@@ -26,6 +26,13 @@ Class TParser
     $this->Current->Next=$Tokens->First;
   }
   
+  Function NewValue()
+  {
+    $Res=New TValue();
+    $Res->Owner=$this;
+    Return $Res;
+  }
+  
   // Returns next token is not Comment or WhiteSpace
   Function PreView()
   {
@@ -61,8 +68,7 @@ Class TParser
   
   Function Parse()
   {
-    $Vars=New TValue();
-    $Vars->Parser=$this;
+    $Vars=$this->NewValue();
     
     $Vars->SetUsed();
     $Vars->Parser_MakeMap($this->PreView()?? $this->Tokens, False);
@@ -295,5 +301,8 @@ Class TParser
   {
     Return Log($LogLevel, ...$Args)->Logger($this->Logger)->File($this->GetFilePos()->ToArgs());
   }
+  
+  Function GetLogger() { Return $this->Logger; }
+
 //****************************************************************
 }

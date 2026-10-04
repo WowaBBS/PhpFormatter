@@ -12,14 +12,63 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   Var  EType  $Type   =EType::Default;
   Var         $Parsed =False;
   
-  Function ToValue():Mixed
+  Function GetValue():Mixed
   {
     $Res=$this->Value;
     If(Is_Array($Res))
       ForEach($Res As $k=>$v)
-        $Res[$k]=$v->ToValue();
+        $Res[$k]=$v->GetValue();
     
     Return $Res;
+  }
+  
+  Function SetValue($v) //, $Token)
+  {
+    $Detect=EType::Detect($v);
+    If($this->SetType($Detect ,$v)) Return;
+    If(Is_Array($v))
+    {
+      ForEach($v As $k=>$v)
+        $this[$k]=$v;
+    }
+    Else
+      $this->Value=$v; 
+  //$this->SetToken($Token); //TODO:
+  }
+  
+  Function SetType(EType $Type, $Default=Null):Bool //Returns true is default was assigned
+  {
+    If($this->Type->Is($Type)) Return False; //The same type
+    
+    $Res=True;
+    If(Is_Array($Default) && Count($Default)!==0) { $Res=False; $Default=Null; }
+  //If($Default!==Null) //TODO: Check type of $Default
+
+    $Default??=$Type->GetDefaultValue(); //TODO: Default Null
+    
+    If(!$this->Type->IsVoid())
+    {
+      If($Type->CanCast($this->Value))
+      {
+        $Default=$Type->FastCast($this->Value);
+        $Res=False;
+      }
+      Else
+        $this->Warning('Incompatible type ',$this->Type,', expected ', $Type, '; Current value is ', $this->Value)
+          ->File($this->GetFilePos()->ToArgs());
+    }
+    
+    $this->Type  =$Type    ;
+    $this->Value =$Default ;
+    Return $Res;
+  }
+  
+  //Unused
+  Function SetError(Array|String $Error, $Token=Null)
+  {
+    $this->Type  =EType::Error;
+    $this->Value =$Error;
+    $this->SetToken($Token);
   }
   
 //****************************************************************
@@ -246,7 +295,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
 
   Function Log(String $LogLevel, ...$Args)
   {
-    $Res=Log($LogLevel, $this->GetPath(), ': ', ...$Args)->Logger($this->Parser->Logger);
+    $Res=Log($LogLevel, $this->GetPath(), ': ', ...$Args)->Logger($this->GetLogger());
     If($Pos=$this->GetFilePos())
       $Res->File($Pos->ToArgs());
     Return $Res;
@@ -266,8 +315,10 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
 //****************************************************************
 // Context
 
-  Var $Parser;
-  Var $Parent { Get=>$this->Parent?->Get(); Set=>$value? \WeakReference::Create($value):Null; }
+  Var $Owner  { Get=>$this->Owner  ?->Get(); Set=>$value? \WeakReference::Create($value):Null; }
+  Var $Parent { Get=>$this->Parent ?->Get(); Set=>$value? \WeakReference::Create($value):Null; }
+  
+  Function GetLogger() { Return $this->Owner?->GetLogger(); }
   
   Function GetPath()
   {
@@ -282,56 +333,9 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   Function NewValue()
   {
     $Res=New Self();
-    $Res->Parser=$this->Parser;
-    $Res->Parent=$this;
+    $Res->Owner  =$this->Owner;
+    $Res->Parent =$this;
     Return $Res;
-  }
-  
-//****************************************************************
-//
-  Function _SetType(EType $Type, $Default=Null)
-  {
-    If($this->Type->Is($Type)) Return False; //The same type
-    
-    $Default??=$Type->GetDefaultValue(); //TODO: Default Null
-    
-    If(!$this->Type->IsVoid())
-    {
-      If($Type->CanCast($this->Value))
-        $this->Value=$Type->FastCast($this->Value);
-      Else
-        $this->Warning('Incompatible type ',$this->Type,', expected ', $Type, '; Current value is ', $this->Value)
-          ->File($this->GetFilePos()->ToArgs());
-    }
-    
-    $this->Type  =$Type    ;
-    $this->Value =$Default ;
-    Return True;
-  }
-  
-  Function _SetValue($v, $Token)
-  {
-    Switch(GetType($v))
-    {
-    Case 'boolean' : $this->_SetType(EType::Bool   ,$v); Break;
-    Case 'integer' : $this->_SetType(EType::Int    ,$v); Break;
-    Case 'double'  : $this->_SetType(EType::Float  ,$v); Break;
-    Case 'string'  : $this->_SetType(EType::String ,$v); Break;
-    Case 'NULL'    : $this->_SetType(EType::Null   ,$v); Break;
-    Default:
-      Log('Error', 'Unknown value ', $v)->BackTrace()->File($Token->GetFilePos()->ToArgs());
-      Return;
-    }
-    $this->Value=$v; 
-    $this->SetToken($Token); //TODO: Remove?
-  }
-  
-  //Unused
-  Function SetError(Array|String $Error, $Token=Null)
-  {
-    $this->Type  =EType::Error;
-    $this->Value =$Error;
-    $this->SetToken($Token);
   }
   
 //****************************************************************
@@ -375,13 +379,6 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   
 //****************************************************************
 // Validator and Getter
-
-  Function GetByType(EType $Type, $Def)
-  { //TODO: Nullable
-    $this->_SetType($Type, Null, $Def);
-  }
-  
-  Function GetInt    ($Def=0    ) { Return $this->GetByType(EType::Int    ,$Def); }
   
   Function CheckType(String|Callable $CheckType, $ShowError=True)
   {

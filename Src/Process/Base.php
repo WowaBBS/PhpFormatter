@@ -1,7 +1,8 @@
 <?
 NameSpace Reformat\Process;
 
-Use Reformat\Option\IReceiver As IOptionReceiver;
+Use Reformat\Option\IReceiver As IOptionReceiver ;
+Use Reformat\Option\TManager  As TOptionManager  ;
 Use Function Reformat\Log;
 Use Function Reformat\Filter\CreateList;
 
@@ -10,22 +11,17 @@ Abstract Class TBase Implements IOptionReceiver
   Var $Filter;
   Var $ShortPath ='Source';
   Var $FilePath  ='Source';
-  Var $Options   =[];
+  Var $Options   ;
   
   Function Init()
   {
     $this->Filter=CreateList($this); //TODO: $Config
+    $this->Options=New TOptionManager($this);
+    $this->Options->SaveDefault();
   }
   
   //****************************************************************
   // Option
-  
-  Function Option_Validate($Vars, $Option)
-  {
-    $this->Options[]=$Option;
-    $Op=New \Reformat\Option\TOperation($Vars, 'Check');
-    $Op->Receive($this);
-  }
   
   Function Option_Do($Op)
   {
@@ -33,13 +29,5 @@ Abstract Class TBase Implements IOptionReceiver
     $Op->BaseCalled();
   }
   
-  Function Option_CheckUnused()
-  {
-    $Options=$this->Options; $this->Options=[];
-    
-    ForEach($Options As $Option)
-      $Option->CheckUnUsed();
-  }
-
   //****************************************************************
 }

@@ -8,7 +8,7 @@ Class TList Extends TBase
   
   Function Add($Filter)
   {
-    $Filter->Init($this->GetSource());
+    $Filter->Init($this->Source);
     $Key=$Filter->GetName();
     If(IsSet($this->List[$Key]))
       Log('Error', 'Filter ', $Key, ' has already exists');

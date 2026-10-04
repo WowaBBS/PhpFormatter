@@ -14,7 +14,7 @@ Abstract Class TSource Extends TBase
   
     $Result=$this->Filter->ProcessAll($Document);
     If($Result===False) Return -1; //Error happend
-    $this->Option_CheckUnused();
+    $this->Options->CheckUnused();
     $Changed=$Result===True  ;
     
     $Result = $Document->ToString();

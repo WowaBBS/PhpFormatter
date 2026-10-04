@@ -17,9 +17,9 @@ class TTranslate Extends TBase
 
   Function FileStart()
   {
-    $this->CurrentFile=$this->GetSource()->ShortPath;
+    $this->CurrentFile=$this->Source->ShortPath;
     $this->IsActive=
-      RealPath($this->GetSource()->FilePath)!==
+      RealPath($this->Source->FilePath)!==
       RealPath($this->TranslateFileName); //TODO: FileName from config
   }
   

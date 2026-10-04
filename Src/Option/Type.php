@@ -107,21 +107,21 @@ Enum EType Implements \WLib\Debug\ICustom
 //****************************************************************
 
   Const CheckTypes=[
-    'Null'    =>[Self::Null                ],
+    'Null'    =>[Self::Null               ],
     
-    'Bool'    =>[Self::Bool                ],
-    'Int'     =>[Self::Int                 ],
-    'Float'   =>[Self::Float   ,Self::Int  ],
-    'String'  =>[Self::String              ],
-    'List'    =>[Self::List    ,Self::Map  ],
-    'Map'     =>[Self::Map     ,Self::List ],
+    'Bool'    =>[Self::Bool               ],
+    'Int'     =>[Self::Int                ],
+    'Float'   =>[Self::Float  ,Self::Int  ],
+    'String'  =>[Self::String             ],
+    'List'    =>[Self::List   ,Self::Map  ],
+    'Map'     =>[Self::Map    ,Self::List ],
     
-    '?Bool'   =>[Self::Bool                ,Self::Null],
-    '?Int'    =>[Self::Int                 ,Self::Null],
-    '?Float'  =>[Self::Float   ,Self::Int  ,Self::Null],
-    '?String' =>[Self::String              ,Self::Null],
-    '?List'   =>[Self::List    ,Self::Map  ,Self::Null],
-    '?Map'    =>[Self::Map     ,Self::List ,Self::Null],
+    '?Bool'   =>[Self::Bool               ,Self::Null],
+    '?Int'    =>[Self::Int                ,Self::Null],
+    '?Float'  =>[Self::Float  ,Self::Int  ,Self::Null],
+    '?String' =>[Self::String             ,Self::Null],
+    '?List'   =>[Self::List   ,Self::Map  ,Self::Null],
+    '?Map'    =>[Self::Map    ,Self::List ,Self::Null],
   ];
 
   Function IsType(String $Type)

@@ -36,7 +36,7 @@ Class TOption Extends TBase
     }
     $Text=Trim(SubStr($Text, StrLen($this->OptionKey)));
     
-    $Res=New TTokenOption($Text, $Token, $this->GetSource());
+    $Res=New TTokenOption($Text, $Token, $this->Source);
     
     $Token->Insert($Res);
     $Token->Remove();
