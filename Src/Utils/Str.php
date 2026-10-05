@@ -38,7 +38,7 @@ Function TextSize($Text)
   $i=StrRPos($Text, "\n");
   If($i===False) Return [0, StrLen($Text)];
   
-  Return [SubStr_Count($Text, "\n"), StrLen($Text)-$i-1];  
+  Return [SubStr_Count($Text, "\n"), StrLen($Text)-$i-1];
 }
 
 Function LinePos($Text, &$Line, &$Pos)

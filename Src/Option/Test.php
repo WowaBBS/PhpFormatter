@@ -35,7 +35,7 @@ ForEach($TestList As $TestsName=>$Tests)
   {
     $Name=$Test[0];
     Log('Log', '  Test: ', $Name);
-    $FilePos=New TFilePos($SourceFile, $Test[1], $Test[2]);
+    $FilePos=New TFilePos($SourceFile, $Test[1], $Test[2], $Test[3]?? $Test[2]);
     $Option=$Test['Option'];
     
     $LogBuffer->Clear();

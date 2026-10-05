@@ -6,9 +6,10 @@ Set_Time_Limit(0);
 
 Set_Include_Path(''); //Fix include path for include security
 
-If(GetCwd()!==__DIR__)
+If(GetCwd()===__DIR__)
+  $argv[]=GetCwd();
+Else
   $LogFile??='.Formatter.log';
-$argv=[$argv[0], GetCwd()];
 
 Include '_All.php';
 

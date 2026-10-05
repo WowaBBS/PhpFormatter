@@ -37,7 +37,7 @@ Class TText Extends TBase
   {
     $FilePos=$this->GetDocument()?->GetFilePos()
       ?? Log('Error', 'There is no documet')->BackTrace()->Ret( TFilePos::GetEmptyWithError() );
-    Return New TFilePos($FilePos->FileName, $this->Line, $this->Pos);
+    Return $FilePos->Add($this->Line, $this->Pos);
   }
   
   Function GetFilePosEnd():TFilePos { Return $this->GetFilePos()->AddText($this->Text); }

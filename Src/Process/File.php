@@ -6,11 +6,12 @@ $dontWrite  ??=True;
 
 Abstract Class TFile Extends TSource
 {
-  Function File($FilePath, $root)
+  Function File($FilePath, $Root=Null)
   {
+    $Root??=PathInfo($FilePath, PATHINFO_DIRNAME);
     $ShortPath=$FilePath;
-    If(Str_Starts_With($FilePath, $root))
-      $ShortPath=SubStr($FilePath, StrLen($root));
+    If(Str_Starts_With($FilePath, $Root))
+      $ShortPath=SubStr($FilePath, StrLen($Root));
     
     $OldShortPath =$this->ShortPath ;
     $OldFilePath  =$this->FilePath  ;

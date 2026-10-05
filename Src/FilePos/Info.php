@@ -13,21 +13,22 @@ Class TInfo Implements IProvider, \WLib\Debug\ICustom
     ReadOnly String $FileName ='Source',
     ReadOnly Int    $Line     =1,
     ReadOnly Int    $Pos      =1,
+    ReadOnly Int    $NextPos  =1,
   )
   {
   }
   
   Function AddText($Text) { Return $this->Add(...TextSize($Text)); }
   
-  Function Add($Height, $Width)
+  Function Add($Height, $Width, $Next=0)
   {
-    Return New Static(
+    Return New Self(
       $this->FileName,
       $this->Line+$Height,
-      ($Height? 0:$this->Pos)+$Width,
+      ($Height? $this->NextPos:$this->Pos)+$Width,
+      $this->NextPos+$Next,
     );
   }
-  
   
   Static Function GetEmpty():TInfo { Static $Res=New TInfo(); Return $Res; }
   Static Function GetEmptyWithError(...$Args):TInfo

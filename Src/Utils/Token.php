@@ -62,12 +62,11 @@ Function TrimWhiteSpaces($Tokens, $With=' ')
       $Item->Text=$With;
 }
 
-Function LinePosReIndex($Tokens, $Tab=0, ?TFilePos $FilePos=Null)
+Function LinePosReIndex($Tokens, $Tab=0)
 {
-  $FilePos??=$Tokens->GetFilePos();
-  $Line     =$FilePos->Line    ;
-  $FirstPos =$FilePos->Pos     ;
-  $Pos      =$FilePos->NextPos?? $FirstPos;
+  $Line     =0;
+  $FirstPos =0;
+  $Pos      =0;
 
   ForEach($Tokens As $Token)
   {
