@@ -1,19 +1,19 @@
 <?
-namespace Reformat\Filter;
+NameSpace Reformat\Filter;
 
-class TNaming Extends TBase
+Class TNaming Extends TBase
 {
   Static Function GetName() { Return 'Naming'; }
 
-  Function ProcessText($Token)//:Void|String
+  Function ProcessText($Token):Void
   {
-    global $keywordTokens;
-    global $stringKeywords;
+    Global $keywordTokens;
+    Global $stringKeywords;
     
     // TODO: Add checking functions and classes names
 
     $Id   = $Token->Id   ;
-    $Text = StrToLower($Token->Text );
+    $Text = StrToLower($Token->Text);
   
     //Обычный символ: {};=+ etc.
     If($Id<128) Return;
@@ -24,7 +24,7 @@ class TNaming Extends TBase
      * Меняем только само содержимое токена.
      * Пробелы, комментарии, строки и т.д. сюда не попадут.
      */
-    If (IsSet($keywordTokens[$Id])) {}
+    If(IsSet($keywordTokens[$Id])) {}
 
     /*
      * TRUE/FALSE/NULL и некоторые типы могут быть T_STRING.
@@ -32,9 +32,9 @@ class TNaming Extends TBase
      * Важно: сравниваем именно T_STRING, чтобы не менять
      * произвольные токены.
      */
-    ElseIf ($Id === T_STRING && IsSet($stringKeywords[$Text])) {}
+    ElseIf($Id === T_STRING && IsSet($stringKeywords[$Text])) {}
     Else Return;
     
-    Return $Text;
+    $Token->SetText($Text);
   }
 }

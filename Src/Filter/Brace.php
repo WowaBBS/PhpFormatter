@@ -11,7 +11,7 @@ class TBrace Extends TBase
 {
   Static Function GetName() { Return 'Brace'; }
 
-  Function ProcessText($Token)//:Void|String
+  Function ProcessText($Token):Void
   {
     //TODO ()[]{}
   }

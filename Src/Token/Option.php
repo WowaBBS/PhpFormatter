@@ -18,7 +18,6 @@ Class TOption Extends TText Implements IOptionProvider
     $this->Token=$Token;
     If($this->Parse($Text, $Token))
       $Source->Options->Register($this);
-  //Log('Debug', 'Option')->Debug($this);
   }
 
   Function GetId() { Return 'Option'; }
@@ -37,10 +36,22 @@ Class TOption Extends TText Implements IOptionProvider
   Function GetVars():TOptionValue { Return $this->Vars; }
   Function CheckUnUsed() { $this->Vars->CheckUnUsed(); }
   
+  Function _RemoveTo($To)
+  {
+    Log('Error', 'RemoveOption')->BackTrace();
+    Parent::_RemoveTo($To);
+  }
 //****************************************************************
 // Debug
 
   Function GetDebug() { Return ['Option ', $this->Token]; }
+  
+  Function _Debug_Serialize(&$Res)
+  {
+    Parent::_Debug_Serialize($Res);
+    $Res['Vars']=$this->Vars->ToDebug()->ToString();
+    $Res['Parser']='ListTokent';
+  }
   
 //****************************************************************
 }

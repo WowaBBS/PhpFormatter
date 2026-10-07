@@ -8,7 +8,6 @@ class TTranslate Extends TBase
 {
   Static Function GetName() { Return 'Translate'; }
   
-  Var $IsActive=True;
   Var $NeedToTranslate=[];
   Var $TranslateFileName='.Translator.php';
   Var $CurrentFile='';
@@ -18,7 +17,7 @@ class TTranslate Extends TBase
   Function FileStart()
   {
     $this->CurrentFile=$this->Source->ShortPath;
-    $this->IsActive=
+    $this->Enable=
       RealPath($this->Source->FilePath)!==
       RealPath($this->TranslateFileName); //TODO: FileName from config
   }
@@ -98,21 +97,26 @@ class TTranslate Extends TBase
     File_Put_Contents($this->TranslateFileName, $Res);
   }
   
-  Function ProcessText($Token)//:Void|String
+  Function ProcessText($Token):Void
   {
-    If(!$this->IsActive) Return;
-    If($Token->Id===T_COMMENT && $Token->Text===$this->MyComment)
+    $IsComment=$Token->Id===T_COMMENT;
+    If($IsComment && $Token->Text===$this->MyComment)
     { //Skip my file
-      $this->IsActive=False;
+      $this->Enable=False;
       Return;
     }
-    If(!Preg_Match('/[\x80-\xFF]/', $Token->Text)) Return;
-    $Text=$this->NeedToTranslate[$Token->Text]?? $Token->Text;
-    $this->NeedToTranslate[$Token->Text]??=$Token->Text;
+    $Text=$Source=$IsComment? $Token->GetInnerText():$Token->Text;
+    $OldText=$Text;
+    If(!Preg_Match('/[\x80-\xFF]/', $Text)) Return;
+    $Text=$this->NeedToTranslate[$Text]?? $Text;
+    $this->NeedToTranslate[$Text]??=$Text;
     
     $this->AddUsing($Token);
-    If($Text!==$Token->Text) Return;
-    Return $Text;
+    If($Text!==$OldText) Return;
+    If($IsComment)
+      $Token->SetInnerText($Text);
+    Else
+      $Token->SetText($Text);
   }
   
   Function AddUsing($Token)

@@ -31,8 +31,10 @@ Assert($Tree->Last->Parent===$Tree);
 $Tree->Last->Insert(New TTree("Node3"));
 //$Tree->Last->Parent=$Tree;
 $Tree->Show();
+$Tree->Debug_IntegrityTest();
 
 $Tree->Add(New TTree("Node4"));
+$Tree->Debug_IntegrityTest();
 
 ForEach($Tree->First->Next->IterateUntil($Tree->Last->Prev) As $k=>$Item)
   Log('Log', 'IterateUntil ', $k, ': ',$Item->Name);
@@ -40,6 +42,9 @@ ForEach($Tree->First->Next->IterateUntil($Tree->Last->Prev) As $k=>$Item)
 ForEach($Tree As $k=>$Item)
   If($Item->Name==='Node2' || $Item->Name==='Node4')
     $Item->Remove();
+
+$Tree->Debug_IntegrityTest();
+
 ForEach($Tree As $k=>$Item)
   Log('Log', ' ', $k, ': ',$Item->Name);
 

@@ -1,6 +1,8 @@
 <?
 NameSpace Reformat\Linked;
 
+Use Function Reformat\Log;
+
 Trait TNode //Implements \IteratorAggregate
 {
   Use TWeak;
@@ -54,17 +56,22 @@ Trait TNode //Implements \IteratorAggregate
       $this->Parent->Last=$To; //Parent can be weak?
     
     $From->_SetParentTo($To, $this->Parent);
+    
+    $Next=$this->Next;
 
-    $To   ->Next   =$this->Next;
+    $To   ->Next   =$Next;
     $From ->Prev   =$this;
     
     $this ->Next=$From;
+    
+    If($Next)
+      $Next->Prev=$To;
   }
 
   Function _SetParentTo($To, $Parent)
   {
     $To=$To->Next;
-    For($Item=$this;$Item!==$To;$Item=$Item->Next)
+    For($Item=$this; $Item!==$To; $Item=$Item->Next)
       $Item->Parent=$Parent;
   }
   

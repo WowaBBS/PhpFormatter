@@ -106,8 +106,10 @@ Abstract Class TBase Implements \WLib\Debug\ICustom, IFilePos
   
   Function _Debug_Serialize(&$Res)
   {
-    UnSet($Res['Next']);
-    UnSet($Res['Prev']);
+    $Res['this'   ]=Spl_Object_Id($this);
+    $Res['Next'   ]=$this->Next? Spl_Object_Id($this->Next   ):Null;
+    $Res['Prev'   ]=$this->Prev? Spl_Object_Id($this->Prev   ):Null;
+    $Res['Parent' ]=$this->Prev? Spl_Object_Id($this->Parent ):Null;
     $Res['TokenName']??=$this->GetTokenName();
   }
   

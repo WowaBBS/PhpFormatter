@@ -1,5 +1,5 @@
 <? $argv[]=__FILE__; $LogFile=False; Include '../App.php8';
-  // Check=[Start:String, Loop:String, End:String, Tab:Int]
+  // Check=[Start:String, Loop_Tab: Int, Loop:String, End_Tab:Int, End:String]
 
   // Key: TestComments
 
@@ -30,7 +30,7 @@
   #Second line
   # Check='#'
   
-  // TODO: /* */
+  // TODO: /* */ Check='// '
   
   /* Inline comment * Check=["/* ", " *\\/"] */
   

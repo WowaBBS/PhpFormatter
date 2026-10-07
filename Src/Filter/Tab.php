@@ -7,8 +7,8 @@ class TTab Extends TBase
 
   Static Function GetName() { Return 'Tab'; }
   
-  Function ProcessText($Token)//:Void|String
+  Function ProcessText($Token):Void
   {
-    Return Str_Replace("\t", $this->Tab, $Token->Text);
+    $Token->SetText(Str_Replace("\t", $this->Tab, $Token->Text));
   }
 }

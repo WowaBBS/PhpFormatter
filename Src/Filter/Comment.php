@@ -19,13 +19,15 @@ Class TComment Extends TBase
   Var $GroupInlineComments =True  ;
   Var $DebugCheckInfo      =False ;
   
-  Function ProcessText($Token)//:Void|String|Token
+  Function ProcessText($Token):Void
   {
     If($Token->Id!==T_COMMENT && $Token->Id!==T_DOC_COMMENT) Return;
+    If($Token->GetId()==='Option') Return;
     $Res=New TTokenComment($Token);
     If(!$this->DebugCheckInfo) Return;
     
     $Res->TestInnerText();
+    
     $Res->CheckDetect();
   }
 

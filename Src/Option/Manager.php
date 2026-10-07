@@ -36,30 +36,30 @@ Class TManager
   Var $Object { Get=>$this->Object?->Get(); Set=>$value? \WeakReference::Create($value):Null; }
   Var TValue $Default;
   
-  Function Process($Value, $OpType='Get')
+  Function Process($Value, $OpType='Get', Array $For=['Unknown'])
   {
     $Object=$this->Object;
     If(!$Object) Return Log('Error', 'OptionManager: There is no object')->BackTrace()->Ret();
     If(!$Value) Return Log('Error', 'OptionManager: There is no value')->BackTrace()->Ret();
-    $Op=New TOperation($Value, $OpType);
+    $Op=New TOperation($Value, $OpType, $For);
     $Op->Receive($Object);
   }
   
-  Function LoadDefault()
+  Function LoadDefault(Array $For=['UnKnown'])
   {
-    $this->Process($this->Default, 'Set');
+    $this->Process($this->Default, 'Set', [...$For, '.LoadDefault']);
   }
   
-  Function SaveDefault()
+  Function SaveDefault(Array $For=['UnKnown'])
   {
-    $this->Default=$this->ReadCurrent();
+    $this->Default=$this->ReadCurrent([...$For,'.SaveDeafult']);
     Log('Debug', 'Default: ', $this->Default); //->Debug($this->Default);
   }
   
-  Function ReadCurrent()
+  Function ReadCurrent(Array $For=['UnKnown'])
   {
     $Res=$this->NewValue();
-    $this->Process($Res, 'Get');
+    $this->Process($Res, 'Get', $For);
     Return $Res;
   }
   

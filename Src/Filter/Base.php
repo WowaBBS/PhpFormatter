@@ -6,8 +6,11 @@ Use Function Reformat\Log;
 
 Class TBase Implements IOptionReceiver
 {
+  Use \Reformat\Linked\TNode;
+  
   Var $Source { Get=>$this->Source?->Get(); Set=>$value? \WeakReference::Create($value):Null; }
-  Var Bool $InProcess=False;
+  Var Bool $InProcess =False;
+  Var Bool $Enable    =True;
   
   Static Function GetName() { Return 'Base'; }
   
@@ -24,7 +27,7 @@ Class TBase Implements IOptionReceiver
   {
     If($this->InProcess)
       Return Log('Error', 'Filter has alredy started')->BackTrace()->Ret(False);
-    $this->Source->Options->LoadDefault();
+    $this->Source->Options->LoadDefault(['Filter.',$this->GetName()]);
     $this->CodeStart();
     $First=$Document->First;
     $this->InProcess=True;
@@ -48,7 +51,8 @@ Class TBase Implements IOptionReceiver
   
   Function ProcessOption($Token)
   {
-    $this->Source->Options->Apply($Token);
+  //Log('Debug', 'Filter.',$this->GetName(),'.', 'ProcessOption=', $Token->Text);
+    $this->Source->Options->Apply($Token, ['Filter.',$this->GetName(),'.Option']);
   }
   
   Function ProcessNode($Node)
@@ -59,26 +63,25 @@ Class TBase Implements IOptionReceiver
         $this->ProcessOption($Token);
       Switch($TypeHandler=$Token->GetTypeHandler())
       {
-      Case 'Text': $r=$this->ProcessText($Token); Break;
-      Case 'Node': $r=$this->ProcessMode($Token); Break;
-    //Case 'Opt' : $r=$this->ProcessOption($Token); Break;
+      Case 'Text': $this->DoProcessText($Token); Break;
+      Case 'Node': $this->ProcessMode($Token); Break;
+    //Case 'Opt' : $this->ProcessOption($Token); Break;
       Default: Return Log('Fatal', 'Unknown TypeHandler=',$TypeHandler)->Ret(False);
       }
-        
-      If(Is_String($r))
-      {
-        $Token->SetText($r);
-        Continue;
-      }
-      If($r===False) Continue; //TODO: Remove?
-      If($r===Null ) Continue; //Not changed
-      If(Is_Object($r)) { $Token=$r; Continue; }
-      Log('Error', 'Unknown token process:')->Debug($r);
-      Return False;
+      
+      //TODO: Catch error
     }
+  //If(!$Node->Debug_IntegrityTest())
+  //  Log('Error', 'IntegrityTest: Filter.',$this->GetName()); //TODO: Return False
   }
   
-  Function ProcessText($Token)//:Void|String //:Null|Object|Array|String
+  Function DoProcessText($Token):Void
+  {
+    If($this->Enable)
+      $this->ProcessText($Token);
+  }
+  
+  Function ProcessText($Token):Void
   {
   }
   
@@ -90,5 +93,9 @@ Class TBase Implements IOptionReceiver
   {
   }
   
-  Function Option_Do($Op) { $Op->BaseCalled(); }
+  Function Option_Do($Op)
+  {
+    $this->Enable=$Op->GetSet('Enable', $this->Enable);
+    $Op->BaseCalled();
+  }
 }

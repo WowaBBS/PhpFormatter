@@ -35,9 +35,18 @@ Class TText Extends TBase
   
   Function GetFilePos():TFilePos
   {
-    $FilePos=$this->GetDocument()?->GetFilePos()
-      ?? Log('Error', 'There is no documet')->BackTrace()->Ret( TFilePos::GetEmptyWithError() );
+    $FilePos=$this->GetDocument()?->GetFilePos()?? $this->GetFilePosError();
     Return $FilePos->Add($this->Line, $this->Pos);
+  }
+
+  Protected Function GetFilePosError():TFilePos
+  {
+    Log('Error', 'There is no documet:')->Debug([
+      'this'=>$this,
+      'Prev'=>$this->Prev,
+      'Next'=>$this->Next,
+    ])->BackTrace();
+    Return TFilePos::GetEmpty();
   }
   
   Function GetFilePosEnd():TFilePos { Return $this->GetFilePos()->AddText($this->Text); }

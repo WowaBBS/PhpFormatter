@@ -1,6 +1,8 @@
 <?
 NameSpace Reformat\Linked;
 
+Use Function Reformat\Log;
+
 Trait TList //Implements IteratorAggregate
 {
   Use TWeak;
@@ -30,4 +32,27 @@ Trait TList //Implements IteratorAggregate
   
 //Function GetIterator(): Iterator { Return New Iterator($this->First, $this->Last); }
   Function GetIterator(): Iterator { Return New Iterator($this->First); }
+  
+  //TODO: Attr DebugOnly return True;
+  Function Debug_IntegrityTest()
+  {
+    $Res=True;
+    $Prev=Null;
+    ForEach($this As $Item)
+    {
+      If($Item->Prev!==$Prev)
+        $Res=Log('Error', 'List_IntegrityTest: Prev different for ',$Item)->Debug([
+          'Prev'=>$Prev,
+          'Item.Prev'=>$Item->Prev,
+        ])->BackTrace()->Ret(False);
+      If($Item->Parent!==$this)
+        $Res=Log('Error', 'List_IntegrityTest: Parent different')->Debug([
+          'Parent'=>$this,
+          'Item.Parent'=>$Item->Parent,
+          'Item'=>$Item,
+        ])->BackTrace()->Ret(False);
+      $Prev=$Item;
+    }
+    Return $Res;
+  }
 }

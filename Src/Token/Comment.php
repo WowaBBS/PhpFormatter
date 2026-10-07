@@ -37,6 +37,7 @@ Class TComment Extends TText
   Function _FindEndComment($Token)
   {
     $To=$Token;
+    If(!($LeftOnlySpace=$Token->Tab===$Token->Pos)) Return $To;
     Switch($With=Starts_With_List($Token->Text, ['//', '#', '/*']))
     {
     Case '/*': Break;
@@ -45,8 +46,9 @@ Class TComment Extends TText
       For($Item=$To->Next; $Item?->Is(T_WHITESPACE, T_COMMENT); $Item=$Item->Next)
         If($Item->Id===T_COMMENT)
         {
-          If($Item->Tab!==$Token->Tab) Break;
+          If($Item->Pos!==$Token->Pos) Break;
           If(!Str_Starts_With($Item->Text, $With)) Break;
+          If(!($LeftOnlySpace=$Item->Tab===$Item->Pos)) Break;
           $To=$Item;
         }
         Else

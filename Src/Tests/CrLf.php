@@ -1,1 +1,1 @@
-<?php Echo "Hello world!";?>
+<?php $argv[]=__FILE__; $LogFile=False; Include '../App.php8'; Echo "Hello world!";?>

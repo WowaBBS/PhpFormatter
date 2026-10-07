@@ -8,8 +8,8 @@ class TCrLf Extends TBase
 {
   Static Function GetName() { Return 'CrLf'; }
   
-  Function ProcessText($Token)//:Void|String
+  Function ProcessText($Token):Void
   { //TODO: Configure
-    Return Str_Replace(["\r\n", "\n\r", "\r"], "\n", $Token->Text);
+    $Token->SetText(Str_Replace(["\r\n", "\n\r", "\r"], "\n", $Token->Text));
   }
 }

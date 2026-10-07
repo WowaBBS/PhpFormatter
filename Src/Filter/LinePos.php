@@ -24,7 +24,7 @@ class TLinePos Extends TBase
     $this->Pos  =$this->FirstPos  ;
   }
   
-  Function ProcessText($Token)//:Void|String
+  Function ProcessText($Token):Void
   {
     $Token->Line =$this->Line ;
     $Token->Pos  =$this->Pos  ;

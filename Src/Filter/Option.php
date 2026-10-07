@@ -14,7 +14,7 @@ Class TOption Extends TBase
   
   Var $OptionKey='WFormat:'; //TODO: Several formats
   
-  Function ProcessText($Token)//:Void|String|Token
+  Function ProcessText($Token):Void
   {
     If($Token->Id!==T_COMMENT) Return;
     $Text=$Token->Text;
@@ -40,7 +40,5 @@ Class TOption Extends TBase
     
     $Token->Insert($Res);
     $Token->Remove();
-    
-    Return $Res;
   }
 }

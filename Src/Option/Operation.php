@@ -5,18 +5,21 @@ Use Function Reformat\Log;
 
 Class TOperation
 {
-  Var $Vars;
-  Var $Op='None'; //'Get', 'Set', 'Check'
+  Var TValue $Vars;
+  Var String $Op='None'; //'Get', 'Set', 'Check'
+  Var Array  $For=[];
   
-  Function __Construct($Vars, $Op=Null)
+  Function __Construct($Vars, $Op=Null, Array $For=['Unknown'])
   {
     $this->Vars =$Vars;
     $this->Op   =$Op?? $this->Op;
+    $this->For  =$For;
   }
 
   Function GetSet($Key, $Value, Null|String|Callable $Type=Null, $Comment='')
   {
     $Vars=$this->Vars[$Key];
+    $Type??=EType::Detect($Value)->name;
     $Valid=$Type && $Vars->Type->HasValue() && $Vars->CheckType($Type, $this->Op==='Check', False);
     
     Switch($this->Op)
