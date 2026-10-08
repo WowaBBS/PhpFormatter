@@ -21,13 +21,14 @@ Class TTrace
   
   Function MakeBracesPath($Token)
   {
-    $Res=[];
+    $Lines=[];
     For($Item=$Token; $Item; $Item=BraceFind::Left($Item))
-      $Res[]=New TLine($Item);
-    $List=Array_Reverse($Res);
+      $Lines[]=New TLine($Item);
+    $Lines=Array_Reverse($Lines);
+    
     $State='Code';
     $Res=[];
-    ForEach($List As $k=>$Line)
+    ForEach($Lines As $k=>$Line)
     {
       $OldState=$State;
       $r=Detect::Line($State, $Line);

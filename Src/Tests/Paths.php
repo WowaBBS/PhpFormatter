@@ -3,13 +3,14 @@ $argv[]=__FILE__; $LogFile=False; Include '../App.php8';
 
 // WFormat: Debug.Path=True;
 
+//TestPath=\MyNameSpace\MyClass
 Class MyClass
-{ //TestPath=\MyNameSpace\MyClass
+{
   //TestPath=\MyNameSpace\MyClass::MyConst
   
   Const MyConst= //TestPath=\MyNameSpace\MyClass::MyConst
   [
-    //TestPath=\MyNameSpace\MyClass::MyConst
+    //TestPath=\MyNameSpace\MyClass::MyConst['Key']
     'Key'=>[
       //TestPath=\MyNameSpace\MyClass::MyConst['Key']
     ],

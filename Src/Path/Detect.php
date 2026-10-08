@@ -6,97 +6,102 @@ Use Function Reformat\Log;
 
 Class Detect
 {
-  Const Map=[//             Detect func     , State  , Need  //TODO: Remove State
-    T_NAMESPACE    =>[Self::NameSpace (...) ,'Code'  ,'Code'  ],
-    T_CLASS        =>[Self::Class     (...) ,'Class' ,'Code'  ],
-    T_INTERFACE    =>[Self::Class     (...) ,'Class' ,'Code'  ],
-    T_TRAIT        =>[Self::Class     (...) ,'Class' ,'Code'  ],
-    T_ENUM         =>[Self::Class     (...) ,'Class' ,'Code'  ],
-    T_FUNCTION     =>[Self::Function  (...) ,'Code'           ], //[Code, Class]
-    T_FN           =>[Self::Function  (...) ,'Code'  ,'Code'  ],
-    T_VARIABLE     =>[Self::Var       (...) ,'Hook'  ,'Class' ],
-    T_CONST        =>[Self::Const     (...)                   ], //[Code, Class]
-    T_DOUBLE_ARROW =>[Self::Key       (...) , Null   ,'Array' ],
+  Const Map=[//             Detect func     ,Type        , State  , Need  
+    T_NAMESPACE    =>[Self::NameSpace (...) ,'NameSpace' ,'Code'  ,'Code'  ],
+    T_CLASS        =>[Self::Class     (...) ,'Class'     ,'Class' ,'Code'  ],
+    T_INTERFACE    =>[Self::Class     (...) ,'Class'     ,'Class' ,'Code'  ],
+    T_TRAIT        =>[Self::Class     (...) ,'Class'     ,'Class' ,'Code'  ],
+    T_ENUM         =>[Self::Class     (...) ,'Class'     ,'Class' ,'Code'  ],
+    T_FUNCTION     =>[Self::Function  (...) ,'Function'  ,'Code'           ], //[Code, Class]
+    T_FN           =>[Self::Function  (...) ,'Function'  ,'Code'  ,'Code'  ],
+    T_VARIABLE     =>[Self::Var       (...) ,'Var'       ,'Hook'  ,'Class' ],
+    T_CONST        =>[Self::Const     (...) ,'Const'                       ], //[Code, Class]
+    T_DOUBLE_ARROW =>[Self::Key       (...) ,'Key'       , Null   ,'Array' ],
   ];
 
-  Static Function NameSpace($State, $Line, $i, $Token)
+  Static Function NameSpace($State, $Line, $i)
   {
-    Return ['Code', 'NameSpace', '/', $Line[$i+1]->Text];
+    Return ['/', $Line[$i+1]->Text];
   }
   
-  Static Function Function($State, $Line, $i, $Token)
+  Static Function Function($State, $Line, $i)
   {
     If($Next=$Line[$i+1]?? Null)
     {
       If($Next->Id===T_STRING)
-        Return ['Code', 'Function', 
+        Return [
           $State==='Class'? '::':'\\', 
           $Line[$i+1]->Text.'()'
         ];
       If(In_Array($Next->Text, ['(', '{']))
-        Return ['Code', 'Function', '=>', 'fn()'];
+        Return ['=>', 'fn()'];
     }
+    
     Log('Error', 'Wrong function name', $Next);
   }
   
-  Static Function Class($State, $Line, $i, $Token)
+  Static Function Class($State, $Line, $i)
   {
     If($Next=$Line[$i+1]?? Null)
     {
       If($Next->Id===T_STRING)
-        Return ['Class', 'Class', '/', $Line[$i+1]->Text];
+        Return ['/', $Line[$i+1]->Text];
       If(In_Array($Next->Text, ['(', '{']))
-        Return ['Class', 'Class', '/', 'Class'];
+        Return ['/', 'Class'];
     }
   }
   
-  Static Function Const($State, $Line, $i, $Token)
+  Static Function Const($State, $Line, $i)
   {
     For($j=$i; $j<Count($Line); $j++)
       If($Line[$j]?->Text==='=')
-      {
-        Return [$Line[$j+1]?->Text==='['?'Array':Null, 'Const', '::', $Line[$j-1]->Text];
-      }
+        Return ['::', $Line[$j-1]->Text,
+          'State'=>$Line[$j+1]?->Text==='['?'Array':Null
+        ];
+    
     Log('Error', 'Unknown const: ', $Line);
     Return;
   }
   
-  Static Function Var($State, $Line, $i, $Token)
+  Static Function Var($State, $Line, $i)
   {
     If($Line[$i+1]?->Text==='=')
-      Return [$Line[$i+2]?->Text==='['?'Array':'Hook', 'Var', '::', $Token->Text];
+      Return ['::', $Line[$i]->Text,
+        'State'=>$Line[$i+2]?->Text==='['?'Array':'Hook',
+      ];
     If($Line[$i+1]?->Text==='{')
-      Return ['Hook', 'Var', '::', $Token->Text];
+      Return ['::', $Line[$i]->Text];
     Log('Error', 'Unknown Var: ', $Line);
-  //Return ['Hook', '::'.$Token->Text];
+  //Return ['Hook', '::'.$Line[$i]->Text];
   }
   
-  Static Function Key($State, $Line, $i, $Token)
+  Static Function Key($State, $Line, $i)
   {
-    Return [Null, 'Key', '', '['.$Line[$i-1]->Text.']'];
+    Return ['', '['.$Line[$i-1]->Text.']'];
   }
   
 //****************************************************************
-  Static Function Hook($State, $Line, $i, $Token)
+  Static Function Hook($State, $Line, $i)
   {
-    Return ['Code', 'Hook', '::', $Token->Text.'()'];
+    Return ['::', $Line[$i]->Text.'()', 'State'=>'Code'];
   }
 
-  Static Function ById($State, $Line, $i, $Token):False|Int|Array
+  Static Function ById($State, $Line, $i):False|Int|Array
   {
-    $Detected=Self::Map[$Token->Id]?? Null;
+    $Detected=Self::Map[$Line[$i]->Id]?? Null;
     
     If(!$Detected) Return False;
     
-  //$NewState =$Detected[1]?? $State;
-    $Need     =$Detected[2]?? Null;
+    $Type     =$Detected[1];
+    $NewState =$Detected[2]?? $State;
+    $Need     =$Detected[3]?? Null;
     If($Need && $Need!==$State) Return 1;
 
-    $r=$Detected[0]($State, $Line, $i, $Token);
+    $r=$Detected[0]($State, $Line, $i);
     If(!$r) Return 2;
 
-    $r[0]??=$State; /*$NewState?? */
-    Return $r;
+    $State=$r['State']?? $NewState;
+    Return [$State, $Type, $r[0], $r[1]];
   }
 
   Static Function Line(String $State, TLine $Line)
@@ -104,7 +109,7 @@ Class Detect
     $Res=[];
     ForEach($Line As $i=>$Token)
     {
-      $r=Self::ById($State, $Line, $i, $Token);
+      $r=Self::ById($State, $Line, $i);
       If(Is_Int($r))
         $r=$r;
       ElseIf($r)
@@ -113,9 +118,9 @@ Class Detect
         $r=3;
       ElseIf($State==='Hook')
       {
-        $r=Self::Hook($State, $Line, $i, $Token);
+        $r=Self::Hook($State, $Line, $i);
         If($r)
-          Return [/*$NewState*/$r[0]?? $State, $r[1].' '.$r[2].$r[3], True];
+          Return [$r['State']?? $State, 'Hook'.' '.$r[0].$r[1], True];
         $r=4;
       }
       $Res[]=Is_Int($r)? '/?'.$r.':':'/!:'.$Token->Text.'('.($Token->Line+1).','.($Token->Pos+1).')';
