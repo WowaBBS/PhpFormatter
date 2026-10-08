@@ -19,61 +19,10 @@ Class TTrace
   {
   }
   
-  Function Prev_SkipBraces(TToken $Token):?TToken 
-  {
-  //Log('Debug', 'Prev_SkipBraces.Begin=',$Token->Text);
-    For($Item=$Token->Prev; $Item; $Item=$Item->Prev)
-    {
-      If($Item->GetTypeHandler()!=='Text') Continue;
-      If($Item->Is( //Ignore Ignorable
-        T_COMMENT     , 
-        T_DOC_COMMENT , 
-        T_WHITESPACE  ,
-        T_OPEN_TAG    , //TODO: Why?
-      )) Continue;
-    //Log('Debug', 'Prev_SkipBraces.Next=',$Item->Text);
-      If($Item->Text==='}') Return Null;
-      If($Item->Text===';') Return Null;
-      If($Item->Text===',') Return Null;
-      $Type=EBrace::Detect($Item->Text);
-      If($Type===EBrace::Right ) Return $this->Prev_Open($Item);
-      If($Type===EBrace::Left  ) Return Null;
-      Return $Item;
-    }
-  }
-  
-  Function Next_SkipBraces(TToken $Token):?TToken 
-  {
-    $Type=EBrace::Detect($Token->Text);
-    If($Type===EBrace::Left)
-    { 
-      $Token=$this->Next_Close($Token);
-      If($Token?->Text==='}') Return Null;
-    }
-    For($Item=$Token?->Next; $Item; $Item=$Item->Next)
-    {
-      If($Item->GetTypeHandler()!=='Text') Continue;
-      If($Item->Is( //Ignore Ignorable
-        T_COMMENT     , 
-        T_DOC_COMMENT , 
-        T_WHITESPACE  ,
-        T_OPEN_TAG    , //TODO: Why?
-      )) Continue;
-      If($Item->Text==='{') Return $Item;
-      If($Item->Text===';') Return Null;
-      If($Item->Text===',') Return Null;
-      $Type=EBrace::Detect($Item->Text);
-      If($Type===EBrace::Left  ) Return $Item;
-      If($Type===EBrace::Right ) Return Null;
-      Return $Item;
-    }
-    Return Null;
-  }
-  
   Function MakeBracesLine(TToken $Token):Array
   {
     $Res=[];
-    For($Item=$Token; $Item; $Item=$this->Prev_SkipBraces($Item))
+    For($Item=$Token; $Item; $Item=BraceSkip::Prev($Item))
       $Res[]=$Item;
     $Res=Array_Reverse($Res);
     $Pos=Count($Res)-1;
@@ -83,7 +32,7 @@ Class TTrace
       T_WHITESPACE  ,
       T_OPEN_TAG    , //TODO: Why?
     )) Array_Pop($Res);
-    For($Item=$this->Next_SkipBraces($Token->Next); $Item; $Item=$this->Next_SkipBraces($Item))
+    For($Item=BraceSkip::Next($Token->Next); $Item; $Item=BraceSkip::Next($Item))
       $Res[]=$Item;
     Return [$Pos, $Res];
   }
@@ -214,7 +163,7 @@ Class TTrace
   Function MakeBracesPath($Token)
   {
     $Res=[];
-    For($Item=$Token; $Item; $Item=$this->Prev_Open($Item))
+    For($Item=$Token; $Item; $Item=BraceFind::Left($Item))
       $Res[]=$this->MakeBracesLine($Item);
     $List=Array_Reverse($Res);
     $State='Code';
@@ -257,47 +206,5 @@ Class TTrace
       $Res[]='{'.$Pos.':'.$OldState.'->'.$State.':'.$Detected.'}';
     }
     Return $Res;
-  }
-  
-  Function Prev_Open($Token)
-  {
-  //Log('Debug', 'Prev_Open for ', $Token)->File($Token->GetFilePos()->ToArgs());
-    For($Item=$Token->Prev; $Item; $Item=$Item->Prev)
-    {
-      If($Item->GetTypeHandler()!=='Text') Continue;
-    //Log('Debug', 'Prev_Open_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());
-      $Type=EBrace::Detect($Item->Text);
-      If($Type===EBrace::Left  ) Return $Item;
-      If($Type!==EBrace::Right ) Continue;
-     
-      $Next=$this->Prev_Open($Item);
-      If(!$Next) Break;
-      $Need=EBrace::Pair($Item->Text);
-      If($Need!==$Next->Text)
-        Log('Error', 'Need brace ', $Need, ' ', $Item->GetFilePos(), ' actual is ', $Next->Text, ' ', $Next->GetFilePos());
-      $Item=$Next;
-    }
-    Return Null;
-  }
-
-  Function Next_Close($Token)
-  {
-  //Log('Debug', 'Nect_Close for ', $Token)->File($Token->GetFilePos()->ToArgs());
-    For($Item=$Token->Next; $Item; $Item=$Item->Next)
-    {
-      If($Item->GetTypeHandler()!=='Text') Continue;
-    //Log('Debug', 'Nect_Close_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());
-      $Type=EBrace::Detect($Item->Text);
-      If($Type===EBrace::Right ) Return $Item;
-      If($Type!==EBrace::Left  ) Continue;
-     
-      $Next=$this->Next_Close($Item);
-      If(!$Next) Break;
-      $Need=EBrace::Pair($Item->Text);
-      If($Need!==$Next->Text)
-        Log('Error', 'Need brace ', $Need, ' ', $Item->GetFilePos(), ' actual is ', $Next->Text, ' ', $Next->GetFilePos());
-      $Item=$Next;
-    }
-    Return Null;
   }
 }
