@@ -87,58 +87,72 @@ Class TPath
     For($Item=$Token; $Item; $Item=$this->Prev_SkipBraces($Item))
       $Res[]=$Item;
     $Res=Array_Reverse($Res);
-    $Pos=Count($Res);
-    For($Item=$Token; $Item; $Item=$this->Next_SkipBraces($Item))
+    $Pos=Count($Res)-1;
+  //For($Item=$Token; $Item; $Item=$this->Next_SkipBraces($Item))
+  //For($Item=$Token->Next; $Item; $Item=$this->Next_SkipBraces($Item))
+    For($Item=$this->Next_SkipBraces($Token->Next); $Item; $Item=$this->Next_SkipBraces($Item))
       $Res[]=$Item;
     Return [$Pos, $Res];
   }
   
   Static Function Detect_NS($Token, $Path, $i)
   {
-    Return '/'.$Path[$i+1]->Text;
+    Return ['Code', '/'.$Path[$i+1]->Text];
   }
   
   Static Function Detect_Func($Token, $Path, $i)
   {
     If($Next=$Path[$i+1]?? Null)
     {
-      If($Next->Id===T_STRING) Return '::'.$Path[$i+1]->Text.'()';
-      If(In_Array($Next->text, ['(', '{'])) Return '::fn()';
+      If($Next->Id===T_STRING) Return ['Code', '::'.$Path[$i+1]->Text.'()'];
+      If(In_Array($Next->text, ['(', '{'])) Return ['Code', '::fn()'];
     }
     //TODO: Error
   }
   
   Static Function Detect_Class($Token, $Path, $i)
   {
-    Return '/'.$Path[$i+1]->Text;
+    Return ['Class', '/'.$Path[$i+1]->Text];
   }
   
   Static Function Detect_Const($Token, $Path, $i)
   {
-    Return '::'.$Path[$i+1]->Text;
+    For($j=$i; $j<Count($Path); $j++)
+      If($Path[$j]?->Text==='=')
+      {
+        Return [$Path[$j+1]?->Text==='['?'Array':Null, '::'.$Path[$j-1]->Text];
+      }
+    Log('Error', 'Unknown const: ', $Path);
+    Return;
+  //Return '::'.$Path[$i+1]->Text;
   }
   
   Static Function Detect_Var($Token, $Path, $i)
   {
-    Return '::'.$Path[$i+1]->Text;
+    If($Path[$i+1]?->Text==='=')
+      Return [$Path[$i+2]?->Text==='['?'Array':'Hook', '::'.$Token->Text];
+    If($Path[$i+1]?->Text==='{')
+      Return ['Hook', '::'.$Token->Text];
+    Log('Error', 'Unknown Var: ', $Path);
+  //Return ['Hook', '::'.$Token->Text];
   }
   
   Static Function Detect_GetSet($Token, $Path, $i)
   {
-    Return '::'.$Token->Text.'()';
+    Return ['Code', '::'.$Token->Text.'()'];
   }
   
   Static Function Detect_Key($Token, $Path, $i)
   {
-    Return '['.$Path[$i-1]->Text.']';
+    Return [Null, '['.$Path[$i-1]->Text.']'];
   }
 
   Static Function Detect_Array($Token, $Path, $i)
   {
-    Return 'Array';
+    Return ['Array', 'Array'];
   }
 
-  Const Detect_Map=[//Detect func               , State  , Need
+  Const Detect_Map=[//Detect func               , State  , Need  //TODO: Remove State
     T_NAMESPACE    =>[Self::Detect_NS     (...) ,'Code'  ,'Code'  ],
     T_CLASS        =>[Self::Detect_Class  (...) ,'Class' ,'Code'  ],
     T_INTERFACE    =>[Self::Detect_Class  (...) ,'Class' ,'Code'  ],
@@ -150,43 +164,66 @@ Class TPath
     'get'          =>[Self::Detect_GetSet (...) ,'Code'  ,'Hook'  ],
     'set'          =>[Self::Detect_GetSet (...) ,'Code'  ,'Hook'  ],
     T_DOUBLE_ARROW =>[Self::Detect_Key    (...) ,Null    ,'Array' ],
-    '['            =>[Self::Detect_Array  (...) ,'Array'          ],
+  //'['            =>[Self::Detect_Array  (...) ,'Array'          ],
   ];
   
-  Var $Detect_Map=Self::Detect_Map;
+  Var $Detect_Map=Self::Detect_Map; //TODO: Does not work
   
   Function Detect(String $State, Int $Pos, Array $Path)
   {
+    Global $TokenNameById;
+  //Static $Debug=Log('Debug', 'Detect_Map: ')->Debug(Self::Detect_Map)->Ret();
     $Res=[];
-  //$Path=$this->MakeBracesLine($Token);
-    For($i=0, $l=Count($Path); $i<$l; $i++)
+    $l=Count($Path);
+    For($i=0; $i<$l; $i++)
     {
       $v=$Path[$i];
-      If($Detected=Self::$Detect_Map[$v->Id]?? Null)
+      If($Detected=Self::Detect_Map[$v->Id]?? Null)
       {
-        $NewState =$Detected[1]?? $State;
+      //$NewState =$Detected[1]?? $State;
         $Need     =$Detected[2]?? Null;
-        If($Need && $Need!==$State) Continue;
+        If($Need && $Need!==$State)
+        {
+          $Res[]='/?1:'.$v->Text.'('.($v->Line+1).','.($v->Pos+1).')';
+          Continue;
+        }
         $r=$Detected[0]($v, $Path, $i);
-        If(!$r) Continue;
-        Return [$NewState, $r];
+        If(!$r)
+        {
+          $Res[]='/?2:'.$v->Text.'('.($v->Line+1).','.($v->Pos+1).')';
+          Continue;
+        }
+      //Return [$NewState, $r, True];
+        Return [/*$NewState*/$r[0]?? $State, $r[1], True];
       }
-      If($v->Id!==T_STRING) Continue;
+      If($v->Id!==T_STRING)
+      {
+        $Res[]='/?3:'.$TokenNameById[$v->Id].':'.$v->Text.'('.($v->Line+1).','.($v->Pos+1).')';
+        Continue;
+      }
       $text=StrToLower($v->Text);
-      If($Detected=Self::$Detect_Map[$text]?? Null)
+      If($Detected=Self::Detect_Map[$text]?? Null)
       {
-        $NewState =$Detected[1]?? $State;
+      //$NewState =$Detected[1]?? $State;
         $Need     =$Detected[2]?? Null;
-        If($Need && $Need!==$State) Continue;
+        If($Need && $Need!==$State)
+        {
+          $Res[]='/?4:'.$v->Text.'('.($v->Line+1).','.($v->Pos+1).')';
+          Continue;
+        }
         $r=$Detected[0]($v, $Path, $i);
-        If(!$r) Continue;
-        Return [$NewState, $r];
+        If(!$r)
+        {
+          $Res[]='/?5:'.$v->Text.'('.($v->Line+1).','.($v->Pos+1).')';
+          Continue;
+        }
+        Return [/*$NewState*/$r[0]?? $State, $r[1], True];
       }
-      $Res[]='/'.$v->Text.'('.($v->Line+1).','.($v->Pos+1).')';
+      $Res[]='/!:'.$v->Text.'('.($v->Line+1).','.($v->Pos+1).')';
     }
   //ForEach($Path As $v)
   //  $Res[]='/'.$v->Text.'('.($v->Line+1).','.($v->Pos+1).')';
-    Return [$State, Implode($Res)];
+    Return [$State, Implode($Res), False];
   }
   
   Function MakeBracesPath($Token)
@@ -196,9 +233,28 @@ Class TPath
       $Res[]=$this->MakeBracesLine($Item);
     $Res=Array_Reverse($Res);
     $State='Code';
-    ForEach($Res As $k=>$v)
+    ForEach($Res As $k=>[$Pos, $Path])
     {
-      [$State, $Res[$k]]=$this->Detect($State, $v[0], $v[1]);
+      $OldState=$State;
+      [$State, $Detected, $Ok]=$this->Detect($State, $Pos, $Path);
+      If($Ok)
+        $Res[$k]=$Detected;
+      Else
+      {
+        $Pos1=$Path[0]->GetFilePos()->ToString();
+        $Pos2=$Path[$Pos]->GetFilePos()->ToString();
+        $Pos3=$Path[Count($Path)-1]->GetFilePos()->ToString();
+        $Pos='';
+        If($Pos1===$Pos2 && $Pos1===$Pos3)
+          $Pos=$Pos1;
+        ElseIf($Pos1===$Pos2)
+          $Pos='!'.$Pos1.'-'.$Pos3;
+        ElseIf($Pos3===$Pos2)
+          $Pos=$Pos1.'-!'.$Pos3;
+        Else
+          $Pos=$Pos1.'-'.$Pos2.'-'.$Pos3;
+        $Res[$k]='{'.$Pos.':'.$OldState.'->'.$State.':'.$Detected.'}';
+      }
     }
     Return $Res;
   }

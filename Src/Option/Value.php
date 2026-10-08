@@ -106,7 +106,7 @@ Class TValue Implements IFilePos, \ArrayAccess, \Countable, \IteratorAggregate, 
   
   Function GetFilePos      ():TFilePos { Return $this->GetFirstToken ()?->GetFilePos()?? $this->GetFilePosError (); }
   Function GetFilePosEnd   ():TFilePos { Return $this->GetLastToken  ()?->GetFilePos()?? $this->GetFilePosError (); }
-  Function GetFilePosError ():TFilePos { Return TFilePos::GetEmptyWithError('Path: ', $this->GetPath()); }
+  Protected Function GetFilePosError ():TFilePos { Return TFilePos::GetEmptyWithError('Path: ', $this->GetPath()); }
   
 //****************************************************************
 // Parser interface

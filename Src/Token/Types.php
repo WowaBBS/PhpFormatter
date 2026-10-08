@@ -199,6 +199,7 @@ $CheckOldTokens=Array_Flip(Array_Keys($TokenTypes));
 $CheckNewTokens=[];
 
 $TokenConsts=[];
+$TokenNameById=[];
 
 $CheckToken=New \PhpToken(0,'');
 
@@ -212,6 +213,7 @@ ForEach(Get_Defined_Constants(true)['tokenizer'] As $k=>$v)
       Log('Warning', 'Need to add a new token', $k, '=', $v);
       $CheckNewTokens[$k]=True;
     }
+    $TokenNameById[$v]=$k;
     
     $TokenNames[$v]='!'.$k;
     $TokenConsts[$k]=$v;
@@ -224,6 +226,7 @@ ForEach(Get_Defined_Constants(true)['tokenizer'] As $k=>$v)
   }
 For($i=0; $i<128; $i++)
 {
+  $TokenNameById[$i]??=Chr($i);
   $CheckToken->id=$i;
   If($CheckToken->IsIgnorable()!==($Ignorable[Chr($i)]?? False))
     If($CheckToken->IsIgnorable())

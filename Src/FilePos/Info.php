@@ -50,6 +50,14 @@ Class TInfo Implements IProvider, \WLib\Debug\ICustom
   {
     $To->File(...$this->ToArgs());
   }
+  
+  Function ToString()
+  {
+    Return 
+      $this->FileName .'('.
+      $this->Line     .':'.
+      $this->Pos      .')';
+  }
 
 //****************************************************************
 }

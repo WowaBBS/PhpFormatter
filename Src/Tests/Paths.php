@@ -16,7 +16,7 @@ Class MyClass
   ];
   
   Var $MyFiled=[
-    //TestPath=\MyNameSpace\MyClass::$MyField
+    //TestPath=\MyNameSpace\MyClass::$MyField['Key']
     'Key'=>[
       //TestPath=\MyNameSpace\MyClass::$MyField['Key']
     ],
