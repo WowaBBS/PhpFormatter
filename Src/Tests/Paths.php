@@ -38,16 +38,16 @@ Class MyClass
 
   Function MyFunction()
   {
-    //TestPath='\MyNameSpace\MyClass::MyFunction()'
+    //TestPath=\MyNameSpace\MyClass::MyFunction()
     $logger = new class 
     {
-      //TestPath='\MyNameSpace\MyClass::MyFunction()::Class'
+      //TestPath=\MyNameSpace\MyClass::MyFunction()::Class
       public function log($msg)
       {
-        //TestPath='\MyNameSpace\MyClass::MyFunction()::Class::log()'
+        //TestPath=\MyNameSpace\MyClass::MyFunction()::Class::log()
         $fn = function()
         {
-          //TestPath='\MyNameSpace\MyClass::MyFunction()=>Class::log()=>fn()'
+          //TestPath=\MyNameSpace\MyClass::MyFunction()=>Class::log()=>fn()
         };
       }
     };
@@ -59,7 +59,7 @@ Function MyFunc() //TestPath=\MyNameSpace\MyFunc()
 {
 }
 
-Function  //TestPath=\MyNameSpace\MyFunc2()
+Function //TestPath=\MyNameSpace\MyFunc2()
   MyFunc2()
 {
 }

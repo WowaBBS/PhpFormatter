@@ -1,7 +1,10 @@
 <?
+namespace Sample;
 
 sgfsdf sdfw;
 $Select->ReadOnly();
+
+aa\bb\cc
 
 include '_All.php';
 require '_All.php';
@@ -96,3 +99,44 @@ echo "Hello {$a[2][0]} world!\n";
 echo "Hello {$a[2][0+1]} world!\n";
 echo "Hello ${SubStr('Fear',1,1)} world!\n";
 echo "Hello {${SubStr('Fear',1,1)}} world!\n";
+
+Class MyClass
+{
+  //TestPath=\MyNameSpace\MyClass
+  
+  Const MyConst= //TestPath=\MyNameSpace\MyClass::MyConst
+  [
+    //TestPath=\MyNameSpace\MyClass::MyConst
+    'Key'=>[
+      //TestPath=\MyNameSpace\MyClass::MyConst['Key']
+    ],
+  ];
+  
+  Var $MyFiled=[
+    //TestPath=\MyNameSpace\MyClass::$MyField
+    'Key'=>[
+      //TestPath=\MyNameSpace\MyClass::$MyField['Key']
+    ],
+  ];
+  Var $MyProperty1{
+    Get { Return 'Hello';
+      //TestPath=\MyNameSpace\MyClass::$MyProperty1::Get()
+    }
+    Set($v) {
+      //TestPath=\MyNameSpace\MyClass::$MyProperty1::Set()
+    }
+  }
+  Var $MyProperty2{
+    Get=>f( //TestPath=\MyNameSpace\MyClass::$MyProperty2::Get()
+    );
+    Set=>f( //TestPath=\MyNameSpace\MyClass::$MyProperty1::Set()
+    );
+  }
+}
+
+fn()=> //TestPath=fn()
+  5;
+
+
+/*
+  Comment is not ended
