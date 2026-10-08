@@ -6,18 +6,23 @@ Use Function Reformat\Log;
 
 Class BraceSkip
 {
+  Static Function IsIgnorable($Token)
+  {
+    Return $Token->Is( //Ignore Ignorable
+      T_COMMENT     , 
+      T_DOC_COMMENT , 
+      T_WHITESPACE  ,
+      T_OPEN_TAG    , //TODO: Why?
+    );
+  }
+
   Static Function Prev(TToken $Token):?TToken 
   {
   //Log('Debug', 'BraceSkip::Prev.Begin=',$Token->Text);
     For($Item=$Token->Prev; $Item; $Item=$Item->Prev)
     {
       If($Item->GetTypeHandler()!=='Text') Continue;
-      If($Item->Is( //Ignore Ignorable
-        T_COMMENT     , 
-        T_DOC_COMMENT , 
-        T_WHITESPACE  ,
-        T_OPEN_TAG    , //TODO: Why?
-      )) Continue;
+      If(Self::IsIgnorable($Item)) Continue;
     //Log('Debug', 'BraceSkip::Prev.Next=',$Item->Text);
       If($Item->Text==='}') Return Null;
       If($Item->Text===';') Return Null;
@@ -40,12 +45,7 @@ Class BraceSkip
     For($Item=$Token?->Next; $Item; $Item=$Item->Next)
     {
       If($Item->GetTypeHandler()!=='Text') Continue;
-      If($Item->Is( //Ignore Ignorable
-        T_COMMENT     , 
-        T_DOC_COMMENT , 
-        T_WHITESPACE  ,
-        T_OPEN_TAG    , //TODO: Why?
-      )) Continue;
+      If(Self::IsIgnorable($Item)) Continue;
       If($Item->Text==='{') Return $Item;
       If($Item->Text===';') Return Null;
       If($Item->Text===',') Return Null;

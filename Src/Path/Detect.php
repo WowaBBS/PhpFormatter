@@ -19,19 +19,19 @@ Class Detect
     T_DOUBLE_ARROW =>[Self::Key       (...) , Null   ,'Array' ],
   ];
 
-  Static Function NameSpace($State, $Pos, $Path, $i, $Token)
+  Static Function NameSpace($State, $Line, $i, $Token)
   {
-    Return ['Code', 'NameSpace', '/', $Path[$i+1]->Text];
+    Return ['Code', 'NameSpace', '/', $Line[$i+1]->Text];
   }
   
-  Static Function Function($State, $Pos, $Path, $i, $Token)
+  Static Function Function($State, $Line, $i, $Token)
   {
-    If($Next=$Path[$i+1]?? Null)
+    If($Next=$Line[$i+1]?? Null)
     {
       If($Next->Id===T_STRING)
         Return ['Code', 'Function', 
           $State==='Class'? '::':'\\', 
-          $Path[$i+1]->Text.'()'
+          $Line[$i+1]->Text.'()'
         ];
       If(In_Array($Next->Text, ['(', '{']))
         Return ['Code', 'Function', '=>', 'fn()'];
@@ -39,50 +39,50 @@ Class Detect
     Log('Error', 'Wrong function name', $Next);
   }
   
-  Static Function Class($State, $Pos, $Path, $i, $Token)
+  Static Function Class($State, $Line, $i, $Token)
   {
-    If($Next=$Path[$i+1]?? Null)
+    If($Next=$Line[$i+1]?? Null)
     {
       If($Next->Id===T_STRING)
-        Return ['Class', 'Class', '/', $Path[$i+1]->Text];
+        Return ['Class', 'Class', '/', $Line[$i+1]->Text];
       If(In_Array($Next->Text, ['(', '{']))
         Return ['Class', 'Class', '/', 'Class'];
     }
   }
   
-  Static Function Const($State, $Pos, $Path, $i, $Token)
+  Static Function Const($State, $Line, $i, $Token)
   {
-    For($j=$i; $j<Count($Path); $j++)
-      If($Path[$j]?->Text==='=')
+    For($j=$i; $j<Count($Line); $j++)
+      If($Line[$j]?->Text==='=')
       {
-        Return [$Path[$j+1]?->Text==='['?'Array':Null, 'Const', '::', $Path[$j-1]->Text];
+        Return [$Line[$j+1]?->Text==='['?'Array':Null, 'Const', '::', $Line[$j-1]->Text];
       }
-    Log('Error', 'Unknown const: ', $Path);
+    Log('Error', 'Unknown const: ', $Line);
     Return;
   }
   
-  Static Function Var($State, $Pos, $Path, $i, $Token)
+  Static Function Var($State, $Line, $i, $Token)
   {
-    If($Path[$i+1]?->Text==='=')
-      Return [$Path[$i+2]?->Text==='['?'Array':'Hook', 'Var', '::', $Token->Text];
-    If($Path[$i+1]?->Text==='{')
+    If($Line[$i+1]?->Text==='=')
+      Return [$Line[$i+2]?->Text==='['?'Array':'Hook', 'Var', '::', $Token->Text];
+    If($Line[$i+1]?->Text==='{')
       Return ['Hook', 'Var', '::', $Token->Text];
-    Log('Error', 'Unknown Var: ', $Path);
+    Log('Error', 'Unknown Var: ', $Line);
   //Return ['Hook', '::'.$Token->Text];
   }
   
-  Static Function Key($State, $Pos, $Path, $i, $Token)
+  Static Function Key($State, $Line, $i, $Token)
   {
-    Return [Null, 'Key', '', '['.$Path[$i-1]->Text.']'];
+    Return [Null, 'Key', '', '['.$Line[$i-1]->Text.']'];
   }
   
 //****************************************************************
-  Static Function Hook($State, $Pos, $Path, $i, $Token)
+  Static Function Hook($State, $Line, $i, $Token)
   {
     Return ['Code', 'Hook', '::', $Token->Text.'()'];
   }
 
-  Static Function ById($State, $Pos, $Path, $i, $Token):False|Int|Array
+  Static Function ById($State, $Line, $i, $Token):False|Int|Array
   {
     $Detected=Self::Map[$Token->Id]?? Null;
     
@@ -92,24 +92,19 @@ Class Detect
     $Need     =$Detected[2]?? Null;
     If($Need && $Need!==$State) Return 1;
 
-    $r=$Detected[0]($State, $Pos, $Path, $i, $Token);
+    $r=$Detected[0]($State, $Line, $i, $Token);
     If(!$r) Return 2;
 
     $r[0]??=$State; /*$NewState?? */
     Return $r;
   }
 
-  Static Function Line(String $State, Int $Pos, Array $Path)
+  Static Function Line(String $State, TLine $Line)
   {
-    Global $TokenNameById;
-    If(Count($Path)===1 && $Path[0]->Id===T_COMMENT) Return;
-  //Static $Debug=Log('Debug', 'Detect::Map: ')->Debug(Self::Map)->Ret();
     $Res=[];
-    $l=Count($Path);
-    For($i=0; $i<$l; $i++)
+    ForEach($Line As $i=>$Token)
     {
-      $Token=$Path[$i];
-      $r=Self::ById($State, $Pos, $Path, $i, $Token);
+      $r=Self::ById($State, $Line, $i, $Token);
       If(Is_Int($r))
         $r=$r;
       ElseIf($r)
@@ -118,7 +113,7 @@ Class Detect
         $r=3;
       ElseIf($State==='Hook')
       {
-        $r=Self::Hook($State, $Pos, $Path, $i, $Token);
+        $r=Self::Hook($State, $Line, $i, $Token);
         If($r)
           Return [/*$NewState*/$r[0]?? $State, $r[1].' '.$r[2].$r[3], True];
         $r=4;
