@@ -26,14 +26,14 @@ Class TTrace
       $Lines[]=New TLine($Item);
     $Lines=Array_Reverse($Lines);
     
-    $State='Code';
     $Res=[];
+    $Detect=New TDetect();
     ForEach($Lines As $k=>$Line)
     {
-      $OldState=$State;
-      $r=Detect::Line($State, $Line);
+      $OldState=$Detect->State;
+      $r=$Detect->Line($Line);
       If(!$r) Continue;
-      [$State, $Detected, $Ok]=$r;
+      [$Detected, $Ok]=$r;
       If($Ok)
       {
         $Res[]=$Detected;
@@ -46,7 +46,7 @@ Class TTrace
         Continue;
       }
       
-      $Res[]='{'.$Line->DebugPos().':'.$OldState.'->'.$State.':'.$Detected.'}';
+      $Res[]='{'.$Line->DebugPos().':'.$OldState.'->'.$Detect->State.':'.$Detected.'}';
     }
     Return $Res;
   }

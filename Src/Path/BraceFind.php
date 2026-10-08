@@ -13,13 +13,13 @@ Class BraceFind
     {
       If($Item->GetTypeHandler()!=='Text') Continue;
     //Log('Debug', 'Brace::FindLeft_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());
-      $Type=EBrace::Detect($Item->Text);
+      $Type=EBraceType::Detect($Item->Text);
       If( $Type->IsLeft  ()) Return $Item;
       If(!$Type->IsRight ()) Continue;
      
       $Next=Self::Left($Item);
       If(!$Next) Break;
-      $Need=EBrace::Pair($Item->Text);
+      $Need=EBraceType::Pair($Item->Text);
       If($Need!==$Next->Text)
         Log('Error', 'Need brace ', $Need, ' ', $Item->GetFilePos(), ' actual is ', $Next->Text, ' ', $Next->GetFilePos());
       $Item=$Next;
@@ -34,13 +34,13 @@ Class BraceFind
     {
       If($Item->GetTypeHandler()!=='Text') Continue;
     //Log('Debug', 'Brace_FindRight_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());
-      $Type=EBrace::Detect($Item->Text);
+      $Type=EBraceType::Detect($Item->Text);
       If( $Type->IsRight ()) Return $Item;
       If(!$Type->IsLeft  ()) Continue;
      
       $Next=Self::Right($Item);
       If(!$Next) Break;
-      $Need=EBrace::Pair($Item->Text);
+      $Need=EBraceType::Pair($Item->Text);
       If($Need!==$Next->Text)
         Log('Error', 'Need brace ', $Need, ' ', $Item->GetFilePos(), ' actual is ', $Next->Text, ' ', $Next->GetFilePos());
       $Item=$Next;

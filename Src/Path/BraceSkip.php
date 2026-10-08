@@ -27,7 +27,7 @@ Class BraceSkip
       If($Item->Text==='}') Return Null;
       If($Item->Text===';') Return Null;
       If($Item->Text===',') Return Null;
-      $Type=EBrace::Detect($Item->Text);
+      $Type=EBraceType::Detect($Item->Text);
       If($Type->IsRight ()) Return BraceFind::Left($Item);
       If($Type->IsLeft  ()) Return Null;
       Return $Item;
@@ -36,7 +36,7 @@ Class BraceSkip
   
   Static Function Next(TToken $Token):?TToken 
   {
-    $Type=EBrace::Detect($Token->Text);
+    $Type=EBraceType::Detect($Token->Text);
     If($Type->IsLeft())
     { 
       $Token=BraceFind::Right($Token);
@@ -49,7 +49,7 @@ Class BraceSkip
       If($Item->Text==='{') Return $Item;
       If($Item->Text===';') Return Null;
       If($Item->Text===',') Return Null;
-      $Type=EBrace::Detect($Item->Text);
+      $Type=EBraceType::Detect($Item->Text);
       If($Type->IsLeft  ()) Return $Item;
       If($Type->IsRight ()) Return Null;
       Return $Item;

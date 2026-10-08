@@ -3,7 +3,7 @@ NameSpace Reformat\Path;
 
 Use Function Reformat\Log;
 
-Enum EBrace
+Enum EBraceType
 {
   Case None  ;
   Case Left  ; //Open
