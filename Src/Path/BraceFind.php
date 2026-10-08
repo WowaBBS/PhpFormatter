@@ -1,11 +1,12 @@
 <?
 NameSpace Reformat\Path;
 
+Use Reformat\Token\TBase As TToken;
 Use Function Reformat\Log;
 
 Class BraceFind
 {
-  Static Function Left($Token)
+  Static Function Left(TToken $Token):?TToken
   {
   //Log('Debug', 'Brace::FindLeft for ', $Token)->File($Token->GetFilePos()->ToArgs());
     For($Item=$Token->Prev; $Item; $Item=$Item->Prev)
@@ -26,7 +27,7 @@ Class BraceFind
     Return Null;
   }
 
-  Static Function Right($Token)
+  Static Function Right(TToken $Token):?TToken
   {
   //Log('Debug', 'Brace_FindRight for ', $Token)->File($Token->GetFilePos()->ToArgs());
     For($Item=$Token->Next; $Item; $Item=$Item->Next)
