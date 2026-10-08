@@ -13,6 +13,10 @@ Class MyClass
     'Key'=>[
       //TestPath=\MyNameSpace\MyClass::MyConst['Key']
     ],
+    'Key2'=>[
+      //TestPath=\MyNameSpace\MyClass::MyConst['Key2']
+      'Value',
+    ],
   ];
   
   Var $MyFiled=[

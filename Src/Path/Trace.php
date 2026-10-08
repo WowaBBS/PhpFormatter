@@ -1,14 +1,11 @@
 <?
-NameSpace Reformat\Utils;
+NameSpace Reformat\Path;
 
 Use Reformat\Token\TBase As TToken;
 Use Function Reformat\Log;
 
-Class TPath
+Class TTrace
 {
-  const Brace_None  =0;
-  const Brace_Open  =1;
-  const Brace_Close =2;
   //TODO: Alternative syntax is not supported now:
   //  if(...): ... elseif(...): ... else: ... endif;
   //  switch(...): ...  case ...: ... endswitch;
@@ -21,16 +18,6 @@ Class TPath
   Function __Construct()
   {
   }
-  
-  Const Array Braces=[
-    '['=>[Self::Brace_Open  ,']'],
-    '('=>[Self::Brace_Open  ,')'],
-    '{'=>[Self::Brace_Open  ,'}'],
-    ']'=>[Self::Brace_Close ,'['],
-    ')'=>[Self::Brace_Close ,'('],
-    '}'=>[Self::Brace_Close ,'{'],
-  //';'=>[3,'' ],
-  ];
   
   Function Prev_SkipBraces(TToken $Token):?TToken 
   {
@@ -47,17 +34,18 @@ Class TPath
     //Log('Debug', 'Prev_SkipBraces.Next=',$Item->Text);
       If($Item->Text==='}') Return Null;
       If($Item->Text===';') Return Null;
-      $Type=Self::Braces[$Item->Text][0]?? Self::Brace_None;
-      If($Type===Self::Brace_Close ) Return $this->Prev_Open($Item);
-      If($Type===Self::Brace_Open  ) Return Null;
+      If($Item->Text===',') Return Null;
+      $Type=EBrace::Detect($Item->Text);
+      If($Type===EBrace::Right ) Return $this->Prev_Open($Item);
+      If($Type===EBrace::Left  ) Return Null;
       Return $Item;
     }
   }
   
   Function Next_SkipBraces(TToken $Token):?TToken 
   {
-    $Type=Self::Braces[$Token->Text][0]?? Self::Brace_None;
-    If($Type===Self::Brace_Open)
+    $Type=EBrace::Detect($Token->Text);
+    If($Type===EBrace::Left)
     { 
       $Token=$this->Next_Close($Token);
       If($Token?->Text==='}') Return Null;
@@ -73,9 +61,10 @@ Class TPath
       )) Continue;
       If($Item->Text==='{') Return $Item;
       If($Item->Text===';') Return Null;
-      $Type=Self::Braces[$Item->Text][0]?? Self::Brace_None;
-      If($Type===Self::Brace_Open  ) Return $Item;
-      If($Type===Self::Brace_Close ) Return Null;
+      If($Item->Text===',') Return Null;
+      $Type=EBrace::Detect($Item->Text);
+      If($Type===EBrace::Left  ) Return $Item;
+      If($Type===EBrace::Right ) Return Null;
       Return $Item;
     }
     Return Null;
@@ -88,8 +77,12 @@ Class TPath
       $Res[]=$Item;
     $Res=Array_Reverse($Res);
     $Pos=Count($Res)-1;
-  //For($Item=$Token; $Item; $Item=$this->Next_SkipBraces($Item))
-  //For($Item=$Token->Next; $Item; $Item=$this->Next_SkipBraces($Item))
+    If($Res[$Pos]->Is( //Ignore Ignorable
+      T_COMMENT     , 
+      T_DOC_COMMENT , 
+      T_WHITESPACE  ,
+      T_OPEN_TAG    , //TODO: Why?
+    )) Array_Pop($Res);
     For($Item=$this->Next_SkipBraces($Token->Next); $Item; $Item=$this->Next_SkipBraces($Item))
       $Res[]=$Item;
     Return [$Pos, $Res];
@@ -105,11 +98,14 @@ Class TPath
     If($Next=$Path[$i+1]?? Null)
     {
       If($Next->Id===T_STRING)
-        Return ['Code', 'Function', $State==='Class'? '::':'\\', $Path[$i+1]->Text.'()'];
+        Return ['Code', 'Function', 
+          $State==='Class'? '::':'\\', 
+          $Path[$i+1]->Text.'()'
+        ];
       If(In_Array($Next->Text, ['(', '{']))
-        Return ['Code', 'Function', '::', 'fn()'];
+        Return ['Code', 'Function', '=>', 'fn()'];
     }
-    //TODO: Error
+    Log('Error', 'Wrong function name', $Next);
   }
   
   Static Function Detect_Class($State, $Pos, $Path, $i, $Token)
@@ -119,7 +115,7 @@ Class TPath
       If($Next->Id===T_STRING)
         Return ['Class', 'Class', '/', $Path[$i+1]->Text];
       If(In_Array($Next->Text, ['(', '{']))
-        Return ['Code', 'Class', '/', 'Class'];
+        Return ['Class', 'Class', '/', 'Class'];
     }
   }
   
@@ -132,7 +128,6 @@ Class TPath
       }
     Log('Error', 'Unknown const: ', $Path);
     Return;
-  //Return '::'.$Path[$i+1]->Text;
   }
   
   Static Function Detect_Var($State, $Pos, $Path, $i, $Token)
@@ -145,9 +140,9 @@ Class TPath
   //Return ['Hook', '::'.$Token->Text];
   }
   
-  Static Function Detect_GetSet($State, $Pos, $Path, $i, $Token)
+  Static Function Detect_Hook($State, $Pos, $Path, $i, $Token)
   {
-    Return ['Code', 'GetSet', '::', $Token->Text.'()'];
+    Return ['Code', 'Hook', '::', $Token->Text.'()'];
   }
   
   Static Function Detect_Key($State, $Pos, $Path, $i, $Token)
@@ -155,28 +150,20 @@ Class TPath
     Return [Null, 'Key', '', '['.$Path[$i-1]->Text.']'];
   }
 
-  //TODO: Remove?
-  Static Function Detect_Array($State, $Pos, $Path, $i, $Token)
-  {
-    Return ['Array', 'Array', '', 'Array'];
-  }
-
   Const Detect_Map=[//Detect func               , State  , Need  //TODO: Remove State
     T_NAMESPACE    =>[Self::Detect_NS     (...) ,'Code'  ,'Code'  ],
     T_CLASS        =>[Self::Detect_Class  (...) ,'Class' ,'Code'  ],
     T_INTERFACE    =>[Self::Detect_Class  (...) ,'Class' ,'Code'  ],
     T_TRAIT        =>[Self::Detect_Class  (...) ,'Class' ,'Code'  ],
+    T_ENUM         =>[Self::Detect_Class  (...) ,'Class' ,'Code'  ],
     T_FUNCTION     =>[Self::Detect_Func   (...) ,'Code'           ], //[Code, Class]
     T_FN           =>[Self::Detect_Func   (...) ,'Code'  ,'Code'  ],
     T_VARIABLE     =>[Self::Detect_Var    (...) ,'Hook'  ,'Class' ],
     T_CONST        =>[Self::Detect_Const  (...)                   ], //[Code, Class]
-  //'get'          =>[Self::Detect_GetSet (...) ,'Code'  ,'Hook'  ],
-  //'set'          =>[Self::Detect_GetSet (...) ,'Code'  ,'Hook'  ],
     T_DOUBLE_ARROW =>[Self::Detect_Key    (...) , Null   ,'Array' ],
-  //'['            =>[Self::Detect_Array  (...) ,'Array'          ],
   ];
   
-  Var $Detect_Map=Self::Detect_Map; //TODO: Does not work
+  Var $Detect_Map=Self::Detect_Map; //TODO: Does't work
   
   Function Detect_Id($State, $Pos, $Path, $i, $Token):False|Int|Array
   {
@@ -214,7 +201,7 @@ Class TPath
         $r=3;
       ElseIf($State==='Hook')
       {
-        $r=Self::Detect_GetSet ($State, $Pos, $Path, $i, $Token);
+        $r=Self::Detect_Hook($State, $Pos, $Path, $i, $Token);
         If($r)
           Return [/*$NewState*/$r[0]?? $State, $r[1].' '.$r[2].$r[3], True];
         $r=4;
@@ -239,28 +226,35 @@ Class TPath
       If(!$r) Continue;
       [$State, $Detected, $Ok]=$r;
       If($Ok)
-        $Res[]=$Detected;
-      Else
       {
-        $Pos1=$Path[0              ]->GetFilePos();
-        $Pos2=$Path[$Pos           ]->GetFilePos();
-        $Pos3=$Path[Count($Path)-1 ]->GetFilePos();
-        
-        $Pos3=$Pos3->ToString($Pos2);
-        $Pos2=$Pos2->ToString($Pos1);
-        $Pos1=$Pos1->ToString();
-        
-        $Pos='';
-        If($Pos1===$Pos2 && $Pos1===$Pos3)
-          $Pos=$Pos1;
-        ElseIf($Pos1===$Pos2)
-          $Pos='!'.$Pos1.'-'.$Pos3;
-        ElseIf($Pos3===$Pos2)
-          $Pos=$Pos1.'-!'.$Pos3;
-        Else
-          $Pos=$Pos1.'-'.$Pos2.'-'.$Pos3;
-        $Res[]='{'.$Pos.':'.$OldState.'->'.$State.':'.$Detected.'}';
+        $Res[]=$Detected;
+        Continue;
       }
+      
+      If(!$Path)
+      {
+        $Res[]='\Empty:'.$Token->GetFilePos()->ToString();
+        Continue;
+      }
+      
+      $Pos1=$Path[0              ]->GetFilePos();
+      $Pos2=$Path[$Pos           ]->GetFilePos();
+      $Pos3=$Path[Count($Path)-1 ]->GetFilePos();
+      
+      $Pos3=$Pos3->ToString($Pos2);
+      $Pos2=$Pos2->ToString($Pos1);
+      $Pos1=$Pos1->ToString();
+      
+      $Pos='';
+      If($Pos1===$Pos2 && $Pos1===$Pos3)
+        $Pos=$Pos1;
+      ElseIf($Pos1===$Pos2)
+        $Pos='!'.$Pos1.'-'.$Pos3;
+      ElseIf($Pos3===$Pos2)
+        $Pos=$Pos1.'-!'.$Pos3;
+      Else
+        $Pos=$Pos1.'-'.$Pos2.'-'.$Pos3;
+      $Res[]='{'.$Pos.':'.$OldState.'->'.$State.':'.$Detected.'}';
     }
     Return $Res;
   }
@@ -272,13 +266,13 @@ Class TPath
     {
       If($Item->GetTypeHandler()!=='Text') Continue;
     //Log('Debug', 'Prev_Open_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());
-      $Type=Self::Braces[$Item->Text][0]?? Self::Brace_None;
-      If($Type===Self::Brace_Open  ) Return $Item;
-      If($Type!==Self::Brace_Close ) Continue;
+      $Type=EBrace::Detect($Item->Text);
+      If($Type===EBrace::Left  ) Return $Item;
+      If($Type!==EBrace::Right ) Continue;
      
       $Next=$this->Prev_Open($Item);
       If(!$Next) Break;
-      $Need=Self::Braces[$Item->Text][1];
+      $Need=EBrace::Pair($Item->Text);
       If($Need!==$Next->Text)
         Log('Error', 'Need brace ', $Need, ' ', $Item->GetFilePos(), ' actual is ', $Next->Text, ' ', $Next->GetFilePos());
       $Item=$Next;
@@ -293,13 +287,13 @@ Class TPath
     {
       If($Item->GetTypeHandler()!=='Text') Continue;
     //Log('Debug', 'Nect_Close_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());
-      $Type=Self::Braces[$Item->Text][0]?? Self::Brace_None;
-      If($Type===Self::Brace_Close ) Return $Item;
-      If($Type!==Self::Brace_Open  ) Continue;
+      $Type=EBrace::Detect($Item->Text);
+      If($Type===EBrace::Right ) Return $Item;
+      If($Type!==EBrace::Left  ) Continue;
      
       $Next=$this->Next_Close($Item);
       If(!$Next) Break;
-      $Need=Self::Braces[$Item->Text][1];
+      $Need=EBrace::Pair($Item->Text);
       If($Need!==$Next->Text)
         Log('Error', 'Need brace ', $Need, ' ', $Item->GetFilePos(), ' actual is ', $Next->Text, ' ', $Next->GetFilePos());
       $Item=$Next;

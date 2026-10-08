@@ -17,7 +17,7 @@ Class TPath Extends TFilterBase
     If(!Str_Starts_With($Text, $Key)) Return; //TODO: Error
     $Text=SubStr($Text, StrLen($Key));
     
-    $Path=New \Reformat\Utils\TPath();
+    $Path=New \Reformat\Path\TTrace();
     $DebugPath=$Path->MakeBracesPath($Token);
     Log('Debug', 'DebugPath: ', $Text)->File($Token->GetFilePos()->ToArgs())->Debug($DebugPath);
   }
