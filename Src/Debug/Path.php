@@ -15,11 +15,19 @@ Class TPath Extends TFilterBase
     $Text=$Token->GetInnerText();
     $Key='TestPath=';
     If(!Str_Starts_With($Text, $Key)) Return; //TODO: Error
-    $Text=SubStr($Text, StrLen($Key));
+    $Desired=SubStr($Text, StrLen($Key));
     
     $Path=New \Reformat\Path\TTrace();
     $DebugPath=$Path->MakeBracesPath($Token);
-    Log('Debug', 'DebugPath: ', $Text)->File($Token->GetFilePos()->ToArgs())->Debug($DebugPath);
+    $File=$Token->GetFilePos()->ToArgs();
+    
+    $Actual=$DebugPath->ToString();
+    If($Actual!==$Desired)
+      Log('Error', 'TestPath is different:')->File($File)
+        ('Desired : ', $Desired )
+        ('Actual  : ', $Actual  );
+  //Else
+  //  Log('Debug', 'DebugPath: ', $Desired)->File($File)->Debug($DebugPath->ToDebug());
   }
 
   Function Option_Do($Op)

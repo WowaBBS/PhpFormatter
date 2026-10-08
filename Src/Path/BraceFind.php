@@ -6,13 +6,15 @@ Use Function Reformat\Log;
 
 Class BraceFind
 {
+  Static Function IsIgnorable(TToken $Token) { Return BraceSkip::IsIgnorable($Token); } //TODO: Move into Token
+  
   Static Function Left(TToken $Token):?TToken
   {
   //Log('Debug', 'Brace::FindLeft for ', $Token)->File($Token->GetFilePos()->ToArgs());
     For($Item=$Token->Prev; $Item; $Item=$Item->Prev)
     {
-      If($Item->GetTypeHandler()!=='Text') Continue;
-    //Log('Debug', 'Brace::FindLeft_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());
+      If(Self::IsIgnorable($Item)) Continue;
+  //Log('Debug', 'Brace::FindLeft_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());
       $Type=EBraceType::Detect($Item->Text);
       If( $Type->IsLeft  ()) Return $Item;
       If(!$Type->IsRight ()) Continue;
@@ -32,7 +34,7 @@ Class BraceFind
   //Log('Debug', 'Brace_FindRight for ', $Token)->File($Token->GetFilePos()->ToArgs());
     For($Item=$Token->Next; $Item; $Item=$Item->Next)
     {
-      If($Item->GetTypeHandler()!=='Text') Continue;
+      If(Self::IsIgnorable($Item)) Continue;
     //Log('Debug', 'Brace_FindRight_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());
       $Type=EBraceType::Detect($Item->Text);
       If( $Type->IsRight ()) Return $Item;

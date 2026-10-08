@@ -8,6 +8,27 @@ Class TDetect
 {
   Var $State='Code';
 
+  Function Line(TLine $Line)
+  {
+    $Res=New TItem(Line: $Line);
+    $Err=[];
+    ForEach($Line As $i=>$Token)
+    {
+      $r=$this->_ById($Line, $i);
+      If(Is_Int($r))
+        $Err[$i]=$r;
+      ElseIf($r)
+        Return $Res->_Set($r[0], $r[1], $r[2]);
+    }
+    
+    $Info=[];
+    ForEach($Line As $i=>$Token)
+      $Info[]=(Is_Int($r=$Errors[$i]?? Null)? '/?'.$r.':':'/!:')
+        .$Token->Text.'('.($Token->Line+1).','.($Token->Pos+1).')';
+    Return $Res->_UnKnown(Join($Info));
+  }
+  
+//****************************************************************
   Protected Const Map=[ //Type    , State  , Need  
     T_NAMESPACE    =>['NameSpace' ,'Code'  ,'Code'  ],
     T_CLASS        =>['Class'     ,'Class' ,'Code'  ],
@@ -21,6 +42,24 @@ Class TDetect
     T_DOUBLE_ARROW =>['Key'       , Null   ,'Array' ],
     T_STRING       =>['Token'     , Null   , Null   ],
   ];
+
+  Function _ById($Line, $i):False|Int|Array
+  {
+    $Detected=Self::Map[$Line[$i]->Id]?? Null;
+    
+    If(!$Detected) Return False;
+    
+    $Type  =$Detected[0];
+    $State =$Detected[1];
+    $Need  =$Detected[2];
+    If($Need && $Need!==$this->State) Return 1;
+
+    $Res=$this->_Match($Type, $Line, $i);
+    If(!$Res) Return 2;
+
+    $this->State=$Res['State']?? $State?? $this->State;
+    Return [$Res['Type']?? $Type?? 'Error', $Res[0], $Res[1]];
+  }
   
 //****************************************************************
   Function _Match($Type, $Line, $i)
@@ -39,7 +78,7 @@ Class TDetect
 
   Function _NameSpace($Line, $i)
   {
-    Return ['/', $Line[$i+1]->Text];
+    Return ['\\', $Line[$i+1]->Text];
   }
   
   Function _Function($Line, $i)
@@ -61,9 +100,9 @@ Class TDetect
     $Next=$Line[$i+1]?? Null;
     If(!$Next) Return;
     
-    If($Next->Id===T_STRING) Return ['/', $Line[$i+1]->Text];
+    If($Next->Id===T_STRING) Return ['\\', $Line[$i+1]->Text];
     If(In_Array($Next->Text, ['(', '{']))
-      Return ['/', 'Class'];
+      Return ['\\', 'Class'];
   }
   
   Function _Const($Line, $i)
@@ -112,42 +151,4 @@ Class TDetect
   }
   
 //****************************************************************
-
-  Function _ById($Line, $i):False|Int|Array
-  {
-    $Detected=Self::Map[$Line[$i]->Id]?? Null;
-    
-    If(!$Detected) Return False;
-    
-    $Type  =$Detected[0];
-    $State =$Detected[1];
-    $Need  =$Detected[2];
-    If($Need && $Need!==$this->State) Return 1;
-
-    $Res=$this->_Match($Type, $Line, $i);
-    If(!$Res) Return 2;
-
-    $this->State=$Res['State']?? $State?? $this->State;
-    Return [$Res['Type']?? $Type?? 'Error', $Res[0], $Res[1]];
-  }
-
-  Function Line(TLine $Line)
-  {
-    $Err=[];
-    ForEach($Line As $i=>$Token)
-    {
-      $r=$this->_ById($Line, $i);
-      If(Is_Int($r))
-        $Err[$i]=$r;
-      ElseIf($r)
-        Return [$r[0].' '.$r[1].$r[2], True];
-    }
-    
-    $Info=[];
-    ForEach($Line As $i=>$Token)
-      $Info[]=(Is_Int($r=$Errors[$i]?? Null)? '/?'.$r.':':'/!:')
-        .$Token->Text.'('.($Token->Line+1).','.($Token->Pos+1).')';
-    Return [Implode($Info), False];
-  }
-  
 }

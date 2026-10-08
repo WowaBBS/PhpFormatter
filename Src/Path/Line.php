@@ -27,26 +27,15 @@ Class TLine Implements \ArrayAccess, \Countable, \IteratorAggregate
     $this->Pos  =$Pos;
   }
   
-  Function DebugPos()
-  {
-    $Path =$this->List ;
-    $Pos  =$this->Pos  ;
-    $Len  =Count($Path);
-  
-    $Pos1=$Path[0      ]->GetFilePos();
-    $Pos2=$Path[$Pos   ]->GetFilePos();
-    $Pos3=$Path[$Len-1 ]->GetFilePos();
-    
-    $Pos3=$Pos3->ToString($Pos2);
-    $Pos2=$Pos2->ToString($Pos1);
-    $Pos1=$Pos1->ToString();
-    
-    If($Pos1===$Pos2) Return $Pos1===$Pos3? $Pos1:'!'.$Pos1.'-'.$Pos3;
-    If($Pos3===$Pos2) Return $Pos1.'-!'.$Pos3;
-    Return $Pos1.'-'.$Pos2.'-'.$Pos3;
-  }
-  
   Function IsEmpty():Bool { Return !$this->List; }
+  
+  Function IsSame(?TLine $v)
+  {
+    If(!$v) Return False;
+    Return 
+      Array_First ($this->List)===Array_First ($v->List) &&
+      Array_Last  ($this->List)===Array_Last  ($v->List);
+  }
 
 //****************************************************************
 // ArrayAccess interface
@@ -65,6 +54,28 @@ Class TLine Implements \ArrayAccess, \Countable, \IteratorAggregate
 // IteratorAggregate interface
   
   Function GetIterator():\Traversable { Return New \ArrayIterator($this->List); }
+  
+//****************************************************************
+// Debug
+
+  Function DebugPos()
+  {
+    $Path =$this->List ;
+    $Pos  =$this->Pos  ;
+    $Len  =Count($Path);
+  
+    $Pos1=$Path[0      ]->GetFilePos();
+    $Pos2=$Path[$Pos   ]->GetFilePos();
+    $Pos3=$Path[$Len-1 ]->GetFilePos();
+    
+    $Pos3=$Pos3->ToString($Pos2);
+    $Pos2=$Pos2->ToString($Pos1);
+    $Pos1=$Pos1->ToString();
+    
+    If($Pos1===$Pos2) Return $Pos1===$Pos3? $Pos1:'!'.$Pos1.'-'.$Pos3;
+    If($Pos3===$Pos2) Return $Pos1.'-!'.$Pos3;
+    Return $Pos1.'-'.$Pos2.'-'.$Pos3;
+  }
   
 //****************************************************************
   

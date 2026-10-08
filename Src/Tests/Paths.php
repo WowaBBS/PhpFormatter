@@ -1,4 +1,6 @@
-<? NameSpace MyNameSpace;
+<?
+//TestPath=\MyNameSpace
+NameSpace MyNameSpace;
 $argv[]=__FILE__; $LogFile=False; Include '../App.php8';
 
 // WFormat: Debug.Path=True;
@@ -20,12 +22,16 @@ Class MyClass
     ],
   ];
   
-  Var $MyFiled=[
+  Var $MyField=[
     //TestPath=\MyNameSpace\MyClass::$MyField['Key']
     'Key'=>[
       //TestPath=\MyNameSpace\MyClass::$MyField['Key']
     ],
   ];
+  
+  Var $MyField2=['Key'=>'Value']; //TestPath=\MyNameSpace\MyClass::$MyField2
+  //TestPath=\MyNameSpace\MyClass::$MyProperty1
+  
   Var $MyProperty1{
     Get { Return 'Hello';
       //TestPath=\MyNameSpace\MyClass::$MyProperty1::Get()
@@ -37,22 +43,22 @@ Class MyClass
   Var $MyProperty2{
     Get=>f( //TestPath=\MyNameSpace\MyClass::$MyProperty2::Get()
     );
-    Set=>f( //TestPath=\MyNameSpace\MyClass::$MyProperty1::Set()
+    Set=>f( //TestPath=\MyNameSpace\MyClass::$MyProperty2::Set()
     );
   }
 
   Function MyFunction()
   {
-    //TestPath=\MyNameSpace\MyClass::MyFunction()
+    //TestPath=\MyNameSpace\MyClass::MyFunction()\Class
     $logger = new class 
     {
-      //TestPath=\MyNameSpace\MyClass::MyFunction()::Class
+      //TestPath=\MyNameSpace\MyClass::MyFunction()\Class::log()
       public function log($msg)
       {
-        //TestPath=\MyNameSpace\MyClass::MyFunction()::Class::log()
+        //TestPath=\MyNameSpace\MyClass::MyFunction()\Class::log()=>fn()
         $fn = function()
         {
-          //TestPath=\MyNameSpace\MyClass::MyFunction()=>Class::log()=>fn()
+          //TestPath=\MyNameSpace\MyClass::MyFunction()\Class::log()=>fn()
         };
       }
     };
@@ -75,10 +81,10 @@ Function
 {
 }
 
-Function() //TestPath=fn()
+Function() //TestPath=\MyNameSpace=>fn()
 {
 };
 
-fn()=> //TestPath=fn()
+fn()=> //TestPath=\MyNameSpace=>fn()
   5;
   

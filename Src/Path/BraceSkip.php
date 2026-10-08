@@ -6,8 +6,9 @@ Use Function Reformat\Log;
 
 Class BraceSkip
 {
-  Static Function IsIgnorable($Token)
+  Static Function IsIgnorable(TToken $Token) //TODO: Move into Token
   {
+    If($Token->GetTypeHandler()!=='Text') Return False;
     Return $Token->Is( //Ignore Ignorable
       T_COMMENT     , 
       T_DOC_COMMENT , 
@@ -18,20 +19,21 @@ Class BraceSkip
 
   Static Function Prev(TToken $Token):?TToken 
   {
-  //Log('Debug', 'BraceSkip::Prev.Begin=',$Token->Text);
     For($Item=$Token->Prev; $Item; $Item=$Item->Prev)
     {
-      If($Item->GetTypeHandler()!=='Text') Continue;
       If(Self::IsIgnorable($Item)) Continue;
-    //Log('Debug', 'BraceSkip::Prev.Next=',$Item->Text);
+
       If($Item->Text==='}') Return Null;
       If($Item->Text===';') Return Null;
       If($Item->Text===',') Return Null;
+      
       $Type=EBraceType::Detect($Item->Text);
       If($Type->IsRight ()) Return BraceFind::Left($Item);
       If($Type->IsLeft  ()) Return Null;
+      
       Return $Item;
     }
+    Return Null;
   }
   
   Static Function Next(TToken $Token):?TToken 
@@ -44,17 +46,18 @@ Class BraceSkip
     }
     For($Item=$Token?->Next; $Item; $Item=$Item->Next)
     {
-      If($Item->GetTypeHandler()!=='Text') Continue;
       If(Self::IsIgnorable($Item)) Continue;
+      
       If($Item->Text==='{') Return $Item;
       If($Item->Text===';') Return Null;
       If($Item->Text===',') Return Null;
+      
       $Type=EBraceType::Detect($Item->Text);
       If($Type->IsLeft  ()) Return $Item;
       If($Type->IsRight ()) Return Null;
+      
       Return $Item;
     }
     Return Null;
   }
-  
 }

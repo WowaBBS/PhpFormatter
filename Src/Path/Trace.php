@@ -19,34 +19,52 @@ Class TTrace
   {
   }
   
+  Function FindNameSpace($Token)
+  {
+    //TODO: Cache
+    $Doc=$Token->GetDocument();
+    $NameSpace=Null;
+    For($Item=$Doc->First; $Item; $Item=$Item->Next)
+      If(!BraceSkip::IsIgnorable($Item))
+      {
+        If($Item->Id===T_NAMESPACE) { $NameSpace=$Item; Continue; }
+        If($Item->Id===T_STRING) Continue;
+        If($Item->Text==='{') Return;
+        If($Item->Text===';') Break;
+        Return;
+      }
+    If(!$NameSpace) Return;
+    $Res=New TLine($NameSpace);
+    Return $Res;
+  }
+  
   Function MakeBracesPath($Token)
   {
+    If($Item=TextLine::Next($Token)) $Token=$Item; Else
+    If($Item=TextLine::Prev($Token)) $Token=$Item;
+    
     $Lines=[];
+    $NameSpace=$this->FindNameSpace($Token);
     For($Item=$Token; $Item; $Item=BraceFind::Left($Item))
       $Lines[]=New TLine($Item);
+    If($NameSpace && !$NameSpace->IsSame(Array_Last($Lines)))
+      $Lines[]=$NameSpace;
     $Lines=Array_Reverse($Lines);
     
-    $Res=[];
+    $Res=New TResult();
     $Detect=New TDetect();
     ForEach($Lines As $k=>$Line)
     {
       $OldState=$Detect->State;
-      $r=$Detect->Line($Line);
-      If(!$r) Continue;
-      [$Detected, $Ok]=$r;
-      If($Ok)
-      {
-        $Res[]=$Detected;
+      $Item=$Detect->Line($Line);
+      $Res[]=$Item;
+      If($Item->IsSignificant())
         Continue;
-      }
       
       If($Line->IsEmpty())
-      {
-        $Res[]='\Empty:'.$Token->GetFilePos()->ToString();
-        Continue;
-      }
-      
-      $Res[]='{'.$Line->DebugPos().':'.$OldState.'->'.$Detect->State.':'.$Detected.'}';
+        $Item->Value.='\Empty:'.$Token->GetFilePos()->ToString();
+      Else
+        $Item->Value='{'.$Line->DebugPos().':'.$OldState.'->'.$Detect->State.':'.$Item->Value.'}';
     }
     Return $Res;
   }
