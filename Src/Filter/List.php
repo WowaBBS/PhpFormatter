@@ -9,6 +9,16 @@ Class TList Extends TBase Implements \IteratorAggregate
   }
   Var $Map=[];
   
+  Function Dispose()
+  {
+    ForEach($this As $Filter)
+      $Filter->Dispose();
+      
+    //TODO: If($this->Map) Log('Error', 'Filters: Map is not empty');
+    $this->Map=[];
+    Parent::Dispose();
+  }
+  
   Function Has($Name) { Return IsSet($this->Map[$Name]); }
   Function Get($Name) { Return $this->Map[$Name]?? Log('Error', 'Filter ', $Name, ' not found')->BackTrace()->Ret(); }
   
@@ -18,7 +28,7 @@ Class TList Extends TBase Implements \IteratorAggregate
     If($OldFilter=$this->Map[$Key]?? Null)
     {
       Log('Error', 'Filter ', $Key, ' has already exists');
-      $OldFilter->Remove();
+      $OldFilter->Dispose();
       UnSet($this->Map[$Key]);
     }
     $Filter->Init($this->Source);

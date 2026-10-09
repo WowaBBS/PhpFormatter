@@ -14,6 +14,25 @@ class TTranslate Extends TBase
   Var $UsedIn=[];
   Var $MyComment='//PHPFormatter: Translate file';
 
+  Function Init($Source)
+  {
+    Parent::Init($Source);
+    $this->NeedToTranslate=Self::LoadFile();
+  }
+  
+  Function Dispose()
+  {
+    Self::SaveFile();
+    $Res=Self::LoadFile();
+    If($Res!==$this->NeedToTranslate)
+      Log('Error', 'Cant save translate file')->Debug([
+        'Desired' =>$this->NeedToTranslate,
+        'Actual'  =>$Res,
+      ]);
+    Parent::Dispose();
+  }
+  
+  
   Function FileStart()
   {
     $this->CurrentFile=$this->Source->ShortPath;
@@ -25,19 +44,11 @@ class TTranslate Extends TBase
   Function CodeStart()
   {
     Parent::CodeStart();
-    $this->NeedToTranslate=Self::LoadFile();
   }
   
   Function CodeFinish()
   {
     Parent::CodeFinish();
-    Self::SaveFile();
-    $Res=Self::LoadFile();
-    If($Res!==$this->NeedToTranslate)
-      Log('Error', 'Cant save translate file')->Debug([
-        'Desired' =>$this->NeedToTranslate,
-        'Actual'  =>$Res,
-      ]);
   }
   
   Function LoadFile()

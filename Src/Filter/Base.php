@@ -19,6 +19,11 @@ Class TBase Implements IOptionReceiver
     $this->Source=$Source;
   }
   
+  Function Dispose()
+  {
+    $this->Remove();
+  }
+  
   Static Function IsApplicable($Process) { return True; }
 
   Function FileStart() {}

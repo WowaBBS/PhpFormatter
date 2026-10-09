@@ -12,6 +12,10 @@ Class TController Implements IOptionReceiver
   {
     $this->Source=$Source;
   }
+
+  Function Dispose()
+  {
+  }
   
   Var $List=[
     'Path'=>TPath::class,

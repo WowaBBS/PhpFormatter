@@ -23,6 +23,13 @@ Abstract Class TBase Implements IOptionReceiver
     $this->Options->SaveDefault();
   }
   
+  Function Dispose()
+  {
+    $this->Filter  ->Dispose();
+    $this->Debug   ->Dispose();
+    $this->Options ->Dispose();
+  }
+  
   //****************************************************************
   // Option
   

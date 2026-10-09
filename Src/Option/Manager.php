@@ -6,6 +6,10 @@ Use Function Reformat\Log;
 Class TManager
 {
   Function __Construct(IReceiver $Object) { $this->Object=$Object; }
+
+  Function Dispose()
+  {
+  }
   
 //****************************************************************
 // 
