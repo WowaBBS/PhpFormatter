@@ -14,63 +14,63 @@ Trait TNode //Implements \IteratorAggregate
   Function List_Remove()
   {
     $this->_List_RemoveTo($this);
-    $this->Parent =Null;
+    $this-> List_Parent =Null;
   }
   
   Function _List_RemoveTo($To)
   {
     Iterator::Iterators_OnRemove($this, $To);
   
-    $Next   =$To  ->Next   ; $To  ->Next   =Null;
-    $Prev   =$this->Prev   ; $this->Prev   =Null;
+    $Next   =$To  ->List_Next   ; $To  ->List_Next   =Null;
+    $Prev   =$this->List_Prev   ; $this->List_Prev   =Null;
     
-    $Parent =$this->Parent ;
+    $Parent =$this->List_Parent ;
     If(!$Parent) Return;
     
-    If($Next) $Next  ->Prev  =$Prev;
-    Else      $Parent->Last  =$Prev;
-    If($Prev) $Prev  ->Next  =$Next;
-    Else      $Parent->First =$Next;
+    If($Next) $Next  ->List_Prev  =$Prev;
+    Else      $Parent->List_Last  =$Prev;
+    If($Prev) $Prev  ->List_Next  =$Next;
+    Else      $Parent->List_First =$Next;
   }
   
   Function _List_CheckParent()
   {
-    If(!$this->Parent) Return False;
-    Log('Error', 'Item has already placed'); //$Item->Remove();
-    $this->Remove();
+    If(!$this->List_Parent) Return False;
+    Log('Error', 'Item has already placed'); //$Item->List_Remove();
+    $this->List_Remove();
     Return True;
   }
   
   Function List_Insert($Item) //Right
   {
-    $Item->_CheckParent();
-    $this->_Insert_Range($Item, $Item);
+    $Item->_List_CheckParent();
+    $this->_List_Insert_Range($Item, $Item);
     Return $Item;
   }
 
   Function _List_Insert_Range($From, $To) //Right
   {
-    If(!$this->Next)
-      $this->Parent->Last=$To; //Parent can be weak?
+    If(!$this->List_Next)
+      $this->List_Parent->List_Last=$To; //Parent can be weak?
     
-    $From->_SetParentTo($To, $this->Parent);
+    $From->_List_SetParentTo($To, $this->List_Parent);
     
-    $Next=$this->Next;
+    $Next=$this->List_Next;
 
-    $To   ->Next   =$Next;
-    $From ->Prev   =$this;
+    $To   ->List_Next   =$Next;
+    $From ->List_Prev   =$this;
     
-    $this ->Next=$From;
+    $this ->List_Next=$From;
     
     If($Next)
-      $Next->Prev=$To;
+      $Next->List_Prev=$To;
   }
 
   Function _List_SetParentTo($To, $Parent)
   {
-    $To=$To->Next;
-    For($Item=$this; $Item!==$To; $Item=$Item->Next)
-      $Item->Parent=$Parent;
+    $To=$To->List_Next;
+    For($Item=$this; $Item!==$To; $Item=$Item->List_Next)
+      $Item->List_Parent=$Parent;
   }
   
   Function List_IterateUntil($To=Null): Iterator { Return New Iterator($this, $To); }
@@ -89,6 +89,6 @@ Trait TNode //Implements \IteratorAggregate
   Function _Insert_Range($From, $To  ) { Return $this->_List_Insert_Range($From, $To  ); }
   Function _SetParentTo ($To, $Parent) { Return $this->_List_SetParentTo ($To, $Parent); }
   Function  IterateUntil($To=Null    ) { Return $this-> List_IterateUntil($To=Null    ); }
-  
+
 //****************************************************************
 }

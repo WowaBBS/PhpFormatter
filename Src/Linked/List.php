@@ -13,25 +13,25 @@ Trait TList //Implements IteratorAggregate
   
   Function List_Add($Item)
   {
-    $Item->_CheckParent();
-    $this->_Append_Range($Item, $Item);
+    $Item->_List_CheckParent();
+    $this->_List_Append_Range($Item, $Item);
   }
   
   Function _List_Append_Range($From, $To)
   {
-    $From->_SetParentTo($To, $this);
+    $From->_List_SetParentTo($To, $this);
     
-    If($Last=$this->Last)
-      $Last->Next=$From;
-    $From->Prev=$this->Last;
-  //$To  ->Next=Null; // Should be 0 by default
-    $this->Last=$To;
-    If(!$this->First)
-      $this->First=$From;
+    If($Last=$this->List_Last)
+      $Last->List_Next=$From;
+    $From->List_Prev=$this->List_Last;
+  //$To  ->List_Next=Null; // Should be 0 by default
+    $this->List_Last=$To;
+    If(!$this->List_First)
+      $this->List_First=$From;
   }
   
-//Function GetIterator(): Iterator { Return New Iterator($this->First, $this->Last); }
-  Function GetIterator(): Iterator { Return New Iterator($this->First); }
+//Function GetIterator(): Iterator { Return New Iterator($this->List_First, $this->List_Last); }
+  Function GetIterator(): Iterator { Return New Iterator($this->List_First); }
   
   //TODO: Attr DebugOnly return True;
   Function Debug_IntegrityTest()
@@ -40,15 +40,15 @@ Trait TList //Implements IteratorAggregate
     $Prev=Null;
     ForEach($this As $Item)
     {
-      If($Item->Prev!==$Prev)
+      If($Item->List_Prev!==$Prev)
         $Res=Log('Error', 'List_IntegrityTest: Prev different for ',$Item)->Debug([
           'Prev'=>$Prev,
-          'Item.Prev'=>$Item->Prev,
+          'Item.Prev'=>$Item->List_Prev,
         ])->BackTrace()->Ret(False);
-      If($Item->Parent!==$this)
+      If($Item->List_Parent!==$this)
         $Res=Log('Error', 'List_IntegrityTest: Parent different')->Debug([
           'Parent'=>$this,
-          'Item.Parent'=>$Item->Parent,
+          'Item.Parent'=>$Item->List_Parent,
           'Item'=>$Item,
         ])->BackTrace()->Ret(False);
       $Prev=$Item;

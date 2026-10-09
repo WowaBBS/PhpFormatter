@@ -16,32 +16,32 @@ Class TTree Implements \IteratorAggregate
   
   Function Show($Tab='')
   {
-    $Parent=$this->Parent;
+    $Parent=$this->List_Parent;
     Log('Log', $Tab, $this->Name);
     $Tab.='+ ';
-    For($Item=$this->First; $Item; $Item=$Item->Next)
+    For($Item=$this->List_First; $Item; $Item=$Item->List_Next)
       $Item->Show($Tab);
   }
 }
 
 $Tree=New TTree("Root");
-$Tree->Add(New TTree("Node1"));
-$Tree->Add(New TTree("Node2"));
-Assert($Tree->Last->Parent===$Tree);
-$Tree->Last->Insert(New TTree("Node3"));
-//$Tree->Last->Parent=$Tree;
+$Tree->List_Add(New TTree("Node1"));
+$Tree->List_Add(New TTree("Node2"));
+Assert($Tree->List_Last->List_Parent===$Tree);
+$Tree->List_Last->List_Insert(New TTree("Node3"));
+//$Tree->Last->List_Parent=$Tree;
 $Tree->Show();
 $Tree->Debug_IntegrityTest();
 
-$Tree->Add(New TTree("Node4"));
+$Tree->List_Add(New TTree("Node4"));
 $Tree->Debug_IntegrityTest();
 
-ForEach($Tree->First->Next->IterateUntil($Tree->Last->Prev) As $k=>$Item)
+ForEach($Tree->List_First->List_Next->List_IterateUntil($Tree->List_Last->List_Prev) As $k=>$Item)
   Log('Log', 'IterateUntil ', $k, ': ',$Item->Name);
 
 ForEach($Tree As $k=>$Item)
   If($Item->Name==='Node2' || $Item->Name==='Node4')
-    $Item->Remove();
+    $Item->List_Remove();
 
 $Tree->Debug_IntegrityTest();
 
@@ -49,11 +49,11 @@ ForEach($Tree As $k=>$Item)
   Log('Log', ' ', $k, ': ',$Item->Name);
   
 //Remove All
-$Tree->Add(New TTree("Node5"));
-$Tree->Add(New TTree("Node6"));
-$Tree->Add(New TTree("Node7"));
+$Tree->List_Add(New TTree("Node5"));
+$Tree->List_Add(New TTree("Node6"));
+$Tree->List_Add(New TTree("Node7"));
 ForEach($Tree As $Item)
-  Log('Log', ' ',  'Remove: ', $Item->Name)->Ret($Item->Remove());
+  Log('Log', ' ',  'Remove: ', $Item->Name)->Ret($Item->List_Remove());
 
 ForEach($Tree As $Item)
   Log('Error', ' ',  'IsNotRemoved: ', $Item->Name);
