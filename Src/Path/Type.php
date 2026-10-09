@@ -13,6 +13,14 @@ Enum EType:String
   Case Const     ='Const'     ;
   Case Key       ='Key'       ;
   Case Hook      ='Hook'      ;
+  // EndPoint:
+  Case Comment   ='Comment'   ; //Comment
+  Case Doc       ='Doc'       ; //Comment
+  Case Code      ='Code'      ; //Comment
+  Case Data      ='Data'      ;
+  Case String    ='String'    ;
+  Case HereDoc   ='HereDoc'   ;
+  
   Case Error     ='Error'     ;
   
   Function Class():Self { Return Self::Struct; }
@@ -25,6 +33,12 @@ Enum EType:String
   Function IsConst     ():Bool { Return $this===Self::Const     ; }
   Function IsKey       ():Bool { Return $this===Self::Key       ; }
   Function IsHook      ():Bool { Return $this===Self::Hook      ; }
+  Function IsComment   ():Bool { Return $this===Self::Comment   ; } //Comment
+  Function IsDoc       ():Bool { Return $this===Self::Doc       ; } //Comment
+  Function IsCode      ():Bool { Return $this===Self::Code      ; } //Comment
+  Function IsData      ():Bool { Return $this===Self::Data      ; }         
+  Function IsString    ():Bool { Return $this===Self::String    ; }
+  Function IsHereDoc   ():Bool { Return $this===Self::HereDoc   ; }
   Function IsError     ():Bool { Return $this===Self::Error     ; }
   
   Function IsSignificant():Bool { Return $this!==Self::UnKnown && $this!==Self::Error; }
@@ -40,6 +54,12 @@ Enum EType:String
     'Const'     =>Self::Const     ,
     'Key'       =>Self::Key       ,
     'Hook'      =>Self::Hook      ,
+    'Comment'   =>Self::Comment   , //Comment
+    'Doc'       =>Self::Doc       , //Comment
+    'Code'      =>Self::Code      , //Comment
+    'Data'      =>Self::Data      ,
+    'String'    =>Self::String    ,
+    'HereDoc'   =>Self::HereDoc   ,
     'Error'     =>Self::Error     ,
   ];
   

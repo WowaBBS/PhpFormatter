@@ -10,12 +10,24 @@ Class TPath Extends TFilterBase
   
   Function ProcessText($Token):Void
   {
-    If($Token->Id!==T_COMMENT && $Token->Id!==T_DOC_COMMENT) Return;
+    If($Token->GetTypeHandler()!=='Text') Return;
     If($Token->GetId()==='Option') Return;
-    $Text=$Token->GetInnerText();
+    If($Token->Id!==T_COMMENT && $Token->Id!==T_DOC_COMMENT) 
+      $Text=$Token->Text;
+    Else
+      $Text=$Token->GetInnerText();
     $Key='TestPath=';
-    If(!Str_Starts_With($Text, $Key)) Return; //TODO: Error
-    $Desired=SubStr($Text, StrLen($Key));
+    $Pos=StrPos($Text, $Key);
+    If($Pos===False) Return;
+    $Desired=SubStr($Text, $Pos+StrLen($Key));
+    $Desired=Trim(Explode("\n", $Desired)[0]);
+    $PrevChar=$Text[$Pos-1]?? '';
+    If($PrevChar==='\'' || $PrevChar==='"')
+    {
+      $End=StrPos($Desired, $PrevChar);
+      If($End!==False)
+        $Desired=SubStr($Desired, 0, $End);
+    }
     
     $Path=New \Reformat\Path\TTrace();
     $DebugPath=$Path->MakeBracesPath($Token);

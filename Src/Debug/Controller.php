@@ -30,21 +30,15 @@ Class TController Implements IOptionReceiver
       $Enable=$Op->GetSet($Name, $Filter?->Enable?? False);
       If($Enable && !$Filter)
       {
-      //Log('Debug', 'Debug.',$Name,'.Enable');
         $Filter=New $Class($this->Source);
         $Filters->Add($Filter);
       }
       If($Filter)
-      {
-      //Log('Debug', 'Debug.',$Name,'.Enable=',$Enable,' For=', ...$Op->For);
         $Filter->Enable=$Enable;
-      }
     }
     
     $Op->BaseCalled();
   }
   
   //****************************************************************
-  
-  
 }

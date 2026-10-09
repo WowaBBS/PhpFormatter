@@ -6,12 +6,12 @@ Use Function Reformat\Log;
 
 Class BraceFind
 {
-  Static Function IsIgnorable(TToken $Token) { Return BraceSkip::IsIgnorable($Token); } //TODO: Move into Token
+  Static Function IsIgnorable(?TToken $Token) { Return BraceSkip::IsIgnorable($Token); } //TODO: Move into Token
   
-  Static Function Left(TToken $Token):?TToken
+  Static Function Left(?TToken $Token):?TToken
   {
   //Log('Debug', 'Brace::FindLeft for ', $Token)->File($Token->GetFilePos()->ToArgs());
-    For($Item=$Token->Prev; $Item; $Item=$Item->Prev)
+    For($Item=$Token?->Prev; $Item; $Item=$Item->Prev)
     {
       If(Self::IsIgnorable($Item)) Continue;
   //Log('Debug', 'Brace::FindLeft_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());
@@ -29,10 +29,10 @@ Class BraceFind
     Return Null;
   }
 
-  Static Function Right(TToken $Token):?TToken
+  Static Function Right(?TToken $Token):?TToken
   {
   //Log('Debug', 'Brace_FindRight for ', $Token)->File($Token->GetFilePos()->ToArgs());
-    For($Item=$Token->Next; $Item; $Item=$Item->Next)
+    For($Item=$Token?->Next; $Item; $Item=$Item->Next)
     {
       If(Self::IsIgnorable($Item)) Continue;
     //Log('Debug', 'Brace_FindRight_Next ', [$Item->Text])->File($Item->GetFilePos()->ToArgs());

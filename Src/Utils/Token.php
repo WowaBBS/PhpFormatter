@@ -90,6 +90,7 @@ Function LinePosReIndex($Tokens, $Tab=0)
       Case \T_DOC_COMMENT   :
       Case \T_YIELD_FROM    :
       Case \T_INLINE_HTML   :
+      Case \T_CLOSE_TAG     :
         Break;
       Default: Log('Warning', '\n is in ', $Token->GetTokenName())->Debug($Token->Text);
       }

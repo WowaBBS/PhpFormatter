@@ -6,9 +6,10 @@ Use Function Reformat\Log;
 
 Class BraceSkip
 {
-  Static Function IsIgnorable(TToken $Token) //TODO: Move into Token
+  Static Function IsIgnorable(?TToken $Token) //TODO: Move into Token
   {
-    If($Token->GetTypeHandler()!=='Text') Return False;
+    If(!$Token) Return True;
+    If($Token->GetTypeHandler()!=='Text') Return True;
     Return $Token->Is( //Ignore Ignorable
       T_COMMENT     , 
       T_DOC_COMMENT , 
@@ -17,9 +18,9 @@ Class BraceSkip
     );
   }
 
-  Static Function Prev(TToken $Token):?TToken 
+  Static Function Prev(?TToken $Token):?TToken 
   {
-    For($Item=$Token->Prev; $Item; $Item=$Item->Prev)
+    For($Item=$Token?->Prev; $Item; $Item=$Item->Prev)
     {
       If(Self::IsIgnorable($Item)) Continue;
 
@@ -36,8 +37,9 @@ Class BraceSkip
     Return Null;
   }
   
-  Static Function Next(TToken $Token):?TToken 
+  Static Function Next(?TToken $Token):?TToken 
   {
+    If(!$Token) Return Null;
     $Type=EBraceType::Detect($Token->Text);
     If($Type->IsLeft())
     { 

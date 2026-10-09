@@ -118,11 +118,11 @@ Class TDetect
   
   Function _Var($Line, $i)
   {
-    If($Line[$i+1]?->Text==='=')
+    If(($Line[$i+1]?? Null)?->Text==='=')
       Return ['::', $Line[$i]->Text,
-        'State'=>$Line[$i+2]?->Text==='['?'Array':'Hook',
+        'State'=>($Line[$i+2]?? Null)?->Text==='['?'Array':'Hook',
       ];
-    If($Line[$i+1]?->Text==='{')
+    If(($Line[$i+1]?? Null)?->Text==='{')
       Return ['::', $Line[$i]->Text];
       
     Log('Error', 'Unknown Var: ', $Line);
@@ -131,7 +131,8 @@ Class TDetect
   
   Function _Key($Line, $i)
   {
-    Return ['', '['.$Line[$i-1]->Text.']'];
+    If(IsSet($Line[$i-1]))
+      Return ['', '['.$Line[$i-1]->Text.']'];
   }
   
   Function _Token($Line, $i)

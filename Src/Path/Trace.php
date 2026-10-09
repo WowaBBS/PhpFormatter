@@ -40,12 +40,9 @@ Class TTrace
   
   Function MakeBracesPath($Token)
   {
-    If($Item=TextLine::Next($Token)) $Token=$Item; Else
-    If($Item=TextLine::Prev($Token)) $Token=$Item;
-    
     $Lines=[];
     $NameSpace=$this->FindNameSpace($Token);
-    For($Item=$Token; $Item; $Item=BraceFind::Left($Item))
+    For($Item=TextLine::Find($Token)?? $Token; $Item; $Item=BraceFind::Left($Item))
       $Lines[]=New TLine($Item);
     If($NameSpace && !$NameSpace->IsSame(Array_Last($Lines)))
       $Lines[]=$NameSpace;
@@ -66,6 +63,19 @@ Class TTrace
       Else
         $Item->Value='{'.$Line->DebugPos().':'.$OldState.'->'.$Detect->State.':'.$Item->Value.'}';
     }
+
+    $EndPoint=New TItem(Line: New TLine($Token, True));
+    Switch($Token->Id)
+    {
+    Case T_DOC_COMMENT              : $EndPoint->_Set('Doc'     , '//' ,'Doc'     ); Break;
+    Case T_COMMENT                  : $EndPoint->_Set('Comment' , '//' ,'Comment' ); Break;
+    Case T_INLINE_HTML              : $EndPoint->_Set('Data'    , '//' ,'Data'    ); Break;
+    Case T_CONSTANT_ENCAPSED_STRING : $EndPoint->_Set('String'  , '//' ,'String'  ); Break;
+  //Case T_ENCAPSED_AND_WHITESPACE  : $EndPoint->_Set('HereDoc' , '//' ,'HereDoc' ); Break;
+    Default                         : $EndPoint->_Set('Comment' , '//', '#'.($GLOBALS['TokenNameById'][$Token->Id]?? $Token->Id));
+    }
+    $Res[]=$EndPoint;
+  
     Return $Res;
   }
 }

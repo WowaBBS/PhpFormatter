@@ -12,16 +12,24 @@ Class TLine Implements \ArrayAccess, \Countable, \IteratorAggregate
   Var Array $List ;
   Var       $Pos  ;
   
-  Function __Construct(TToken $Token)
+  Function __Construct(TToken $Token, Bool $OnlyOne=False)
   {
-    $Res=[];
-    For($Item=$Token; $Item; $Item=BraceSkip::Prev($Item))
-      $Res[]=$Item;
-    $Res=Array_Reverse($Res);
-    $Pos=Count($Res)-1;
-    If(BraceSkip::IsIgnorable($Res[$Pos])) Array_Pop($Res);
-    For($Item=BraceSkip::Next($Token->Next); $Item; $Item=BraceSkip::Next($Item))
-      $Res[]=$Item;
+    If($OnlyOne)
+    {
+      $Res=[$Token];
+      $Pos=0;
+    }
+    Else
+    {
+      $Res=[];
+      For($Item=$Token; $Item; $Item=BraceSkip::Prev($Item))
+        $Res[]=$Item;
+      $Res=Array_Reverse($Res);
+      $Pos=Count($Res)-1;
+      If(BraceSkip::IsIgnorable($Res[$Pos])) Array_Pop($Res);
+      For($Item=BraceSkip::Next($Token->Next); $Item; $Item=BraceSkip::Next($Item))
+        $Res[]=$Item;
+    }
       
     $this->List =$Res;
     $this->Pos  =$Pos;
@@ -63,6 +71,9 @@ Class TLine Implements \ArrayAccess, \Countable, \IteratorAggregate
     $Path =$this->List ;
     $Pos  =$this->Pos  ;
     $Len  =Count($Path);
+    If(!$Len) Return '(EmptyPos)';
+    If($Pos>=$Len)
+      $Pos=$Len-1;
   
     $Pos1=$Path[0      ]->GetFilePos();
     $Pos2=$Path[$Pos   ]->GetFilePos();
