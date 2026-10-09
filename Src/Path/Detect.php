@@ -14,7 +14,9 @@ Class TDetect
     $Err=[];
     ForEach($Line As $i=>$Token)
     {
+      $Line->Offset=$i;
       $r=$this->_ById($Line, $i);
+      $Line->Offset=0;
       If(Is_Int($r))
         $Err[$i]=$r;
       ElseIf($r)
@@ -29,32 +31,32 @@ Class TDetect
   }
   
 //****************************************************************
-  Protected Const Map=[ //Type    , State  , Need  
-    T_NAMESPACE    =>['NameSpace' ,'Code'  ,'Code'  ],
-    T_CLASS        =>['Class'     ,'Class' ,'Code'  ],
-    T_INTERFACE    =>['Class'     ,'Class' ,'Code'  ],
-    T_TRAIT        =>['Class'     ,'Class' ,'Code'  ],
-    T_ENUM         =>['Class'     ,'Class' ,'Code'  ],
-    T_FUNCTION     =>['Function'  ,'Code'  , Null   ], //[Code, Class]
-    T_FN           =>['Function'  ,'Code'  ,'Code'  ],
-    T_VARIABLE     =>['Var'       ,'Hook'  ,'Class' ],
-    T_CONST        =>['Const'     , Null   , Null   ], //[Code, Class]
-    T_DOUBLE_ARROW =>['Key'       , Null   ,'Array' ],
-    T_STRING       =>['Token'     , Null   , Null   ],
+  Protected Const Map=[ //Type    , Required   State {     ,  [        (
+    T_NAMESPACE    =>['NameSpace' ,['Code'       ],'Code'  , Null   , Null   ],
+    T_CLASS        =>['Class'     ,['Code'       ],'Class' , Null   , Null   ],
+    T_INTERFACE    =>['Class'     ,['Code'       ],'Class' , False  , False  ],
+    T_TRAIT        =>['Class'     ,['Code'       ],'Class' , False  , False  ],
+    T_ENUM         =>['Class'     ,['Code'       ],'Class' , False  , False  ],
+    T_FUNCTION     =>['Function'  ,  Null         ,'Code'  , False  ,'Arg'   ], //[Code, Class]
+    T_FN           =>['Function'  ,['Code'       ],'Code'  , False  ,'Arg'   ],
+    T_VARIABLE     =>['Var'       ,['Class','Arg'],'Hook'  ,'Array' , Null   ], //
+    T_CONST        =>['Const'     ,  Null         , Null   ,'Array' , Null   ], //[Code, Class]
+    T_DOUBLE_ARROW =>['Key'       ,['Array'      ], Null   , Null   , Null   ],
+    T_STRING       =>['Token'     ,  Null         , Null   , Null   , Null   ],
   ];
 
-  Function _ById($Line, $i):False|Int|Array
+  Function _ById($Line):False|Int|Array
   {
-    $Detected=Self::Map[$Line[$i]->Id]?? Null;
+    $Detected=Self::Map[$Line[0]->Id]?? Null;
     
     If(!$Detected) Return False;
     
-    $Type  =$Detected[0];
-    $State =$Detected[1];
-    $Need  =$Detected[2];
-    If($Need && $Need!==$this->State) Return 1;
+    $Type     =$Detected[0];
+    $Required =$Detected[1];
+    $State    =$Detected[Match($Line->Token->Text){'{'=>2,'['=>3,'('=>4,Default=>5}]?? Null;
+    If($Required && !In_Array($this->State, $Required, True)) Return 1;
 
-    $Res=$this->_Match($Type, $Line, $i);
+    $Res=$this->_Match($Type, $Line);
     If(!$Res) Return 2;
 
     $this->State=$Res['State']?? $State?? $this->State;
@@ -62,91 +64,93 @@ Class TDetect
   }
   
 //****************************************************************
-  Function _Match($Type, $Line, $i)
+  Function _Match($Type, $Line)
   {
     Return Match($Type) {
-      'NameSpace'  =>$this->_NameSpace ($Line, $i),
-      'Class'      =>$this->_Class     ($Line, $i),
-      'Function'   =>$this->_Function  ($Line, $i),
-      'Var'        =>$this->_Var       ($Line, $i),
-      'Const'      =>$this->_Const     ($Line, $i),
-      'Key'        =>$this->_Key       ($Line, $i),
-      'Token'      =>$this->_Token     ($Line, $i),
-       Default     =>$this->_Error     ($Line, $i, $Type),
+      'NameSpace'  =>$this->_NameSpace ($Line),
+      'Class'      =>$this->_Class     ($Line),
+      'Function'   =>$this->_Function  ($Line),
+      'Var'        =>$this->_Var       ($Line),
+      'Const'      =>$this->_Const     ($Line),
+      'Key'        =>$this->_Key       ($Line),
+      'Token'      =>$this->_Token     ($Line),
+       Default     =>$this->_Error     ($Line, $Type),
     };
   }
 
-  Function _NameSpace($Line, $i)
+  Function _NameSpace($Line)
   {
-    Return ['\\', $Line[$i+1]->Text];
+    If(IsSet($Line[1]))
+      Return ['\\', $Line[1]->Text];
   }
   
-  Function _Function($Line, $i)
+  Function _Function($Line)
   {
-    $Next=$Line[$i+1]?? Null;
+    $Next=$Line[1]?? Null;
     If(!$Next) Return Log('Error', 'Wrong function name', $Next)->Ret();
     
     If($Next->Id===T_STRING)
       Return [
         $this->State==='Class'? '::':'\\', 
-        $Line[$i+1]->Text.'()'
+        $Line[1]->Text.'()'
       ];
     If(In_Array($Next->Text, ['(', '{']))
       Return ['=>', 'fn()'];
   }
   
-  Function _Class($Line, $i)
+  Function _Class($Line)
   {
-    $Next=$Line[$i+1]?? Null;
+    $Next=$Line[1]?? Null;
     If(!$Next) Return;
     
-    If($Next->Id===T_STRING) Return ['\\', $Line[$i+1]->Text];
+    If($Next->Id===T_STRING) Return ['\\', $Line[1]->Text];
     If(In_Array($Next->Text, ['(', '{']))
       Return ['\\', 'Class'];
   }
   
-  Function _Const($Line, $i)
+  Function _Const($Line)
   {
-    For($j=$i; $j<Count($Line); $j++)
-      If($Line[$j]?->Text==='=')
-        Return ['::', $Line[$j-1]->Text,
-          'State'=>$Line[$j+1]?->Text==='['?'Array':Null
+    For($i=0; $i<Count($Line); $i++)
+      If($Line[$i]?->Text==='=')
+        Return ['::', $Line[$i-1]->Text,
+        //'State'=>$Line[$i+1]?->Text==='['?'Array':Null
         ];
     
     Log('Error', 'Unknown const: ', $Line);
   }
   
-  Function _Var($Line, $i)
+  Function _Var($Line)
   {
-    If(($Line[$i+1]?? Null)?->Text==='=')
-      Return ['::', $Line[$i]->Text,
-        'State'=>($Line[$i+2]?? Null)?->Text==='['?'Array':'Hook',
-      ];
-    If(($Line[$i+1]?? Null)?->Text==='{')
-      Return ['::', $Line[$i]->Text];
+    Switch($Line[1]?->Text)
+    {
+    Case '=': //Assign
+    Case '{': //ToHook
+    Case ';': //Only class
+    Case ',': //Only arg
+      Return [$this->State==='Arg'? '@Arg:':'::', $Line[0]->Text];
+    }
       
     Log('Error', 'Unknown Var: ', $Line);
-  //Return ['Hook', '::'.$Line[$i]->Text];
   }
   
-  Function _Key($Line, $i)
+  Function _Key($Line)
   {
-    If(IsSet($Line[$i-1]))
-      Return ['', '['.$Line[$i-1]->Text.']'];
+    If(IsSet($Line[-1]))
+      Return ['', '['.$Line[-1]->Text.']'];
   }
   
-  Function _Token($Line, $i)
+  Function _Token($Line)
   {
     If($this->State==='Hook')
-      Return $this->_Hook($Line, $i);
+      Return $this->_Hook($Line);
   }
   
-  Function _Hook($Line, $i)
+  Function _Hook($Line)
   {
-    Return ['::', $Line[$i]->Text.'()', 'State'=>'Code', 'Type'=>'Hook'];
+    Return ['::', $Line[0]->Text.'()', 'State'=>'Code', 'Type'=>'Hook'];
   }
   
-  Function _Error     ($Line, $i, $Type)
+  Function _Error($Line, $Type)
   {
     Log('Error', 'Wrong token type: ', $Type);
   }

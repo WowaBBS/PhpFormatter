@@ -23,8 +23,8 @@ Class MyClass
       //TestPath=\MyNameSpace\MyClass::MyConst['Key2']//Comment
       'Value',
     ],
-  //''Key3'=>'Value', //TestPath=\MyNameSpace\MyClass::MyConst//Code['Key2']
-  //"TestPath=\MyNameSpace\MyClass::MyConst['Key2']//Code//String",
+  //''Key3'=>'Value', //TestPath=\MyNameSpace\MyClass::MyConst//Code['Key3']
+  //"TestPath=\MyNameSpace\MyClass::MyConst//Code//String",
   ];
   
   Var $MyField=[
@@ -116,10 +116,10 @@ Function TestString()
 <?php
 }
 
-Function TestArg(
-  Int    $Arg1, //TestPath=\MyNameSpace\TestArg()//Arg:$Arg1//Comment
-  String $Arg2='TestPath=\MyNameSpace\TestArg()//Arg:$Arg2//String',
-  //TestPath=\MyNameSpace\TestArg()//Comment
+Function TestArgs(
+  Int    $Arg1, //TestPath=\MyNameSpace\TestArgs()@Arg:$Arg1//Comment
+  String $Arg2='TestPath=\MyNameSpace\TestArgs()@Arg:$Arg2//String',
+  //TestPath=\MyNameSpace\TestArgs()//Comment
 )
 {
 }

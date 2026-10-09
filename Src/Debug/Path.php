@@ -37,7 +37,7 @@ Class TPath Extends TFilterBase
     If($Actual!==$Desired)
       Log('Error', 'TestPath is different:')->File($File)
         ('Desired : ', $Desired )
-        ('Actual  : ', $Actual  );
+        ('Actual  : ', $Actual  ); //->Debug($DebugPath->ToDebug());
   //Else
   //  Log('Debug', 'DebugPath: ', $Desired)->File($File)->Debug($DebugPath->ToDebug());
   }
