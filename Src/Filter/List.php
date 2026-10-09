@@ -4,9 +4,8 @@ use function Reformat\Log;
 
 Class TList Extends TBase Implements \IteratorAggregate
 {
-  Use \Reformat\Linked\TList{
-    Add As Private List_Add;
-  }
+  Use \Reformat\Linked\TList;
+  
   Var $Map=[];
   
   Function Dispose()

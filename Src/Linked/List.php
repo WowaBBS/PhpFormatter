@@ -8,16 +8,16 @@ Trait TList //Implements IteratorAggregate
   Use TWeak;
 //Function ToWeak() { Return WeakReference::Create($this); }
   
-  Var $First  ;
-  Var $Last   ;
+  Var $List_First ;
+  Var $List_Last  ;
   
-  Function Add($Item)
+  Function List_Add($Item)
   {
     $Item->_CheckParent();
     $this->_Append_Range($Item, $Item);
   }
   
-  Function _Append_Range($From, $To)
+  Function _List_Append_Range($From, $To)
   {
     $From->_SetParentTo($To, $this);
     
@@ -55,4 +55,14 @@ Trait TList //Implements IteratorAggregate
     }
     Return $Res;
   }
+//****************************************************************
+// Depracated
+
+  Var $First { Get=>$this->List_First ; Set($v) { $this->List_First =$v; } }
+  Var $Last  { Get=>$this->List_Last  ; Set($v) { $this->List_Last  =$v; } }
+  
+  Function  Add          ($Item     ) { Return $this-> List_Add          ($Item     ); }
+  Function _Append_Range ($From, $To) { Return $this->_List_Append_Range ($From, $To); }
+
+//****************************************************************
 }

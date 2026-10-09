@@ -6,20 +6,18 @@ Use Function Reformat\Log;
 Trait TNode //Implements \IteratorAggregate
 {
   Use TWeak;
-  // Try Weak field and ToWeak to compare
-//Function ToWeak() { Return WeakReference::Create($this); }
   
-  Var $Parent { Get=>$this->Parent ?->Get(); Set=>$value?->ToWeak(); } //Weak
-  Var $Prev   { Get=>$this->Prev   ?->Get(); Set=>$value?->ToWeak(); } //Weak
-  Var $Next   ;
+  Var $List_Parent { Get=>$this->List_Parent ?->Get(); Set=>$value?->ToWeak(); } //Weak
+  Var $List_Prev   { Get=>$this->List_Prev   ?->Get(); Set=>$value?->ToWeak(); } //Weak
+  Var $List_Next   ;
   
-  Function Remove()
+  Function List_Remove()
   {
-    $this->_RemoveTo($this);
+    $this->_List_RemoveTo($this);
     $this->Parent =Null;
   }
   
-  Function _RemoveTo($To)
+  Function _List_RemoveTo($To)
   {
     Iterator::Iterators_OnRemove($this, $To);
   
@@ -35,7 +33,7 @@ Trait TNode //Implements \IteratorAggregate
     Else      $Parent->First =$Next;
   }
   
-  Function _CheckParent()
+  Function _List_CheckParent()
   {
     If(!$this->Parent) Return False;
     Log('Error', 'Item has already placed'); //$Item->Remove();
@@ -43,14 +41,14 @@ Trait TNode //Implements \IteratorAggregate
     Return True;
   }
   
-  Function Insert($Item) //Right
+  Function List_Insert($Item) //Right
   {
     $Item->_CheckParent();
     $this->_Insert_Range($Item, $Item);
     Return $Item;
   }
 
-  Function _Insert_Range($From, $To) //Right
+  Function _List_Insert_Range($From, $To) //Right
   {
     If(!$this->Next)
       $this->Parent->Last=$To; //Parent can be weak?
@@ -68,12 +66,29 @@ Trait TNode //Implements \IteratorAggregate
       $Next->Prev=$To;
   }
 
-  Function _SetParentTo($To, $Parent)
+  Function _List_SetParentTo($To, $Parent)
   {
     $To=$To->Next;
     For($Item=$this; $Item!==$To; $Item=$Item->Next)
       $Item->Parent=$Parent;
   }
   
-  Function IterateUntil($To=Null): Iterator { Return New Iterator($this, $To); }
+  Function List_IterateUntil($To=Null): Iterator { Return New Iterator($this, $To); }
+
+//****************************************************************
+// Depracated
+
+  Var $Parent { Get=>$this->List_Parent ; Set($v) { $this->List_Parent =$v; } }
+  Var $Prev   { Get=>$this->List_Prev   ; Set($v) { $this->List_Prev   =$v; } }
+  Var $Next   { Get=>$this->List_Next   ; Set($v) { $this->List_Next   =$v; } } 
+  
+  Function  Remove      (            ) { Return $this-> List_Remove      (            ); }
+  Function _RemoveTo    ($To         ) { Return $this->_List_RemoveTo    ($To         ); }
+  Function _CheckParent (            ) { Return $this->_List_CheckParent (            ); }
+  Function  Insert      ($Item       ) { Return $this-> List_Insert      ($Item       ); }
+  Function _Insert_Range($From, $To  ) { Return $this->_List_Insert_Range($From, $To  ); }
+  Function _SetParentTo ($To, $Parent) { Return $this->_List_SetParentTo ($To, $Parent); }
+  Function  IterateUntil($To=Null    ) { Return $this-> List_IterateUntil($To=Null    ); }
+  
+//****************************************************************
 }
