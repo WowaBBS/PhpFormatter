@@ -29,6 +29,34 @@ Class TDetect
         .$Token->Text.'('.($Token->Line+1).','.($Token->Pos+1).')';
     Return $Res->_UnKnown(Join($Info));
   }
+
+  Function EndPoint($Token)
+  {
+    $Res=New TItem(Line: New TLine($Token, True));
+    Switch($Token->Id)
+    {
+    Case T_DOC_COMMENT              : $Res->_Set('Doc'     , '//' ,'Doc'     ); Break;
+    Case T_COMMENT                  : $Res->_Set('Comment' , '//' ,'Comment' ); Break;
+    Case T_INLINE_HTML              : $Res->_Set('Data'    , '//' ,'Data'    ); Break;
+    Case T_CONSTANT_ENCAPSED_STRING : $Res->_Set('String'  , '//' ,'String'  ); Break;
+    Case T_ENCAPSED_AND_WHITESPACE  : $Res->_Set(...$this->_String($Token)); Break;
+    Default                         : $Res->_Set('Comment' , '//', '#'.($GLOBALS['TokenNameById'][$Token->Id]?? $Token->Id));
+    }
+    Return $Res;
+  }
+  
+  Function _String($Token)
+  {
+    For($Item=$Token; $Item; $Item=$Item->Prev)
+    {
+      If(BraceSkip::IsIgnorable($Item)) Continue;
+      If($Item->Id===T_START_HEREDOC) Return ['HereDoc' , '//' ,'HereDoc' ];
+      If($Item->Text==='"') Return ['String' , '//' ,'String' ];
+    //If($Item->Text==="'") Return ['String' , '//' ,'String' ];
+    }
+    Log('Error', 'Unknown string: ',$Token)->Debug(New TLine($Token));
+    Return ['String' , '//' ,'String' ];
+  }
   
 //****************************************************************
   Protected Const Map=[ //Type    , Required   State {     ,  [        (
