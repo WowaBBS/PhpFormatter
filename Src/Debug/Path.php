@@ -8,10 +8,26 @@ Class TPath Extends TFilterBase
 {
   Static Function GetName() { Return 'Debug\Path'; }
   
+  Var Bool $CheckEvery =False ; //TODO: Enable for tests
+  Var Bool $TestPath   =True  ;
+  
   Function ProcessText($Token):Void
   {
     If($Token->GetTypeHandler()!=='Text') Return;
     If($Token->GetId()==='Option') Return;
+    
+    If($this->TestPath   ) $this->TestPath   ($Token);
+    If($this->CheckEvery ) $this->CheckEvery ($Token);
+  }
+  
+  Function CheckEvery($Token)
+  {
+    $Path=New \Reformat\Path\TTrace();
+    $DebugPath=$Path->MakeBracesPath($Token);
+  }
+  
+  Function TestPath($Token)
+  {
     If($Token->Id!==T_COMMENT && $Token->Id!==T_DOC_COMMENT) 
       $Text=$Token->Text;
     Else
@@ -45,5 +61,8 @@ Class TPath Extends TFilterBase
   Function Option_Do($Op)
   {
     Parent::Option_Do($Op);
+    
+    $this->CheckEvery =$Op->GetSet('CheckEvery' ,$this->CheckEvery );
+    $this->TestPath   =$Op->GetSet('TestPath'   ,$this->TestPath   );
   }
 }

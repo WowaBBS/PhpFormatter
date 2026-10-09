@@ -134,6 +134,8 @@ Class MyClass
   }
 }
 
+Function()Use($Hello){};
+
 fn()=> //TestPath=fn()
   5;
 

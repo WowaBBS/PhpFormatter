@@ -155,6 +155,7 @@ Class TDetect
     Case '{': //ToHook
     Case ';': //Only class
     Case ',': //Only arg
+    Case '' : //Function
       Return [$this->State==='Arg'? '@Arg:':'::', $Line[0]->Text];
     }
       

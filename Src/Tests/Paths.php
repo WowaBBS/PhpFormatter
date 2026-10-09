@@ -23,7 +23,7 @@ Class MyClass
       //TestPath=\MyNameSpace\MyClass::MyConst['Key2']//Comment
       'Value',
     ],
-  //''Key3'=>'Value', //TestPath=\MyNameSpace\MyClass::MyConst//Code['Key3']
+  //''Key3'=>'Value', //TODO: TestPath=\MyNameSpace\MyClass::MyConst//Code['Key3']
   //"TestPath=\MyNameSpace\MyClass::MyConst//Code//String",
   ];
   
@@ -91,6 +91,12 @@ Function
 }
 
 Function() //TestPath=\MyNameSpace=>fn()//Comment
+{
+};
+
+Function() Use(
+  $Hello//TODO: TestPath=\MyNameSpace=>fn()//Comment
+)
 {
 };
 
