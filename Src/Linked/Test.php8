@@ -47,6 +47,16 @@ $Tree->Debug_IntegrityTest();
 
 ForEach($Tree As $k=>$Item)
   Log('Log', ' ', $k, ': ',$Item->Name);
+  
+//Remove All
+$Tree->Add(New TTree("Node5"));
+$Tree->Add(New TTree("Node6"));
+$Tree->Add(New TTree("Node7"));
+ForEach($Tree As $Item)
+  Log('Log', ' ',  'Remove: ', $Item->Name)->Ret($Item->Remove());
+
+ForEach($Tree As $Item)
+  Log('Error', ' ',  'IsNotRemoved: ', $Item->Name);
 
 //Log('Debug')->Debug($Tree);
 

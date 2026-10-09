@@ -7,9 +7,10 @@ Class Iterator Implements \Iterator
 {
   Use TWeak;
 
-  Var $Index =0;
-  Var $Current ;
-  Var $Until   ;
+  Var  Int    $Index =0;
+  Var ?Object $Current ;
+  Var  Bool   $Next    =False; //If Current Removed
+  Var ?Object $Until   ;
   
   Static $Iterators=[];
   
@@ -24,8 +25,8 @@ Class Iterator Implements \Iterator
     $To=$To->Next;
     For($Cur=$From; $Cur!==$To; $Cur=$Cur->Next)
     {
-      If($Cur===$this->Current ) $this->Current =$To;
-      If($Cur===$this->Until   ) $this->Until   =$To;
+      If($Cur===$this->Current ) { $this->Current =$To; $this->Next=True; }
+      If($Cur===$this->Until   )   $this->Until   =$To;
     }
   }
 
@@ -43,7 +44,7 @@ Class Iterator Implements \Iterator
 
   Function ReWind  (): Void {} //TODO: Make rewindable?
   Function Current (): Mixed { Return $this->Current; }
-  Function Key     (): Mixed { Return $this->Index; }
-  Function Next    (): Void { ++$this->Index; $this->Current=$this->Current?->Next; }
+  Function Key     (): Mixed { Return $this->Index; } //TODO: Alter key
+  Function Next    (): Void { ++$this->Index; If($this->Next) $this->Next=False; Else $this->Current=$this->Current?->Next; }
   Function Valid   (): Bool { Return $this->Current && $this->Current!=$this->Until; }
 }

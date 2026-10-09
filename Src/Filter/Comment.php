@@ -23,6 +23,7 @@ Class TComment Extends TBase
   {
     If($Token->Id!==T_COMMENT && $Token->Id!==T_DOC_COMMENT) Return;
     If($Token->GetId()==='Option') Return;
+    If($Token InstanceOf TTokenComment) Return; //Skip replaced
     $Res=New TTokenComment($Token);
     If(!$this->DebugCheckInfo) Return;
     

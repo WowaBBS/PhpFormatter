@@ -17,6 +17,7 @@ Class TOption Extends TBase
   Function ProcessText($Token):Void
   {
     If($Token->Id!==T_COMMENT) Return;
+    If($Token->GetId()==='Option') Return; //Skip replaced
     $Text=$Token->Text;
 
     Switch($With=Starts_With_List($Text, ['//', '#', '/*']))
