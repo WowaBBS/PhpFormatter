@@ -10,7 +10,7 @@ Function Tokenize(
   ?TFilePos $FilePos=Null,
 )
 {
-  $Document=New \Reformat\Token\TDocument($FilePos);
+  $Document=New \Reformat\Token\TDocument($FilePos?? New TFilePos('PHPCode'));
   $Tokens = \PhpToken::Tokenize($Source); //, TOKEN_PARSE); //Token_Get_All($Source);
   ForEach($Tokens As $Item)
     $Document->AddText(

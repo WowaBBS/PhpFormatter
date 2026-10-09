@@ -18,3 +18,5 @@ RemoveWhiteSpaces ($Tokens);
 $Actual=$Tokens->ToString();
 $Desired='$Data';
 Log('Debug', $Actual);
+
+$Loader->Dispose();

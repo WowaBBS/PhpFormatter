@@ -15,4 +15,4 @@ $Res=$Process->File($SourceFile, __DIR__);
 if($Res<0)
   exit(-1);
   
-$Loader->Done();
+$Loader->Dispose();

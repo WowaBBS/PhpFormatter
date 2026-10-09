@@ -50,5 +50,5 @@ ForEach($Tree As $k=>$Item)
 
 //Log('Debug')->Debug($Tree);
 
-$Loader->Done();
+$Loader->Dispose();
  

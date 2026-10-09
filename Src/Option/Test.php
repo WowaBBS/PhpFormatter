@@ -87,6 +87,6 @@ ForEach($TestList As $TestsName=>$Tests)
   }
 }
 
-$LogStream->Done();
-$LogBuffer->Done();
-$Loader->Done();
+$LogStream ->Dispose();
+$LogBuffer ->Dispose();
+$Loader    ->Dispose();

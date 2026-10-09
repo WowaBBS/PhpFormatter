@@ -43,7 +43,7 @@ If(Is_Dir ($root)) $Res=$Process->Folder ($root)<0? 1:0; Else
   Log('Error', $root, ' not found');
 }
 
-//TODO: $Process->Done();
-$Loader->Done();
+//TODO: $Process->Dispose();
+$Loader->Dispose();
 
 Exit($Res);
