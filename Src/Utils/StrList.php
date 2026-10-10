@@ -27,9 +27,14 @@ Function HasStartsWith(Array $l, $Needle)
 Function LTrimMinSpaces(Array &$l, $Def=0)
 {
   If(!$l) Return $Def;
-  $Min=LenFirstSpaces($l[0]);
+  $Min=-1;
   ForEach($l As $v)
-    $Min=Min($Min, LenFirstSpaces($v));
+  {
+    $Len=LenFirstSpaces($v);
+    If($Len===StrLen($v)) Continue; //Empty string
+    $Min=$Min<0? $Len:Min($Min, $Len);
+  }
+  If($Min<0) Return $Def;
   RemoveFirstLen($l, $Min);
   Return $Min;
 }

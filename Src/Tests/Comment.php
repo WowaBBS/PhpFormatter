@@ -110,3 +110,15 @@
    * Section2
    * Check=["/****\n", 1, '* ', 0, "*\/"]
    */
+
+  /*
+   * Test no space after *
+   *
+   * Check=["/*\n", 1, '* ', 0, "*\/"]
+   */
+
+  /*
+     Test no space in empty line
+
+     Check=["/*\n", 3, -3, "*\/"]
+  */

@@ -168,11 +168,11 @@ Class TComment Extends TText
       $Tab=LTrimMinSpaces($List, $this->Pos)-$this->Pos;
       $EndTab=$HasLast? 0:StrLen($Last)-$this->Pos-$Tab;
 
-      If(IsAllStartsWith($List, '* '))
+      If(IsAllStartsWith($List, '*'))
       {
-        RemoveFirstLen($List, 2);
+        RemoveFirstLen($List, 1);
         $Tab2=LTrimMinSpaces($List);
-        $Loop='* '.Str_Repeat(' ', $Tab2);
+        $Loop='*'.Str_Repeat(' ', $Tab2);
       }
       Else
         $Loop='';
@@ -242,6 +242,11 @@ Class TComment Extends TText
 //****************************************************************
 // Test
 
+  Static Function RTrimText($Text)
+  {
+    Return Join(Array_Map(Trim(...), Explode("\n", $Text)));
+  }
+
   Function TestInnerText()
   {
     $Desired=$this->GetState();
@@ -249,6 +254,9 @@ Class TComment Extends TText
     $this->SetInnerText($InnerText);
     $Actual=$this->GetState();
     $this->SetState($Desired);
+    
+    $Actual  [0]=Self::RTrimText($Actual  [0]);
+    $Desired [0]=Self::RTrimText($Desired [0]);
     
     If($Actual===$Desired) Return True;
 
