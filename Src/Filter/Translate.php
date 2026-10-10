@@ -7,8 +7,6 @@ Use Reformat\Using\TPoints    As TUsingPoints    ;
 
 Use Function Reformat\Log;
 
-$traslateUsingIn??=Null;
-
 /*
  * This filter allow to create translation map for strings and comments
  */
@@ -102,21 +100,33 @@ Class TTranslate Extends TBase
       Return;
     }
     $Res=['<? Return ['.$this->MyComment];
-    ForEach($this->NeedToTranslate As $k=>$v)
+    ForEach($this->NeedToTranslate As $Point)
     {
-      $UsedIn=$v->Make_UsedIn();
+      $UsedIn=$Point->Make_UsedIn();
       If($UsedIn)
         $UsedIn='// ---------------- '.Implode(', ', $UsedIn);
       Else
         $UsedIn='// UNUSED ********************';
+    //$UsedIn='';
       
+      $InLine= !StrPBrk($Point->Value[0], "\0\t\r\n\\'")
+        &&     !StrPBrk($Point->Value[1], "\0\t\r\n\\'");
+
       $Res[]='['.$UsedIn;
-      $Res[]='<<<\'TranslateFrom\'';
-      $Res[]=$v->Value[0];
-      $Res[]='TranslateFrom,';
-      $Res[]='<<<\'TranslateTo\'';
-      $Res[]=$v->Value[1];
-      $Res[]='TranslateTo],';
+      If($InLine)
+      {
+        $Res[]='\'From\' => \''.$Point->Value[0].'\',';
+        $Res[]='\'To\'   => \''.$Point->Value[1].'\'],';
+      }
+      Else
+      {
+        $Res[]='<<<\'TranslateFrom\'';
+        $Res[]=$Point->Value[0];
+        $Res[]='TranslateFrom,';
+        $Res[]='<<<\'TranslateTo\'';
+        $Res[]=$Point->Value[1];
+        $Res[]='TranslateTo],';
+      }
     }
     $Res[]='];';
     $Res=Implode("\n", $Res);
@@ -125,7 +135,7 @@ Class TTranslate Extends TBase
   
   Function ProcessText($Token):Void
   {
-    $IsComment=$Token->Id===T_COMMENT;
+    $IsComment=$Token->Is(T_COMMENT, T_DOC_COMMENT);
     If($IsComment && $Token->Text===$this->MyComment)
     { //Skip my file
       $this->Enable=False;
@@ -134,9 +144,8 @@ Class TTranslate Extends TBase
     $Text=$Source=$IsComment? $Token->GetInnerText():$Token->Text;
     $OldText=$Text;
     If(!Preg_Match('/[\x80-\xFF]/', $Text)) Return;
-    $Point=$this->NeedToTranslate->Add($Text, [$Text, $Text]);
-    //TODO: Global $traslateUsingIn;
-    $Point->Add(New TUsingDependent($Token));
+    $Point=$this->NeedToTranslate->Add($Text, [$Text, $Text], True);
+    $Point->Add(TUsingDependent::FromToken($Token));
     $Text=$Point->Value[1];
     If($Text!==$OldText) Return;
     If($IsComment)

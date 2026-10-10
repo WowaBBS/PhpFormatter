@@ -1,8 +1,9 @@
 <?
 NameSpace Reformat\Token;
 
-Use Function Reformat\Log;
 Use Reformat\FilePos\IProvider As IFilePos;
+
+Use Function Reformat\Log;
 
 $Loader->Load_Interface('/Debug/Custom');
 

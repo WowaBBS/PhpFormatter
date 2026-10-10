@@ -1,6 +1,8 @@
 <?
 NameSpace Reformat\Using;
 
+Use Function Reformat\Log;
+
 /*
  * Using point contain who is used this entity point
  */
@@ -23,26 +25,41 @@ Class TPoint
   
   Function Make_UsedIn()
   {
+    Global $Using_Translate; //TODO: Workaround
+
     $Map=[];
     ForEach($this->UsedBy As $Item)
     {
-      $Rec=&$Map[$Item->Path];
+      $Path     =$Item->Path;
+      $FileName =$Item->FilePos->FileName ;
+      $Line     =$Item->FilePos->Line     ;
+      $FileName =StrTr($FileName, '\\', '/');
+      $FileName =LTrim($FileName, '/');
+      
+      If($Using_Translate)
+        $Using_Translate($this, $FileName, $Line, $Path);
+
+      $Rec=&$Map[$Path];
       $Rec??=[];
-      $Rec[$Item->FilePos->ToString()]=$Item->FilePos;
+      $RecFile=&$Rec[StrToLower($FileName)];
+      $RecFile??=[];
+      $RecFile[$Line]=$FileName;
     }
     UnSet($Rec);
+    UnSet($RecFile);
     $Res=[];
     ForEach($Map As $Path=>$List)
     {
       KSort($List, SORT_NATURAL);
       $R=[];
-      $Prev=Null;
-      ForEach($List As $FilePos)
+      ForEach($List As $Lines)
       {
-        $R[]=$FilePos->ToString($Prev);
-        $Prev=$FilePos;
+        $FileName =Array_First ($Lines);
+        $Lines    =Array_Keys  ($Lines);
+        Sort($Lines);
+        $R[]=$FileName.':'.Join(':', $Lines);
       }
-      $Res[$Path]=$Path.' '.Join($R);
+      $Res[$Path]=$Path.' ('.Join(', ', $R).')';
     }    
     Return $Res;
   }

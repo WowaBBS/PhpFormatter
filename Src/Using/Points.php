@@ -1,6 +1,8 @@
 <?
 NameSpace Reformat\Using;
 
+Use Function Reformat\Log;
+
 /*
  * List of using point
  */
@@ -17,33 +19,36 @@ Class TPoints Implements \ArrayAccess, \Countable, \IteratorAggregate
     $this->Conflict=$Conflict;
   }
   
-  Function Add(String $Key, Mixed $Value):TPoint
+  Function Add(String $Key, Mixed $Value, Bool $IfNotExists=False):TPoint
   {
-    If(Is_Object($Value))
-      Log('Error', 'TUsingPoints: Unknown object')->Debug($Value);
-    Else
-      $Value=New TPoint($Key, $Value);
+    If(Is_Object($Value) && $Value InstanceOf TPoint)
+      Return Log('Error', 'TUsingPoints: Unknown object')
+        ->BackTrace()->Debug($Value)->Ret();
+    
     If(!Array_Key_Exists($Key, $this->Map))
     {
-      $this->Map[$Key]=$Value;
-      $Last=$this->Last_Used?? $this->List_Last;
-      If($Last)
-        $Last->List_Insert($Value);
+      $Entity=New TPoint($Key, $Value);
+      $this->Map[$Key]=$Entity;
+      If($Last=$this->Last_Used?? Null)
+        $Last->List_Insert($Entity);
       Else
-        $this->List_Add($Value);
-      Return $Value;
+        $this->List_Add($Entity);
+      $this->Last_Used=$Entity;
+      Return $Entity;
     }
-    $Old=$this->Map[$Key];
-    If($this->Conflict===False) Return $Old;
-    If($Old->Value===$Value->Value) Return $Old;
+    $Current=$this->Map[$Key];
+    $this->Last_Used=$Current;
+    If($IfNotExists) Return $Current;
+    If($this->Conflict===False) Return $Current;
+    If($Current->Value===$Value) Return $Current;
     Log('Error', 'Value for ', $Key, ' wos changed:')->Debug([
-      'Old' =>$Old   ->Value,
-      'New' =>$Value ->Value,
+      'Old' =>$Current ->Value,
+      'New' =>$Value,
     ]);
-    If($this->Conflict===False) Return $Old;
+    If($this->Conflict===False) Return $Current;
     
-    $this->Map[$Key]->Value=$Value->Value;
-    Return $Old;
+    $Current->Value=$Value;
+    Return $Current;
   }
   
   Function IsEmpty():Bool { Return Count($this->Map)===0; }

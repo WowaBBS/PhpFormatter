@@ -83,8 +83,9 @@ Function LinePosReIndex($Tokens, $Tab=0)
       Switch($Token->Id)
       { //TODO: Heredoc, Yield From, Tag, Html
       Case \T_WHITESPACE    : $Tab=$LastLineSize; Break; //Ok
+      CAse \T_CONSTANT_ENCAPSED_STRING : // "TheString"
+      Case \T_ENCAPSED_AND_WHITESPACE  :
       Case \T_START_HEREDOC :
-      Case \T_ENCAPSED_AND_WHITESPACE:
       Case \T_OPEN_TAG      :
       Case \T_COMMENT       :
       Case \T_DOC_COMMENT   :
