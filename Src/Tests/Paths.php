@@ -1,4 +1,5 @@
 <?
+Declare(strict_types=1);
 //TestPath=\MyNameSpace
 NameSpace MyNameSpace;
 $argv[]=__FILE__; $LogFile=False; Include '../App.php8';

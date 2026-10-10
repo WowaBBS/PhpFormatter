@@ -28,7 +28,7 @@ Class TLine Implements \ArrayAccess, \Countable, \IteratorAggregate
         $Res[]=$Item;
       $Res=Array_Reverse($Res);
       $Goal=Count($Res)-1;
-      If(BraceSkip::IsIgnorable($Token)) Array_Pop($Res);
+      If(!Valuable::Is($Token)) Array_Pop($Res);
       For($Item=BraceSkip::Next($Token->Next); $Item; $Item=BraceSkip::Next($Item))
         $Res[]=$Item;
     }

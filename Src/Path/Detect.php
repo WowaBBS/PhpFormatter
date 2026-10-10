@@ -49,7 +49,7 @@ Class TDetect
   {
     For($Item=$Token; $Item; $Item=$Item->Prev)
     {
-      If(BraceSkip::IsIgnorable($Item)) Continue;
+      If(!Valuable::Is($Item)) Continue;
       If($Item->Id===T_START_HEREDOC) Return ['HereDoc' , '//' ,'HereDoc' ];
       If($Item->Text==='"') Return ['String' , '//' ,'String' ];
     //If($Item->Text==="'") Return ['String' , '//' ,'String' ];

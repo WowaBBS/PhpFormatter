@@ -19,23 +19,50 @@ Class TTrace
   {
   }
   
+  Var $ReqiredNameSpace=False;
+  
   Function FindNameSpace($Token)
   {
     //TODO: Cache
     $Doc=$Token->GetDocument();
     $NameSpace=Null;
-    For($Item=$Doc->First; $Item; $Item=$Item->Next)
-      If(!BraceSkip::IsIgnorable($Item))
+    For($Item=Valuable::First($Doc->First); $Item; $Item=Valuable::Next($Item))
+    {
+      If($Item->Id===T_NAMESPACE) //Parse namespace
       {
-        If($Item->Id===T_NAMESPACE) { $NameSpace=$Item; Continue; }
-        If($Item->Id===T_STRING) Continue;
-        If($Item->Text==='{') Return;
-        If($Item->Text===';') Break;
-        Return;
+        $NameSpace = $Item;
+        $Name      = $Item=Valuable::Next($Item);
+        $End       = $Item=Valuable::Next($Item);
+        
+        If($Name ?->Is(T_NAME_QUALIFIED, T_STRING) &&
+           $End  ?->Text ===';')
+          Break;
+        
+        $NameSpace=Null;
+        Break;
       }
-    If(!$NameSpace) Return;
-    $Res=New TLine($NameSpace);
-    Return $Res;
+      If($Item->Id===T_DECLARE) //Skip deline
+      {
+        $Decline   = $Item;
+        $Directive = $Item=Valuable::Next($Item); $Item=BraceFind::Right($Item);
+        $End       = $Item=Valuable::Next($Item);
+        
+        If($Directive ?->Text ==='(' &&
+           $End       ?->Text ===';')
+          Continue;
+        
+        Break;
+      }
+      Break; //Others are not allowed
+    }
+    If($NameSpace)
+       Return New TLine($NameSpace);
+       
+    If(!$this->ReqiredNameSpace) Return;
+
+    $Log=Log('Error', 'Reqired NameSpace:')->File($Doc->GetFilePos()->ToArgs());
+    For($Item=Valuable::First($Doc->First), $Count=10; $Item && $Count>0; $Item=Valuable::Next($Item), $Count--)
+      $Log('  ', $Item);
   }
   
   Function MakeBracesPath($Token)

@@ -1,5 +1,6 @@
 <?
 Include 'Type.php'      ;
+Include 'Valuable.php'  ;
 Include 'BraceType.php' ;
 Include 'BraceFind.php' ;
 Include 'BraceSkip.php' ;

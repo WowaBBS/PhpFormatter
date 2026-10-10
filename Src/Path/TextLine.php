@@ -6,8 +6,6 @@ Use Function Reformat\Log;
 
 Class TextLine
 {
-  Static Function IsIgnorable(?TToken $Token) { Return BraceSkip::IsIgnorable($Token); } //TODO: Move into Token
-
   Static Function Find(TToken $Token):?TToken 
   {
     Return Self::Next($Token)?? Self::Prev($Token);
@@ -15,11 +13,11 @@ Class TextLine
   
   Static Function Prev(?TToken $Token):?TToken 
   {
-    If(!Self::IsIgnorable($Token)) Return $Token;
+    If(Valuable::Is($Token)) Return $Token;
   
     For($Item=$Token?->Prev; $Item; $Item=$Item->Prev)
     {
-      If(Self::IsIgnorable($Item)) Continue;
+      If(!Valuable::Is($Item)) Continue;
 
       If($Item->Line===$Token->Line) Return $Item;
       
@@ -30,11 +28,11 @@ Class TextLine
   
   Static Function Next(?TToken $Token):?TToken 
   {
-    If(!Self::IsIgnorable($Token)) Return $Token;
+    If(Valuable::Is($Token)) Return $Token;
     
     For($Item=$Token?->Next; $Item; $Item=$Item->Next)
     {
-      If(Self::IsIgnorable($Item)) Continue;
+      If(!Valuable::Is($Item)) Continue;
 
       If($Item->Line===$Token->Line) Return $Item;
       
