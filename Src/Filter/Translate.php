@@ -1,18 +1,26 @@
 <?
 namespace Reformat\Filter;
-use function Reformat\Log;
+
+Use Reformat\Using\TDependent As TUsingDependent ;
+Use Reformat\Using\TPoint     As TUsingPoint     ;
+Use Reformat\Using\TPoints    As TUsingPoints    ;
+
+Use Function Reformat\Log;
 
 $traslateUsingIn??=Null;
 
-class TTranslate Extends TBase
+/*
+ * This filter allow to create translation map for strings and comments
+ */
+Class TTranslate Extends TBase
 {
   Static Function GetName() { Return 'Translate'; }
   
-  Var $NeedToTranslate=[];
-  Var $TranslateFileName='.Translator.php';
-  Var $CurrentFile='';
-  Var $UsedIn=[];
-  Var $MyComment='//PHPFormatter: Translate file';
+  Var TUsingPoints $NeedToTranslate   ;
+  Var              $TranslateFileName ='.Translator.php';
+  Var              $CurrentFile       ='';
+  Var              $UsedIn            =[];
+  Var              $MyComment         ='//PHPFormatter: Translate file';
 
   Function Init($Source)
   {
@@ -24,10 +32,12 @@ class TTranslate Extends TBase
   {
     Self::SaveFile();
     $Res=Self::LoadFile();
-    If($Res!==$this->NeedToTranslate)
+    $Actual  =$Res                   ->ToCompare();
+    $Desired =$this->NeedToTranslate ->ToCompare();
+    If($Actual!==$Desired)
       Log('Error', 'Cant save translate file')->Debug([
-        'Desired' =>$this->NeedToTranslate,
-        'Actual'  =>$Res,
+        'Desired' =>$Desired ,
+        'Actual'  =>$Actual  ,
       ]);
     Parent::Dispose();
   }
@@ -52,33 +62,41 @@ class TTranslate Extends TBase
   }
   
   Function LoadFile()
-  { //TODO: Optimize: Loading not for each file
-    If(!Is_File($this->TranslateFileName)) Return [];
+  {
+    $Res=New TUsingPoints();
+    If(!Is_File($this->TranslateFileName)) Return $Res;
     
     $FileData=File_Get_Contents($this->TranslateFileName);
-    $Res=Eval(SubStr($FileData, 2));
-    If(!Is_Array($Res)) Return Log('Error', 'Wrong translater file')->Debug($Res)->Res([]);
-    $Convert=[];
-    ForEach($Res As $k=>$v)
+    $List=Eval(SubStr($FileData, 2));
+    If(!Is_Array($List)) Return Log('Error', 'Wrong translater file')->Debug($List)->Res($Res);
+    ForEach($List As $k=>$v)
     {
       If(Is_String($k) && Is_String($v))
       { //Old format
-        $Convert[$k]=$v;
+        $Res[$k]=[$k, $v];
         Continue;
       }
-      ElseIf(Is_Int($k) && Is_Array($v) && Count($v)===2 && Is_String($v[0]) && Is_String($v[1]))
+      ElseIf(Is_Int($k) && Is_Array($v) && Count($v)===2)
       { //New format
-        $Convert[$v[0]]=$v[1];
-        Continue;
+        If(Is_String($v[0]?? 0) && Is_String($v[1]?? 0))
+        {
+          $Res[$v[0]]=[$v[0], $v[1]];
+          Continue;
+        }
+        If(Is_String($v['From']?? 0) && Is_String($v['To']?? 0))
+        {
+          $Res[$v['From']]=[$v['From'], $v['To']];
+          Continue;
+        }
       }
       Log('Error', 'Wrong format')->Debug([$k=>$v]);
     }
-    Return $Convert;
+    Return $Res;
   }
   
   Function SaveFile()
   {
-    If(!$this->NeedToTranslate)
+    If($this->NeedToTranslate->IsEmpty())
     {
       @UnLink($this->TranslateFileName);
       Return;
@@ -86,10 +104,7 @@ class TTranslate Extends TBase
     $Res=['<? Return ['.$this->MyComment];
     ForEach($this->NeedToTranslate As $k=>$v)
     {
-      $UsedIn=[];      
-      ForEach($this->UsedIn[$k]?? [] As $Item)
-        If(Is_String($Item))
-          $UsedIn[]=$Item;
+      $UsedIn=$v->Make_UsedIn();
       If($UsedIn)
         $UsedIn='// ---------------- '.Implode(', ', $UsedIn);
       Else
@@ -97,10 +112,10 @@ class TTranslate Extends TBase
       
       $Res[]='['.$UsedIn;
       $Res[]='<<<\'TranslateFrom\'';
-      $Res[]=$k;
+      $Res[]=$v->Value[0];
       $Res[]='TranslateFrom,';
       $Res[]='<<<\'TranslateTo\'';
-      $Res[]=$v;
+      $Res[]=$v->Value[1];
       $Res[]='TranslateTo],';
     }
     $Res[]='];';
@@ -119,44 +134,14 @@ class TTranslate Extends TBase
     $Text=$Source=$IsComment? $Token->GetInnerText():$Token->Text;
     $OldText=$Text;
     If(!Preg_Match('/[\x80-\xFF]/', $Text)) Return;
-    $Text=$this->NeedToTranslate[$Text]?? $Text;
-    $this->NeedToTranslate[$Text]??=$Text;
-    
-    $this->AddUsing($Token);
+    $Point=$this->NeedToTranslate->Add($Text, [$Text, $Text]);
+    //TODO: Global $traslateUsingIn;
+    $Point->Add(New TUsingDependent($Token));
+    $Text=$Point->Value[1];
     If($Text!==$OldText) Return;
     If($IsComment)
       $Token->SetInnerText($Text);
     Else
       $Token->SetText($Text);
-  }
-  
-  Function AddUsing($Token)
-  {
-    $UsedIn=&$this->UsedIn[$Token->Text];
-    $UsedIn??=[];
-    
-    $FileName=$this->CurrentFile;
-    $Line=$Token->Line; //TODO: Real line
-    Switch($Token->Id)
-    {
-    Case T_COMMENT     : $Type='Rem'; Break;
-    Case T_DOC_COMMENT : $Type='Doc'; Break;
-    Default: $Type=UCWords(SubStr($Token->GetTokenName(), 2), ' _');
-    }
-
-    Global $traslateUsingIn;
-    If($traslateUsingIn)
-      If($traslateUsingIn($UsedIn, $FileName, $Line, $Type)===False)
-        Return;
-
-    $Key=$FileName.':'.$Line.$Type;
-    If(IsSet($UsedIn[$Key])) Return;
-    $UsedIn[$Key]=True;
-    $UsedLine=&$UsedIn[$FileName];
-    $UsedLine??=$FileName;
-    //TODO: $Type
-    If($Line>0)
-      $UsedLine.=':'.$Line;
-  //Log('Debug', 'Found: ', $Token->Text); //->Debug($this->NeedToTranslate);
   }
 }

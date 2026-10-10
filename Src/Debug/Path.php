@@ -1,7 +1,8 @@
 <?
 NameSpace Reformat\Debug;
 
-Use Reformat\Filter\TBase As TFilterBase;
+Use Reformat\Path\TTrace  As TPathTrace  ;
+Use Reformat\Filter\TBase As TFilterBase ;
 Use Function Reformat\Log;
 
 Class TPath Extends TFilterBase
@@ -22,7 +23,7 @@ Class TPath Extends TFilterBase
   
   Function CheckEvery($Token)
   {
-    $Path=New \Reformat\Path\TTrace();
+    $Path=New TPathTrace();
     $DebugPath=$Path->MakeBracesPath($Token);
   }
   
@@ -45,7 +46,7 @@ Class TPath Extends TFilterBase
         $Desired=SubStr($Desired, 0, $End);
     }
     
-    $Path=New \Reformat\Path\TTrace();
+    $Path=New TPathTrace();
     $DebugPath=$Path->MakeBracesPath($Token);
     $File=$Token->GetFilePos()->ToArgs();
     
